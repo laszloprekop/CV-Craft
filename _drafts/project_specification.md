@@ -40,3 +40,11 @@ Create a webapp which is based on standardized structured Markdown files and can
 
 ## Project Technical Requirements
 - Pick frameworks and tools which are easy for Claude Code to work with and debug errors (to ensure token-efficient, fast-paced development and minimize bugs, model decay and AI drift).
+
+## Reference Markdown source files
+- _drafts/laszlo_android_cv.md
+- 
+- _drafts/laszlo_frontend_cv.md
+
+## Reference Design PDF file
+- _drafts/CV_sample.pdf
