@@ -34,7 +34,7 @@ CV-Craft is a webapp for creating static CV websites and PDFs from structured Ma
   - `CVPreview.tsx` - Renders parsed CV HTML with styled-components
   - `EditorLeftHeader.tsx` / `EditorRightHeader.tsx` - Toolbar controls
   - `SettingsPanel.tsx` - Template customization (color pickers, settings)
-  - `ExportPanel.tsx` - PDF/HTML export controls
+  - `ExportPanel.tsx` - PDF/HTML export co≠ntrols
   - `AssetUploader.tsx` - Drag-drop file uploads
 - `services/` - API client wrappers
 - `hooks/` - Custom React hooks (debouncing, state management)
