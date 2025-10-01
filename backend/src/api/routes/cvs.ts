@@ -89,17 +89,18 @@ router.get('/:id', validateUuid('id'), asyncHandler(async (req, res) => {
  */
 router.put('/:id', validateUuid('id'), validateUpdateCV, asyncHandler(async (req, res) => {
   const { cvService } = getServices();
-  
+
   const updateData = {
     name: req.body.name,
     content: req.body.content,
     template_id: req.body.template_id,
     settings: req.body.settings,
+    config: req.body.config,
     status: req.body.status
   };
 
   const cv = await cvService.update(req.params.id, updateData);
-  
+
   res.json(createApiResponse(cv, 'CV updated successfully'));
 }));
 

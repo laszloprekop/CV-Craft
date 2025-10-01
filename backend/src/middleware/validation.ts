@@ -96,6 +96,7 @@ export const schemas = {
     content: Joi.string().min(1).optional(),
     template_id: Joi.string().trim().min(1).optional(),
     settings: Joi.object().optional(),
+    config: Joi.object().optional(),
     status: Joi.string().valid('active', 'archived').optional()
   }),
 
