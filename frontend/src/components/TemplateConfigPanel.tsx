@@ -1,0 +1,597 @@
+import React, { useState } from 'react';
+import { X } from '@phosphor-icons/react';
+import type { TemplateConfig } from '../../../shared/types';
+import {
+  ColorControl,
+  SelectControl,
+  SpacingControl,
+  ToggleControl,
+  NumberControl,
+  BoxModelControl,
+} from './controls';
+
+interface TemplateConfigPanelProps {
+  config: TemplateConfig;
+  onChange: (config: Partial<TemplateConfig>) => void;
+  onClose: () => void;
+}
+
+type TabType = 'colors' | 'typography' | 'layout' | 'components' | 'pdf' | 'advanced';
+
+export const TemplateConfigPanel: React.FC<TemplateConfigPanelProps> = ({
+  config,
+  onChange,
+  onClose,
+}) => {
+  const [activeTab, setActiveTab] = useState<TabType>('colors');
+
+  const tabs: { id: TabType; label: string }[] = [
+    { id: 'colors', label: 'Colors' },
+    { id: 'typography', label: 'Typography' },
+    { id: 'layout', label: 'Layout' },
+    { id: 'components', label: 'Components' },
+    { id: 'pdf', label: 'PDF' },
+    { id: 'advanced', label: 'Advanced' },
+  ];
+
+  // Helper to update nested config
+  const updateConfig = <K extends keyof TemplateConfig>(
+    section: K,
+    value: Partial<TemplateConfig[K]>
+  ) => {
+    onChange({
+      [section]: {
+        ...config[section],
+        ...value,
+      },
+    } as Partial<TemplateConfig>);
+  };
+
+  return (
+    <div className="fixed right-0 top-0 bottom-0 w-96 bg-background border-l border-border overflow-hidden z-50 flex flex-col">
+      {/* Header */}
+      <div className="p-4 border-b border-border flex items-center justify-between">
+        <h3 className="text-lg font-semibold text-text-primary">Template Configuration</h3>
+        <button
+          onClick={onClose}
+          className="bg-transparent border-none text-xl cursor-pointer p-1 hover:bg-surface rounded"
+        >
+          <X size={20} />
+        </button>
+      </div>
+
+      {/* Tabs */}
+      <div className="flex border-b border-border overflow-x-auto">
+        {tabs.map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            className={`px-4 py-2 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${
+              activeTab === tab.id
+                ? 'border-primary text-primary'
+                : 'border-transparent text-text-secondary hover:text-text-primary'
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Content */}
+      <div className="flex-1 overflow-y-auto p-4">
+        {activeTab === 'colors' && (
+          <div>
+            <h4 className="text-sm font-semibold text-text-primary mb-3">Main Colors</h4>
+            <ColorControl
+              label="Primary"
+              value={config.colors.primary}
+              onChange={(value) => updateConfig('colors', { primary: value })}
+            />
+            <ColorControl
+              label="Secondary"
+              value={config.colors.secondary}
+              onChange={(value) => updateConfig('colors', { secondary: value })}
+            />
+            <ColorControl
+              label="Accent"
+              value={config.colors.accent}
+              onChange={(value) => updateConfig('colors', { accent: value })}
+            />
+            <ColorControl
+              label="Background"
+              value={config.colors.background}
+              onChange={(value) => updateConfig('colors', { background: value })}
+            />
+
+            <h4 className="text-sm font-semibold text-text-primary mb-3 mt-6">Text Colors</h4>
+            <ColorControl
+              label="Primary Text"
+              value={config.colors.text.primary}
+              onChange={(value) =>
+                updateConfig('colors', {
+                  text: { ...config.colors.text, primary: value },
+                })
+              }
+            />
+            <ColorControl
+              label="Secondary Text"
+              value={config.colors.text.secondary}
+              onChange={(value) =>
+                updateConfig('colors', {
+                  text: { ...config.colors.text, secondary: value },
+                })
+              }
+            />
+            <ColorControl
+              label="Muted Text"
+              value={config.colors.text.muted}
+              onChange={(value) =>
+                updateConfig('colors', {
+                  text: { ...config.colors.text, muted: value },
+                })
+              }
+            />
+
+            <h4 className="text-sm font-semibold text-text-primary mb-3 mt-6">Other Colors</h4>
+            <ColorControl
+              label="Borders"
+              value={config.colors.borders}
+              onChange={(value) => updateConfig('colors', { borders: value })}
+            />
+            <ColorControl
+              label="Link (Default)"
+              value={config.colors.links.default}
+              onChange={(value) =>
+                updateConfig('colors', {
+                  links: { ...config.colors.links, default: value },
+                })
+              }
+            />
+            <ColorControl
+              label="Link (Hover)"
+              value={config.colors.links.hover}
+              onChange={(value) =>
+                updateConfig('colors', {
+                  links: { ...config.colors.links, hover: value },
+                })
+              }
+            />
+          </div>
+        )}
+
+        {activeTab === 'typography' && (
+          <div>
+            <h4 className="text-sm font-semibold text-text-primary mb-3">Font Families</h4>
+            <SelectControl
+              label="Heading Font"
+              value={config.typography.fontFamily.heading}
+              onChange={(value) =>
+                updateConfig('typography', {
+                  fontFamily: { ...config.typography.fontFamily, heading: value },
+                })
+              }
+              options={[
+                { value: 'Inter, system-ui, sans-serif', label: 'Inter' },
+                { value: 'Roboto, sans-serif', label: 'Roboto' },
+                { value: 'Georgia, serif', label: 'Georgia' },
+                { value: 'Playfair Display, serif', label: 'Playfair Display' },
+                { value: '"Times New Roman", serif', label: 'Times New Roman' },
+              ]}
+            />
+            <SelectControl
+              label="Body Font"
+              value={config.typography.fontFamily.body}
+              onChange={(value) =>
+                updateConfig('typography', {
+                  fontFamily: { ...config.typography.fontFamily, body: value },
+                })
+              }
+              options={[
+                { value: 'Georgia, serif', label: 'Georgia' },
+                { value: 'Inter, system-ui, sans-serif', label: 'Inter' },
+                { value: 'Roboto, sans-serif', label: 'Roboto' },
+                { value: '"Times New Roman", serif', label: 'Times New Roman' },
+                { value: 'Arial, sans-serif', label: 'Arial' },
+              ]}
+            />
+
+            <h4 className="text-sm font-semibold text-text-primary mb-3 mt-6">Font Sizes</h4>
+            <SpacingControl
+              label="H1 Size"
+              value={config.typography.fontSize.h1}
+              onChange={(value) =>
+                updateConfig('typography', {
+                  fontSize: { ...config.typography.fontSize, h1: value },
+                })
+              }
+            />
+            <SpacingControl
+              label="H2 Size"
+              value={config.typography.fontSize.h2}
+              onChange={(value) =>
+                updateConfig('typography', {
+                  fontSize: { ...config.typography.fontSize, h2: value },
+                })
+              }
+            />
+            <SpacingControl
+              label="H3 Size"
+              value={config.typography.fontSize.h3}
+              onChange={(value) =>
+                updateConfig('typography', {
+                  fontSize: { ...config.typography.fontSize, h3: value },
+                })
+              }
+            />
+            <SpacingControl
+              label="Body Size"
+              value={config.typography.fontSize.body}
+              onChange={(value) =>
+                updateConfig('typography', {
+                  fontSize: { ...config.typography.fontSize, body: value },
+                })
+              }
+            />
+
+            <h4 className="text-sm font-semibold text-text-primary mb-3 mt-6">Font Weights</h4>
+            <NumberControl
+              label="Heading Weight"
+              value={config.typography.fontWeight.heading}
+              onChange={(value) =>
+                updateConfig('typography', {
+                  fontWeight: { ...config.typography.fontWeight, heading: value },
+                })
+              }
+              min={100}
+              max={900}
+              step={100}
+            />
+            <NumberControl
+              label="Body Weight"
+              value={config.typography.fontWeight.body}
+              onChange={(value) =>
+                updateConfig('typography', {
+                  fontWeight: { ...config.typography.fontWeight, body: value },
+                })
+              }
+              min={100}
+              max={900}
+              step={100}
+            />
+
+            <h4 className="text-sm font-semibold text-text-primary mb-3 mt-6">Line Height</h4>
+            <NumberControl
+              label="Heading Line Height"
+              value={config.typography.lineHeight.heading}
+              onChange={(value) =>
+                updateConfig('typography', {
+                  lineHeight: { ...config.typography.lineHeight, heading: value },
+                })
+              }
+              min={1}
+              max={3}
+              step={0.1}
+            />
+            <NumberControl
+              label="Body Line Height"
+              value={config.typography.lineHeight.body}
+              onChange={(value) =>
+                updateConfig('typography', {
+                  lineHeight: { ...config.typography.lineHeight, body: value },
+                })
+              }
+              min={1}
+              max={3}
+              step={0.1}
+            />
+          </div>
+        )}
+
+        {activeTab === 'layout' && (
+          <div>
+            <SpacingControl
+              label="Page Width"
+              value={config.layout.pageWidth}
+              onChange={(value) =>
+                updateConfig('layout', { pageWidth: value })
+              }
+              units={['mm', 'px', 'rem']}
+            />
+
+            <BoxModelControl
+              label="Page Margins"
+              value={config.layout.pageMargin}
+              onChange={(value) =>
+                updateConfig('layout', { pageMargin: value })
+              }
+              type="margin"
+            />
+
+            <SpacingControl
+              label="Section Spacing"
+              value={config.layout.sectionSpacing}
+              onChange={(value) =>
+                updateConfig('layout', { sectionSpacing: value })
+              }
+            />
+
+            <SpacingControl
+              label="Paragraph Spacing"
+              value={config.layout.paragraphSpacing}
+              onChange={(value) =>
+                updateConfig('layout', { paragraphSpacing: value })
+              }
+            />
+
+            <h4 className="text-sm font-semibold text-text-primary mb-3 mt-6">Columns</h4>
+            <ToggleControl
+              label="Enable Columns"
+              value={config.layout.columns?.enabled || false}
+              onChange={(value) =>
+                updateConfig('layout', {
+                  columns: { ...config.layout.columns, enabled: value } as any,
+                })
+              }
+            />
+            {config.layout.columns?.enabled && (
+              <>
+                <SpacingControl
+                  label="Column Gap"
+                  value={config.layout.columns.gap || '24px'}
+                  onChange={(value) =>
+                    updateConfig('layout', {
+                      columns: { ...config.layout.columns, gap: value } as any,
+                    })
+                  }
+                />
+                <SelectControl
+                  label="Column Ratio"
+                  value={config.layout.columns.ratio || '1:1'}
+                  onChange={(value) =>
+                    updateConfig('layout', {
+                      columns: { ...config.layout.columns, ratio: value } as any,
+                    })
+                  }
+                  options={[
+                    { value: '1:1', label: '1:1 (Equal)' },
+                    { value: '1:2', label: '1:2 (Sidebar Left)' },
+                    { value: '2:1', label: '2:1 (Sidebar Right)' },
+                    { value: '1:3', label: '1:3 (Narrow Left)' },
+                    { value: '3:1', label: '3:1 (Narrow Right)' },
+                  ]}
+                />
+              </>
+            )}
+          </div>
+        )}
+
+        {activeTab === 'components' && (
+          <div>
+            <h4 className="text-sm font-semibold text-text-primary mb-3">Header</h4>
+            <SelectControl
+              label="Alignment"
+              value={config.components.header.alignment}
+              onChange={(value) =>
+                updateConfig('components', {
+                  header: { ...config.components.header, alignment: value as any },
+                })
+              }
+              options={[
+                { value: 'left', label: 'Left' },
+                { value: 'center', label: 'Center' },
+                { value: 'right', label: 'Right' },
+              ]}
+            />
+
+            <h4 className="text-sm font-semibold text-text-primary mb-3 mt-6">Tags</h4>
+            <ColorControl
+              label="Background Color"
+              value={config.components.tags.backgroundColor}
+              onChange={(value) =>
+                updateConfig('components', {
+                  tags: { ...config.components.tags, backgroundColor: value },
+                })
+              }
+            />
+            <ColorControl
+              label="Text Color"
+              value={config.components.tags.textColor}
+              onChange={(value) =>
+                updateConfig('components', {
+                  tags: { ...config.components.tags, textColor: value },
+                })
+              }
+            />
+            <SpacingControl
+              label="Border Radius"
+              value={config.components.tags.borderRadius}
+              onChange={(value) =>
+                updateConfig('components', {
+                  tags: { ...config.components.tags, borderRadius: value },
+                })
+              }
+            />
+
+            <h4 className="text-sm font-semibold text-text-primary mb-3 mt-6">Date Line</h4>
+            <ColorControl
+              label="Color"
+              value={config.components.dateLine.color}
+              onChange={(value) =>
+                updateConfig('components', {
+                  dateLine: { ...config.components.dateLine, color: value },
+                })
+              }
+            />
+            <SelectControl
+              label="Font Style"
+              value={config.components.dateLine.fontStyle}
+              onChange={(value) =>
+                updateConfig('components', {
+                  dateLine: { ...config.components.dateLine, fontStyle: value as any },
+                })
+              }
+              options={[
+                { value: 'normal', label: 'Normal' },
+                { value: 'italic', label: 'Italic' },
+              ]}
+            />
+            <SelectControl
+              label="Alignment"
+              value={config.components.dateLine.alignment}
+              onChange={(value) =>
+                updateConfig('components', {
+                  dateLine: { ...config.components.dateLine, alignment: value as any },
+                })
+              }
+              options={[
+                { value: 'left', label: 'Left' },
+                { value: 'right', label: 'Right' },
+              ]}
+            />
+
+            <h4 className="text-sm font-semibold text-text-primary mb-3 mt-6">Links</h4>
+            <ToggleControl
+              label="Underline Links"
+              value={config.components.links.underline}
+              onChange={(value) =>
+                updateConfig('components', {
+                  links: { ...config.components.links, underline: value },
+                })
+              }
+            />
+          </div>
+        )}
+
+        {activeTab === 'pdf' && (
+          <div>
+            <SelectControl
+              label="Page Size"
+              value={config.pdf.pageSize}
+              onChange={(value) =>
+                updateConfig('pdf', { pageSize: value as any })
+              }
+              options={[
+                { value: 'A4', label: 'A4 (210 x 297 mm)' },
+                { value: 'Letter', label: 'Letter (8.5 x 11 in)' },
+                { value: 'Legal', label: 'Legal (8.5 x 14 in)' },
+              ]}
+            />
+            <SelectControl
+              label="Orientation"
+              value={config.pdf.orientation}
+              onChange={(value) =>
+                updateConfig('pdf', { orientation: value as any })
+              }
+              options={[
+                { value: 'portrait', label: 'Portrait' },
+                { value: 'landscape', label: 'Landscape' },
+              ]}
+            />
+            <ToggleControl
+              label="Print Color Adjust"
+              value={config.pdf.printColorAdjust}
+              onChange={(value) =>
+                updateConfig('pdf', { printColorAdjust: value })
+              }
+              description="Preserve colors when printing"
+            />
+
+            <h4 className="text-sm font-semibold text-text-primary mb-3 mt-6">Page Numbers</h4>
+            <ToggleControl
+              label="Show Page Numbers"
+              value={config.pdf.pageNumbers.enabled}
+              onChange={(value) =>
+                updateConfig('pdf', {
+                  pageNumbers: { ...config.pdf.pageNumbers, enabled: value },
+                })
+              }
+            />
+            {config.pdf.pageNumbers.enabled && (
+              <SelectControl
+                label="Position"
+                value={config.pdf.pageNumbers.position}
+                onChange={(value) =>
+                  updateConfig('pdf', {
+                    pageNumbers: { ...config.pdf.pageNumbers, position: value as any },
+                  })
+                }
+                options={[
+                  { value: 'top-left', label: 'Top Left' },
+                  { value: 'top-center', label: 'Top Center' },
+                  { value: 'top-right', label: 'Top Right' },
+                  { value: 'bottom-left', label: 'Bottom Left' },
+                  { value: 'bottom-center', label: 'Bottom Center' },
+                  { value: 'bottom-right', label: 'Bottom Right' },
+                ]}
+              />
+            )}
+          </div>
+        )}
+
+        {activeTab === 'advanced' && (
+          <div>
+            <SelectControl
+              label="Icon Set"
+              value={config.advanced?.iconSet || 'phosphor'}
+              onChange={(value) =>
+                updateConfig('advanced', {
+                  ...config.advanced,
+                  iconSet: value as any,
+                })
+              }
+              options={[
+                { value: 'phosphor', label: 'Phosphor Icons' },
+                { value: 'lucide', label: 'Lucide Icons' },
+                { value: 'feather', label: 'Feather Icons' },
+                { value: 'none', label: 'None' },
+              ]}
+            />
+            <ToggleControl
+              label="Enable Animations"
+              value={config.advanced?.animations || false}
+              onChange={(value) =>
+                updateConfig('advanced', {
+                  ...config.advanced,
+                  animations: value,
+                })
+              }
+              description="Add subtle animations to the CV"
+            />
+            <ToggleControl
+              label="Enable Shadows"
+              value={config.advanced?.shadows || false}
+              onChange={(value) =>
+                updateConfig('advanced', {
+                  ...config.advanced,
+                  shadows: value,
+                })
+              }
+              description="Add shadow effects to elements"
+            />
+
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-text-primary mb-2">
+                Custom CSS
+              </label>
+              <p className="text-xs text-text-secondary mb-2">
+                Add custom CSS rules (use with caution)
+              </p>
+              <textarea
+                value={config.advanced?.customCSS || ''}
+                onChange={(e) =>
+                  updateConfig('advanced', {
+                    ...config.advanced,
+                    customCSS: e.target.value,
+                  })
+                }
+                rows={8}
+                className="w-full px-3 py-2 text-sm font-mono border border-border rounded bg-background text-text-primary focus:outline-none focus:border-primary"
+                placeholder="/* Add custom CSS here */"
+              />
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};

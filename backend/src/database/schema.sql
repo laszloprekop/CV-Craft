@@ -13,7 +13,8 @@ CREATE TABLE IF NOT EXISTS cv_instances (
     content TEXT NOT NULL,
     parsed_content TEXT, -- JSON
     template_id TEXT NOT NULL,
-    settings TEXT, -- JSON (TemplateSettings)
+    config TEXT, -- JSON (TemplateConfig) - new comprehensive configuration
+    settings TEXT, -- JSON (TemplateSettings) - legacy support
     status TEXT CHECK(status IN ('active', 'archived', 'deleted')) DEFAULT 'active',
     created_at INTEGER NOT NULL, -- Unix timestamp
     updated_at INTEGER NOT NULL, -- Unix timestamp
@@ -29,7 +30,8 @@ CREATE TABLE IF NOT EXISTS templates (
     description TEXT,
     css TEXT NOT NULL,
     config_schema TEXT NOT NULL, -- JSON Schema
-    default_settings TEXT NOT NULL, -- JSON (TemplateSettings)
+    default_config TEXT NOT NULL, -- JSON (TemplateConfig) - new comprehensive configuration
+    default_settings TEXT NOT NULL, -- JSON (TemplateSettings) - legacy support
     preview_image TEXT,
     is_active INTEGER DEFAULT 1,
     created_at INTEGER NOT NULL,

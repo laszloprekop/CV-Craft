@@ -5,7 +5,7 @@
  */
 
 import Database from 'better-sqlite3';
-import type { Template, TemplateConfigSchema, TemplateSettings } from '../../../shared/types';
+import type { Template, TemplateConfig, TemplateConfigSchema, TemplateSettings } from '../../../shared/types';
 
 export interface CreateTemplateData {
   id: string;
@@ -13,6 +13,7 @@ export interface CreateTemplateData {
   description?: string;
   css: string;
   config_schema: TemplateConfigSchema;
+  default_config: TemplateConfig;
   default_settings: TemplateSettings;
   preview_image?: string;
   version: string;
@@ -23,6 +24,7 @@ export interface UpdateTemplateData {
   description?: string;
   css?: string;
   config_schema?: TemplateConfigSchema;
+  default_config?: TemplateConfig;
   default_settings?: TemplateSettings;
   preview_image?: string;
   is_active?: boolean;
@@ -48,9 +50,9 @@ export class TemplateModel {
     
     const stmt = this.db.prepare(`
       INSERT INTO templates (
-        id, name, description, css, config_schema, default_settings,
+        id, name, description, css, config_schema, default_config, default_settings,
         preview_image, is_active, created_at, version
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, 1, ?, ?)
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?)
     `);
 
     const result = stmt.run(
@@ -59,6 +61,7 @@ export class TemplateModel {
       data.description || null,
       data.css,
       JSON.stringify(data.config_schema),
+      JSON.stringify(data.default_config),
       JSON.stringify(data.default_settings),
       data.preview_image || null,
       now,
@@ -152,6 +155,11 @@ export class TemplateModel {
       updateValues.push(JSON.stringify(data.config_schema));
     }
 
+    if (data.default_config !== undefined) {
+      updateFields.push('default_config = ?');
+      updateValues.push(JSON.stringify(data.default_config));
+    }
+
     if (data.default_settings !== undefined) {
       updateFields.push('default_settings = ?');
       updateValues.push(JSON.stringify(data.default_settings));
@@ -240,12 +248,16 @@ export class TemplateModel {
    * Map database row to Template object
    */
   private mapRowToTemplate(row: any): Template {
+    // Import DEFAULT_TEMPLATE_CONFIG for fallback
+    const { DEFAULT_TEMPLATE_CONFIG } = require('../../../shared/types/defaultTemplateConfig');
+
     return {
       id: row.id,
       name: row.name,
       description: row.description,
       css: row.css,
       config_schema: JSON.parse(row.config_schema),
+      default_config: row.default_config ? JSON.parse(row.default_config) : DEFAULT_TEMPLATE_CONFIG,
       default_settings: JSON.parse(row.default_settings),
       preview_image: row.preview_image,
       is_active: Boolean(row.is_active),

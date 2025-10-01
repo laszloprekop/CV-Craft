@@ -5,7 +5,8 @@
  */
 
 import { TemplateModel, CreateTemplateData, UpdateTemplateData, ListTemplatesOptions } from '../models/Template';
-import type { Template, TemplateConfigSchema, TemplateSettings } from '../../../shared/types';
+import type { Template, TemplateConfig, TemplateConfigSchema, TemplateSettings } from '../../../shared/types';
+import { DEFAULT_TEMPLATE_CONFIG } from '../../../shared/types';
 import { v4 as uuidv4 } from 'uuid';
 
 export interface CreateTemplateServiceData {
@@ -13,6 +14,7 @@ export interface CreateTemplateServiceData {
   description?: string;
   css: string;
   config_schema: TemplateConfigSchema;
+  default_config?: TemplateConfig;
   default_settings: TemplateSettings;
   preview_image?: string;
   version?: string;
@@ -23,6 +25,7 @@ export interface UpdateTemplateServiceData {
   description?: string;
   css?: string;
   config_schema?: TemplateConfigSchema;
+  default_config?: TemplateConfig;
   default_settings?: TemplateSettings;
   preview_image?: string;
   is_active?: boolean;
@@ -54,6 +57,7 @@ export class TemplateService {
       description: data.description,
       css: processedCSS,
       config_schema: data.config_schema,
+      default_config: data.default_config || DEFAULT_TEMPLATE_CONFIG,
       default_settings: data.default_settings,
       preview_image: data.preview_image,
       version: data.version || '1.0.0'
@@ -109,6 +113,10 @@ export class TemplateService {
       // If config schema is being updated, validate current default settings still work
       const settingsToValidate = data.default_settings || existingTemplate.default_settings;
       this.validateSettings(settingsToValidate, data.config_schema);
+    }
+
+    if (data.default_config !== undefined) {
+      updateData.default_config = data.default_config;
     }
 
     if (data.default_settings !== undefined) {

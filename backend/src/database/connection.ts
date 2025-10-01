@@ -121,9 +121,12 @@ export class DatabaseManager {
     // Insert default template using prepared statement (ignore if already exists)
     const insertTemplate = this.db.prepare(`
       INSERT OR IGNORE INTO templates (
-        id, name, description, css, config_schema, default_settings, is_active, created_at, version
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        id, name, description, css, config_schema, default_config, default_settings, is_active, created_at, version
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
+
+    // Import default config
+    const { DEFAULT_TEMPLATE_CONFIG } = require('../../../shared/types/defaultTemplateConfig');
 
     const defaultTemplate = {
       id: 'default-modern',
@@ -142,9 +145,10 @@ export class DatabaseManager {
           bodyFontSize: { type: "number", default: 14 }
         }
       }),
+      default_config: JSON.stringify(DEFAULT_TEMPLATE_CONFIG),
       default_settings: JSON.stringify({
         primaryColor: "#2563eb",
-        accentColor: "#059669", 
+        accentColor: "#059669",
         backgroundColor: "#ffffff",
         surfaceColor: "#ffffff",
         fontFamily: "Inter",
@@ -158,7 +162,7 @@ export class DatabaseManager {
         emojiStyle: "none",
         pageMargins: {
           top: "2cm",
-          bottom: "2cm", 
+          bottom: "2cm",
           left: "2cm",
           right: "2cm"
         }
@@ -176,6 +180,7 @@ export class DatabaseManager {
         defaultTemplate.description,
         defaultTemplate.css,
         defaultTemplate.config_schema,
+        defaultTemplate.default_config,
         defaultTemplate.default_settings,
         defaultTemplate.is_active,
         defaultTemplate.created_at,

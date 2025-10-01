@@ -197,15 +197,10 @@ export class CVCraftApp {
         })
         .on('error', (err: NodeJS.ErrnoException) => {
           if (err.code === 'EADDRINUSE') {
-            console.log(`⚠️  Port ${this.config.port} is already in use. Trying next available port...`);
-            // Try next port
-            this.config.port = (this.config.port || 3001) + 1;
-            if (this.config.port > 3010) {
-              reject(new Error('No available ports found between 3001-3010'));
-              return;
-            }
-            // Recursive retry with next port
-            this.start().then(resolve).catch(reject);
+            console.error(`❌ Port ${this.config.port} is already in use.`);
+            console.error(`   Please stop the process using this port and try again.`);
+            console.error(`   Run: lsof -ti:${this.config.port} | xargs kill -9`);
+            reject(new Error(`Port ${this.config.port} is already in use`));
           } else {
             reject(err);
           }

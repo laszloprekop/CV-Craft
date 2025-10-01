@@ -6,13 +6,14 @@
 
 import Database from 'better-sqlite3';
 import { v4 as uuidv4 } from 'uuid';
-import type { CVInstance, TemplateSettings, ParsedCVContent } from '../../../shared/types';
+import type { CVInstance, TemplateConfig, TemplateSettings, ParsedCVContent } from '../../../shared/types';
 
 export interface CreateCVInstanceData {
   name: string;
   content: string;
   parsed_content?: ParsedCVContent;
   template_id: string;
+  config?: TemplateConfig;
   settings?: TemplateSettings;
   metadata?: Record<string, any>;
 }
@@ -22,6 +23,7 @@ export interface UpdateCVInstanceData {
   content?: string;
   parsed_content?: ParsedCVContent;
   template_id?: string;
+  config?: TemplateConfig;
   settings?: TemplateSettings;
   status?: 'active' | 'archived';
   metadata?: Record<string, any>;
@@ -55,6 +57,7 @@ export class CVInstanceModel {
       content: data.content,
       parsed_content: data.parsed_content ? JSON.stringify(data.parsed_content) : null,
       template_id: data.template_id,
+      config: data.config ? JSON.stringify(data.config) : null,
       settings: data.settings ? JSON.stringify(data.settings) : null,
       status: 'active',
       created_at: now,
@@ -79,9 +82,9 @@ export class CVInstanceModel {
       // Insert CV instance
       const stmt = this.db.prepare(`
         INSERT INTO cv_instances (
-          id, name, content, parsed_content, template_id, settings, status, created_at, updated_at, metadata
+          id, name, content, parsed_content, template_id, config, settings, status, created_at, updated_at, metadata
         ) VALUES (
-          @id, @name, @content, @parsed_content, @template_id, @settings, @status, @created_at, @updated_at, @metadata
+          @id, @name, @content, @parsed_content, @template_id, @config, @settings, @status, @created_at, @updated_at, @metadata
         )
       `);
 
@@ -206,6 +209,10 @@ export class CVInstanceModel {
     if (data.template_id !== undefined) {
       updates.push('template_id = @template_id');
       params.template_id = data.template_id;
+    }
+    if (data.config !== undefined) {
+      updates.push('config = @config');
+      params.config = JSON.stringify(data.config);
     }
     if (data.settings !== undefined) {
       updates.push('settings = @settings');
@@ -340,6 +347,7 @@ export class CVInstanceModel {
       content: row.content,
       parsed_content: row.parsed_content ? JSON.parse(row.parsed_content) : undefined,
       template_id: row.template_id,
+      config: row.config ? JSON.parse(row.config) : undefined,
       settings: row.settings ? JSON.parse(row.settings) : {},
       status: row.status,
       created_at: new Date(row.created_at).toISOString(),
