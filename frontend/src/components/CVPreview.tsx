@@ -414,6 +414,7 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
                     className="font-bold uppercase tracking-wide mb-2"
                     style={{
                       fontSize: templateStyles['--title-font-size'],
+                      fontFamily: templateStyles['--heading-font-family'],
                       color: templateStyles['--primary-color'] || '#1f2937'
                     }}
                   >
@@ -445,6 +446,7 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
                   <h2
                     className="text-lg font-bold uppercase tracking-wide mb-3 pb-1"
                     style={{
+                      fontFamily: templateStyles['--heading-font-family'],
                       color: templateStyles['--primary-color'] || '#1f2937',
                       borderBottom: `1px solid ${templateStyles['--accent-color'] || '#6b7280'}`
                     }}
@@ -482,6 +484,7 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
                         className="font-bold text-center mb-2"
                         style={{
                           fontSize: templateStyles['--title-font-size'],
+                          fontFamily: templateStyles['--heading-font-family'],
                           color: '#4a3d2a'
                         }}
                       >
@@ -521,6 +524,7 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
                     <h3
                       className="text-sm font-bold uppercase tracking-wide mb-3 px-3 py-1 rounded"
                       style={{
+                        fontFamily: templateStyles['--heading-font-family'],
                         color: '#ffffff',
                         backgroundColor: templateStyles['--accent-color'] as string || '#c4956c'
                       }}
@@ -551,6 +555,7 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
                       className="font-bold uppercase tracking-wide mb-2"
                       style={{
                         fontSize: templateStyles['--title-font-size'],
+                        fontFamily: templateStyles['--heading-font-family'],
                         color: '#4a3d2a'
                       }}
                     >
@@ -576,6 +581,7 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
                     <h3
                       className="text-base font-bold uppercase tracking-wide mb-3 px-3 py-1 rounded"
                       style={{
+                        fontFamily: templateStyles['--heading-font-family'],
                         color: '#ffffff',
                         backgroundColor: templateStyles['--primary-color'] as string || '#a8956b'
                       }}
@@ -746,7 +752,7 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
           <div className="p-8">
             {/* Header */}
             <header className="text-center mb-6 pb-4" style={{ borderBottom: `2px solid ${templateStyles['--accent-color']}` }}>
-              <h1 className="text-3xl font-bold mb-2" style={{ color: templateStyles['--primary-color'], fontSize: templateStyles['--title-font-size'] }}>
+              <h1 className="text-3xl font-bold mb-2" style={{ fontFamily: templateStyles['--heading-font-family'], color: templateStyles['--primary-color'], fontSize: templateStyles['--title-font-size'] }}>
                 {frontmatter.name || 'Your Name'}
               </h1>
               {frontmatter.title && (
@@ -764,6 +770,7 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
             {sections.map((section, index) => (
               <section key={index} className="mb-6">
                 <h2 className="text-xl font-semibold mb-3 pb-1" style={{
+                  fontFamily: templateStyles['--heading-font-family'],
                   color: templateStyles['--primary-color'],
                   borderBottom: `1px solid ${templateStyles['--accent-color']}`
                 }}>
@@ -894,6 +901,7 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
                 <h3
                   className="text-sm font-bold uppercase tracking-wide mb-3 px-3 py-1 rounded"
                   style={{
+                    fontFamily: templateStyles['--heading-font-family'],
                     color: '#ffffff',
                     backgroundColor: templateStyles['--accent-color'] as string || '#c4956c'
                   }}
@@ -951,6 +959,7 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
                   className="font-bold uppercase tracking-wide mb-2"
                   style={{
                     fontSize: templateStyles['--title-font-size'],
+                    fontFamily: templateStyles['--heading-font-family'],
                     color: templateStyles['--primary-color'] || '#1f2937'
                   }}
                 >
@@ -977,6 +986,7 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
                 <h3
                   className="text-base font-bold uppercase tracking-wide mb-3 px-3 py-1 rounded"
                   style={{
+                    fontFamily: templateStyles['--heading-font-family'],
                     color: '#ffffff',
                     backgroundColor: templateStyles['--primary-color'] as string || '#a8956b'
                   }}
