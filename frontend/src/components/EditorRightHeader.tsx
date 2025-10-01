@@ -4,17 +4,18 @@
  */
 
 import React from 'react'
-import { 
-  Gear, 
-  ArrowsHorizontal, 
-  ArrowsVertical, 
+import {
+  Gear,
+  ArrowsHorizontal,
+  ArrowsVertical,
   MagnifyingGlass,
   Globe,
   FilePdf,
   FloppyDisk,
   Package,
   Minus,
-  Plus
+  Plus,
+  Sidebar
 } from '@phosphor-icons/react'
 
 
@@ -29,6 +30,7 @@ interface EditorRightHeaderProps {
   zoomPercentage?: number
   isSaving?: boolean
   lastSaved?: string
+  showEditor?: boolean
   onTemplateChange?: (templateId: string) => void
   onSettingsClick?: () => void
   onPreviewModeChange?: (mode: PreviewMode) => void
@@ -38,6 +40,7 @@ interface EditorRightHeaderProps {
   onPDFExport?: () => void
   onWebExport?: () => void
   onSave?: () => void
+  onToggleEditor?: () => void
 }
 
 export const EditorRightHeader: React.FC<EditorRightHeaderProps> = ({
@@ -48,6 +51,7 @@ export const EditorRightHeader: React.FC<EditorRightHeaderProps> = ({
   zoomPercentage = 100,
   isSaving = false,
   lastSaved,
+  showEditor = true,
   onTemplateChange,
   onSettingsClick,
   onPreviewModeChange,
@@ -56,7 +60,8 @@ export const EditorRightHeader: React.FC<EditorRightHeaderProps> = ({
   onZoomOut,
   onPDFExport,
   onWebExport,
-  onSave
+  onSave,
+  onToggleEditor
 }) => {
   const formatLastSaved = (timestamp?: string) => {
     if (!timestamp) return ''
@@ -72,10 +77,24 @@ export const EditorRightHeader: React.FC<EditorRightHeaderProps> = ({
 
   return (
     <div className="flex items-center justify-between px-3 py-2 border-b border-border bg-surface gap-3">
-      {/* Left Section: Template & Settings */}
+      {/* Left Section: Toggle Editor, Template & Settings */}
       <div className="flex items-center gap-1">
-        <select 
-          value={templateId || ""} 
+        <button
+          onClick={onToggleEditor}
+          title={showEditor ? "Hide editor" : "Show editor"}
+          className={`flex items-center gap-0.5 px-1.5 py-1 text-xs border rounded transition-all duration-150 ${
+            showEditor
+              ? 'bg-primary text-text-inverse border-primary'
+              : 'bg-transparent text-text-primary border-border hover:bg-background hover:border-primary'
+          }`}
+        >
+          <Sidebar size={14} />
+        </button>
+
+        <div className="w-px h-4 bg-border mx-0.5" />
+
+        <select
+          value={templateId || ""}
           onChange={(e) => onTemplateChange?.(e.target.value)}
           className="px-1.5 py-1 text-xs border border-border rounded bg-background text-text-primary cursor-pointer focus:outline-none focus:border-primary"
         >
@@ -87,8 +106,8 @@ export const EditorRightHeader: React.FC<EditorRightHeaderProps> = ({
           ))}
         </select>
 
-        <button 
-          onClick={onSettingsClick} 
+        <button
+          onClick={onSettingsClick}
           title="Template settings"
           className="flex items-center gap-1 px-1.5 py-1 text-xs border border-border rounded bg-transparent text-text-primary hover:bg-background hover:border-primary transition-all duration-150"
         >

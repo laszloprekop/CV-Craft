@@ -49,15 +49,15 @@ export const TemplateConfigPanel: React.FC<TemplateConfigPanelProps> = ({
   };
 
   return (
-    <div className="fixed right-0 top-0 bottom-0 w-96 bg-background border-l border-border overflow-hidden z-50 flex flex-col">
+    <div className="fixed right-0 top-0 bottom-0 w-[280px] bg-background border-l border-border overflow-hidden z-50 flex flex-col">
       {/* Header */}
-      <div className="p-4 border-b border-border flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-text-primary">Template Configuration</h3>
+      <div className="px-2 py-2 border-b border-border flex items-center justify-between">
+        <h3 className="text-sm font-semibold text-text-primary">Template Config</h3>
         <button
           onClick={onClose}
-          className="bg-transparent border-none text-xl cursor-pointer p-1 hover:bg-surface rounded"
+          className="bg-transparent border-none cursor-pointer p-1 hover:bg-surface rounded"
         >
-          <X size={20} />
+          <X size={16} />
         </button>
       </div>
 
@@ -67,7 +67,7 @@ export const TemplateConfigPanel: React.FC<TemplateConfigPanelProps> = ({
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`px-4 py-2 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${
+            className={`px-2 py-1.5 text-xs font-medium whitespace-nowrap border-b-2 transition-colors ${
               activeTab === tab.id
                 ? 'border-primary text-primary'
                 : 'border-transparent text-text-secondary hover:text-text-primary'
@@ -79,10 +79,10 @@ export const TemplateConfigPanel: React.FC<TemplateConfigPanelProps> = ({
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto p-4">
+      <div className="flex-1 overflow-y-auto px-2 py-2">
         {activeTab === 'colors' && (
           <div>
-            <h4 className="text-sm font-semibold text-text-primary mb-3">Main Colors</h4>
+            <h4 className="text-xs font-semibold text-text-primary mb-1.5">Main Colors</h4>
             <ColorControl
               label="Primary"
               value={config.colors.primary}
@@ -104,7 +104,7 @@ export const TemplateConfigPanel: React.FC<TemplateConfigPanelProps> = ({
               onChange={(value) => updateConfig('colors', { background: value })}
             />
 
-            <h4 className="text-sm font-semibold text-text-primary mb-3 mt-6">Text Colors</h4>
+            <h4 className="text-xs font-semibold text-text-primary mb-1.5 mt-3">Text Colors</h4>
             <ColorControl
               label="Primary Text"
               value={config.colors.text.primary}
@@ -133,7 +133,7 @@ export const TemplateConfigPanel: React.FC<TemplateConfigPanelProps> = ({
               }
             />
 
-            <h4 className="text-sm font-semibold text-text-primary mb-3 mt-6">Other Colors</h4>
+            <h4 className="text-xs font-semibold text-text-primary mb-1.5 mt-3">Other Colors</h4>
             <ColorControl
               label="Borders"
               value={config.colors.borders}
@@ -162,7 +162,7 @@ export const TemplateConfigPanel: React.FC<TemplateConfigPanelProps> = ({
 
         {activeTab === 'typography' && (
           <div>
-            <h4 className="text-sm font-semibold text-text-primary mb-3">Font Families</h4>
+            <h4 className="text-xs font-semibold text-text-primary mb-1.5">Font Families</h4>
             <FontSelector
               label="Heading Font"
               value={config.typography.fontFamily.heading}
@@ -186,7 +186,7 @@ export const TemplateConfigPanel: React.FC<TemplateConfigPanelProps> = ({
               description="Font used for body text and descriptions"
             />
 
-            <h4 className="text-sm font-semibold text-text-primary mb-3 mt-6">Font Sizes</h4>
+            <h4 className="text-xs font-semibold text-text-primary mb-1.5 mt-3">Font Sizes</h4>
             <SpacingControl
               label="H1 Size"
               value={config.typography.fontSize.h1}
@@ -224,7 +224,7 @@ export const TemplateConfigPanel: React.FC<TemplateConfigPanelProps> = ({
               }
             />
 
-            <h4 className="text-sm font-semibold text-text-primary mb-3 mt-6">Font Weights</h4>
+            <h4 className="text-xs font-semibold text-text-primary mb-1.5 mt-3">Font Weights</h4>
             <NumberControl
               label="Heading Weight"
               value={config.typography.fontWeight.heading}
@@ -250,7 +250,7 @@ export const TemplateConfigPanel: React.FC<TemplateConfigPanelProps> = ({
               step={100}
             />
 
-            <h4 className="text-sm font-semibold text-text-primary mb-3 mt-6">Line Height</h4>
+            <h4 className="text-xs font-semibold text-text-primary mb-1.5 mt-3">Line Height</h4>
             <NumberControl
               label="Heading Line Height"
               value={config.typography.lineHeight.heading}
@@ -314,7 +314,7 @@ export const TemplateConfigPanel: React.FC<TemplateConfigPanelProps> = ({
               }
             />
 
-            <h4 className="text-sm font-semibold text-text-primary mb-3 mt-6">Columns</h4>
+            <h4 className="text-xs font-semibold text-text-primary mb-1.5 mt-3">Columns</h4>
             <ToggleControl
               label="Enable Columns"
               value={config.layout.columns?.enabled || false}
@@ -358,7 +358,7 @@ export const TemplateConfigPanel: React.FC<TemplateConfigPanelProps> = ({
 
         {activeTab === 'components' && (
           <div>
-            <h4 className="text-sm font-semibold text-text-primary mb-3">Header</h4>
+            <h4 className="text-xs font-semibold text-text-primary mb-1.5">Header</h4>
             <SelectControl
               label="Alignment"
               value={config.components.header.alignment}
@@ -374,7 +374,7 @@ export const TemplateConfigPanel: React.FC<TemplateConfigPanelProps> = ({
               ]}
             />
 
-            <h4 className="text-sm font-semibold text-text-primary mb-3 mt-6">Tags</h4>
+            <h4 className="text-xs font-semibold text-text-primary mb-1.5 mt-3">Tags</h4>
             <ColorControl
               label="Background Color"
               value={config.components.tags.backgroundColor}
@@ -436,7 +436,7 @@ export const TemplateConfigPanel: React.FC<TemplateConfigPanelProps> = ({
               />
             )}
 
-            <h4 className="text-sm font-semibold text-text-primary mb-3 mt-6">Date Line</h4>
+            <h4 className="text-xs font-semibold text-text-primary mb-1.5 mt-3">Date Line</h4>
             <ColorControl
               label="Color"
               value={config.components.dateLine.color}
@@ -473,7 +473,7 @@ export const TemplateConfigPanel: React.FC<TemplateConfigPanelProps> = ({
               ]}
             />
 
-            <h4 className="text-sm font-semibold text-text-primary mb-3 mt-6">Links</h4>
+            <h4 className="text-xs font-semibold text-text-primary mb-1.5 mt-3">Links</h4>
             <ToggleControl
               label="Underline Links"
               value={config.components.links.underline}
@@ -520,7 +520,7 @@ export const TemplateConfigPanel: React.FC<TemplateConfigPanelProps> = ({
               description="Preserve colors when printing"
             />
 
-            <h4 className="text-sm font-semibold text-text-primary mb-3 mt-6">Page Numbers</h4>
+            <h4 className="text-xs font-semibold text-text-primary mb-1.5 mt-3">Page Numbers</h4>
             <ToggleControl
               label="Show Page Numbers"
               value={config.pdf.pageNumbers.enabled}

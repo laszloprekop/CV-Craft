@@ -49,7 +49,9 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
         const [key, ...valueParts] = line.split(':')
         if (key && valueParts.length > 0) {
           const value = valueParts.join(':').trim()
-          frontmatter[key.trim()] = value
+          const keyTrimmed = key.trim()
+          // Handle photo URLs which might start with http:// or https://
+          frontmatter[keyTrimmed] = value
         }
       })
     } else {
@@ -58,12 +60,15 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
       const emailMatch = markdownContent.match(/[\w\.-]+@[\w\.-]+\.\w+/)
       const phoneMatch = markdownContent.match(/(?:📱|phone)[\s\*]*:?\s*([\+\d\s\-\(\)\.]+)/i)
       const locationMatch = markdownContent.match(/(?:📍|location)[\s\*]*:?\s*([^,\n]+)/i)
+      // Extract photo from markdown image syntax: ![alt](url)
+      const photoMatch = markdownContent.match(/!\[(?:Profile|Photo|profile|photo)[^\]]*\]\(([^)]+)\)/)
 
       frontmatter = {
         name: h1Match ? h1Match[1].trim() : '',
         email: emailMatch ? emailMatch[0] : '',
         phone: phoneMatch ? phoneMatch[1].trim() : '',
-        location: locationMatch ? locationMatch[1].trim() : ''
+        location: locationMatch ? locationMatch[1].trim() : '',
+        photo: photoMatch ? photoMatch[1].trim() : undefined
       }
     }
 
@@ -193,28 +198,42 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
     const skillCategories = []
     const lines = content.split('\n').filter(line => line.trim())
 
-    for (const line of lines) {
-      const trimmed = line.trim()
-      if (trimmed.startsWith('**') && trimmed.endsWith('**')) {
-        // Category header like "**Programming Languages:**"
-        const category = trimmed.replace(/\*\*/g, '').replace(':', '').trim()
-        const nextLineIndex = lines.indexOf(line) + 1
-        if (nextLineIndex < lines.length) {
-          const skills = lines[nextLineIndex].trim().split(',').map(s => s.trim())
-          skillCategories.push({
-            category,
-            skills
-          })
+    let i = 0
+    while (i < lines.length) {
+      const trimmed = lines[i].trim()
+
+      // Check if line has category with colon (e.g., "**Programming Languages:** Kotlin, Java")
+      const boldCategoryMatch = trimmed.match(/^\*\*([^*]+)\*\*:?\s*(.*)$/)
+      if (boldCategoryMatch) {
+        const category = boldCategoryMatch[1].trim()
+        let skillsStr = boldCategoryMatch[2].trim()
+
+        // If skills are on the same line
+        if (skillsStr) {
+          const skills = skillsStr.split(',').map(s => s.trim().replace(/^\*\*|\*\*$/g, '')).filter(Boolean)
+          skillCategories.push({ category, skills })
         }
-      } else if (trimmed.includes(':')) {
-        // Simple format like "Programming: JavaScript, Python"
+        // If skills are on the next line
+        else if (i + 1 < lines.length) {
+          const nextLine = lines[i + 1].trim()
+          const skills = nextLine.split(',').map(s => s.trim().replace(/^\*\*|\*\*$/g, '')).filter(Boolean)
+          skillCategories.push({ category, skills })
+          i++ // Skip next line since we processed it
+        }
+        i++
+        continue
+      }
+
+      // Check for simple format like "Programming: JavaScript, Python"
+      if (trimmed.includes(':')) {
         const [category, skillsStr] = trimmed.split(':')
-        const skills = skillsStr.trim().split(',').map(s => s.trim())
+        const skills = skillsStr.trim().split(',').map(s => s.trim().replace(/^\*\*|\*\*$/g, '')).filter(Boolean)
         skillCategories.push({
-          category: category.trim(),
+          category: category.trim().replace(/^\*\*|\*\*$/g, ''),
           skills
         })
       }
+      i++
     }
 
     return skillCategories.length > 0 ? skillCategories : [{ category: 'Skills', skills: lines }]

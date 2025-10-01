@@ -148,6 +148,7 @@ export const CVEditorPage: React.FC = () => {
   const [zoomLevel, setZoomLevel] = useState<'fit-width' | 'fit-height' | 'actual-size' | 'custom'>('fit-width')
   const [zoomPercentage, setZoomPercentage] = useState(100)
   const [showSettings, setShowSettings] = useState(false)
+  const [showEditor, setShowEditor] = useState(true)
 
   // Custom hooks
   const {
@@ -352,16 +353,38 @@ export const CVEditorPage: React.FC = () => {
 
     try {
       const result = await assetApi.uploadImage(file, cv.id)
-      // Update CV content to reference the uploaded asset
-      const imageReference = `![Profile Photo](${assetApi.getPublicUrl(result.data)})`
-      // Insert at the beginning of the content after frontmatter
+      // Get the public URL for the uploaded asset
+      const imageUrl = assetApi.getPublicUrl(result.data)
+
+      // Insert photo reference in frontmatter or at the beginning
       const lines = content.split('\n')
+      const frontmatterStart = lines.findIndex(line => line.trim() === '---')
       const frontmatterEnd = lines.findIndex((line, index) => index > 0 && line.trim() === '---')
-      if (frontmatterEnd !== -1) {
-        lines.splice(frontmatterEnd + 1, 0, '', imageReference)
+
+      if (frontmatterStart === 0 && frontmatterEnd > 0) {
+        // Has frontmatter - add photo field to it
+        // Check if photo field already exists
+        const photoLineIndex = lines.findIndex((line, idx) =>
+          idx > frontmatterStart && idx < frontmatterEnd && line.toLowerCase().includes('photo:')
+        )
+
+        if (photoLineIndex !== -1) {
+          // Replace existing photo line
+          lines[photoLineIndex] = `photo: ${imageUrl}`
+        } else {
+          // Add new photo field before closing ---
+          lines.splice(frontmatterEnd, 0, `photo: ${imageUrl}`)
+        }
+        updateContent(lines.join('\n'))
+      } else {
+        // No frontmatter - insert markdown image at the beginning
+        const imageReference = `![Profile Photo](${imageUrl})`
+        lines.unshift('', imageReference)
         updateContent(lines.join('\n'))
       }
-      saveCv()
+
+      // Trigger save
+      setTimeout(() => saveCv(), 500)
     } catch (error) {
       console.error('Failed to upload asset:', error)
     }
@@ -414,54 +437,67 @@ export const CVEditorPage: React.FC = () => {
     )
   }
 
+  // Calculate settings panel width (in pixels)
+  const settingsPanelWidth = 280 // Compact width
+
   return (
     <EditorContainer>
       {/* Dual-pane layout with individual headers */}
-      <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
+      <div style={{
+        display: 'flex',
+        flex: 1,
+        overflow: 'hidden',
+        marginRight: showSettings ? `${settingsPanelWidth}px` : '0',
+        transition: 'margin-right 0.3s ease'
+      }}>
         {/* Left Pane - Markdown Editor */}
-        <EditorPane 
-          width={paneWidth} 
-          $isResizing={isResizing}
-        >
-          {/* Left Header: CV Manager Icon, Import/Export, Photo Upload */}
-          <EditorLeftHeader
-            cvName={cv?.name}
-            onImportMarkdown={handleImportMarkdown}
-            onExportMarkdown={handleExportMarkdown}
-            onPhotoUpload={handlePhotoUpload}
-          />
-          
-          <Editor
-            height="calc(100% - 44px)" // Account for header height
-            defaultLanguage="markdown"
-            value={content}
-            onChange={handleContentChange}
-            theme="vs-light"
-            options={{
-              minimap: { enabled: false },
-              lineNumbers: 'on',
-              wordWrap: 'on',
-              scrollBeyondLastLine: false,
-              fontSize: 14,
-              fontFamily: 'Fira Code, Monaco, monospace',
-              tabSize: 2,
-              insertSpaces: true,
-              formatOnPaste: true,
-              formatOnType: true,
-              automaticLayout: true
-            }}
-          />
-        </EditorPane>
+        {showEditor && (
+          <>
+            <EditorPane
+              width={paneWidth}
+              $isResizing={isResizing}
+            >
+              {/* Left Header: CV Manager Icon, Import/Export, Photo Upload */}
+              <EditorLeftHeader
+                cvName={cv?.name}
+                onImportMarkdown={handleImportMarkdown}
+                onExportMarkdown={handleExportMarkdown}
+                onPhotoUpload={handlePhotoUpload}
+              />
 
-        {/* Resize Handle */}
-        <ResizeHandle 
-          onMouseDown={handleMouseDown}
-          $isResizing={isResizing}
-        />
+              <Editor
+                height="calc(100% - 44px)" // Account for header height
+                defaultLanguage="markdown"
+                value={content}
+                onChange={handleContentChange}
+                theme="vs-light"
+                options={{
+                  minimap: { enabled: false },
+                  lineNumbers: 'on',
+                  wordWrap: 'on',
+                  scrollBeyondLastLine: false,
+                  fontSize: 14,
+                  fontFamily: 'Fira Code, Monaco, monospace',
+                  tabSize: 2,
+                  insertSpaces: true,
+                  formatOnPaste: true,
+                  formatOnType: true,
+                  automaticLayout: true
+                }}
+              />
+            </EditorPane>
+
+            {/* Resize Handle */}
+            <ResizeHandle
+              onMouseDown={handleMouseDown}
+              $isResizing={isResizing}
+            />
+          </>
+        )}
 
         {/* Right Pane - CV Preview */}
-        <PreviewPane 
-          width={100 - paneWidth}
+        <PreviewPane
+          width={showEditor ? 100 - paneWidth : 100}
           $isResizing={isResizing}
         >
           {/* Right Header: Template Selector, Settings, Zoom Controls, Export */}
@@ -482,8 +518,10 @@ export const CVEditorPage: React.FC = () => {
             onPDFExport={() => exportCv('pdf')}
             onWebExport={() => exportCv('web_package')}
             onSave={saveCv}
+            onToggleEditor={() => setShowEditor(!showEditor)}
+            showEditor={showEditor}
           />
-          
+
           <div style={{ height: 'calc(100% - 44px)', overflow: 'auto' }}>
             <CVPreview
               cv={cv}

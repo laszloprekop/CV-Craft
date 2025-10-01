@@ -2,6 +2,39 @@
 
 All notable changes to CV-Craft will be documented in this file.
 
+## [1.4.2] - 2025-10-01
+
+### Fixed
+- **Profile Photo Upload and Rendering** - Photos now properly display after upload
+  - Modified photo upload to insert `photo: <url>` field into YAML frontmatter
+  - Enhanced frontmatter parser to handle URLs with colons (http://, https://)
+  - Photo URLs now correctly extracted and rendered in profile circle
+  - Fixed issue where photos were inserted as markdown images instead of frontmatter field
+
+- **Markdown Bold Syntax Parsing** - Bold markers (**) now properly removed from rendered text
+  - Rewrote `parseSkills` function with better regex matching for `**Category:**` patterns
+  - Added stripping of `**` from both category names and individual skills
+  - Handles both inline format (`**Category:** skill1, skill2`) and multi-line format
+  - Prevents double-processing of lines with index-based while loop
+
+### Changed
+- **Improved Editor Layout and Space Management**
+  - Settings panel now compact at 280px width (was 384px)
+  - Preview automatically adjusts width when settings panel opens (smooth margin transition)
+  - Editor pane now hideable via toggle button (Sidebar icon) for full-width preview
+  - Settings panel made horizontally space-efficient:
+    - Reduced all padding/margins: headers, tabs, content sections
+    - Smaller font sizes: headings (text-xs), labels (text-xs), inputs (text-xs)
+    - Compact color controls: 8x8px picker (was 12x10), reduced gaps and spacing
+    - Section headings use mb-1.5 mt-3 (was mb-3 mt-6)
+
+### Technical Insights
+- **Photo Upload Strategy**: Store photo URLs in YAML frontmatter (not as markdown images) because frontmatter is structured data that's easier to parse and render consistently across web/PDF modes
+- **URL Parsing in YAML**: When parsing frontmatter with `split(':')`, must rejoin remaining parts since URLs contain colons: `valueParts.join(':').trim()`
+- **Layout Responsiveness**: Use margin on container instead of adjusting inner element widths - allows smooth transitions and avoids recalculating multiple element dimensions
+- **Toggle Pattern**: Conditionally render editor pane (`{showEditor && <EditorPane>...}`), adjust preview width based on editor visibility, maintain state in parent component
+- **Compact UI Design**: Reduce all spacing proportionally - padding, margins, gaps, font sizes - while maintaining visual hierarchy and usability
+
 ## [1.4.1] - 2025-10-01
 
 ### Fixed
