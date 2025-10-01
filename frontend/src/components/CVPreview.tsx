@@ -609,32 +609,67 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
     )
   }
 
+  // Helper function to render skills with configurable tag/separator style
+  const renderSkills = (skillCategories: any[], isSidebar: boolean = false) => {
+    const activeConfig = config || template?.default_config
+    const tagStyle = activeConfig?.components?.tags?.style || 'pill'
+    const separator = activeConfig?.components?.tags?.separator || '·'
+    const templateStyles = getTemplateStyles()
+
+    return skillCategories.map((category, categoryIndex) => (
+      <div key={categoryIndex} className="mb-4">
+        <h4 className="text-xs font-semibold mb-2" style={{ color: isSidebar ? '#4a3d2a' : templateStyles['--text-color'] as string || '#2d2d2d' }}>
+          {category.category}
+        </h4>
+        {tagStyle === 'pill' ? (
+          // Pill style: rounded background tags
+          <div className="flex flex-wrap gap-1">
+            {category.skills.map((skill: any, skillIndex: number) => {
+              const skillText = typeof skill === 'string' ? skill : (skill.name || skill.text || String(skill))
+              return (
+                <span
+                  key={skillIndex}
+                  className="inline-block px-2 py-1 text-xs rounded"
+                  style={{
+                    backgroundColor: templateStyles['--accent-color'] as string || '#d4a574',
+                    color: '#ffffff',
+                    borderRadius: activeConfig?.components?.tags?.borderRadius || '4px',
+                    fontSize: activeConfig?.components?.tags?.fontSize || '12px',
+                    fontWeight: activeConfig?.components?.tags?.fontWeight || 500
+                  }}
+                >
+                  {renderMarkdown(skillText)}
+                </span>
+              )
+            })}
+          </div>
+        ) : (
+          // Inline style: separated text
+          <div className="text-sm" style={{
+            color: isSidebar ? '#4a3d2a' : templateStyles['--text-color'] as string || '#2d2d2d',
+            fontSize: activeConfig?.components?.tags?.fontSize || '14px'
+          }}>
+            {category.skills.map((skill: any, skillIndex: number) => {
+              const skillText = typeof skill === 'string' ? skill : (skill.name || skill.text || String(skill))
+              return (
+                <span key={skillIndex}>
+                  {skillIndex > 0 && (separator === 'none' ? ' ' : ` ${separator} `)}
+                  {renderMarkdown(skillText)}
+                </span>
+              )
+            })}
+          </div>
+        )}
+      </div>
+    ))
+  }
+
   // Helper function to render section content consistently
   const renderSectionContent = (section: any, isSidebar: boolean = false) => {
     // Special handling for skills in sidebar
     if (isSidebar && section.type === 'skills') {
       const skillCategories = parseSkills(Array.isArray(section.content) ? section.content.join('\n') : section.content)
-      return skillCategories.map((category, categoryIndex) => (
-        <div key={categoryIndex} className="mb-4">
-          <h4 className="text-xs font-semibold mb-2" style={{ color: '#4a3d2a' }}>
-            {category.category}
-          </h4>
-          <div className="flex flex-wrap gap-1">
-            {category.skills.map((skill, skillIndex) => (
-              <span
-                key={skillIndex}
-                className="inline-block px-2 py-1 text-xs rounded"
-                style={{
-                  backgroundColor: '#d4a574',
-                  color: '#ffffff'
-                }}
-              >
-                {skill}
-              </span>
-            ))}
-          </div>
-        </div>
-      ))
+      return renderSkills(skillCategories, isSidebar)
     }
 
     return Array.isArray(section.content) ? (
@@ -911,29 +946,12 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
 
                 {/* Section Content */}
                 <div className="space-y-3">
-                  {section.type === 'skills' && Array.isArray(section.content) ? (
-                    // Skills with categories
-                    section.content.map((skillGroup, itemIndex) => (
-                      <div key={itemIndex} className="mb-4 last:mb-0">
-                        {skillGroup.category && (
-                          <h4 className="font-semibold text-gray-800 text-sm mb-2 uppercase tracking-wide">
-                            {skillGroup.category}
-                          </h4>
-                        )}
-                        <div className="text-gray-600 leading-relaxed" style={{ fontSize: 'var(--small-font-size)' }}>
-                          {Array.isArray(skillGroup.skills)
-                            ? skillGroup.skills.map((skill, i) => (
-                                <span key={i}>
-                                  {i > 0 && ' • '}{renderMarkdown(skill)}
-                                </span>
-                              ))
-                            : typeof skillGroup === 'string'
-                            ? renderMarkdown(skillGroup)
-                            : JSON.stringify(skillGroup)
-                          }
-                        </div>
-                      </div>
-                    ))
+                  {section.type === 'skills' ? (
+                    // Use unified skills rendering
+                    renderSkills(
+                      Array.isArray(section.content) ? section.content : parseSkills(section.content),
+                      true
+                    )
                   ) : Array.isArray(section.content) ? (
                     section.content.map((item, itemIndex) => (
                       <div key={itemIndex} className="text-sm text-gray-700 leading-relaxed">

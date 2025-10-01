@@ -100,6 +100,8 @@ export const DEFAULT_TEMPLATE_CONFIG: TemplateConfig = {
       gap: '8px',
       border: undefined,
       fontWeight: 500,
+      style: 'pill',              // Default to pill style
+      separator: '·',             // Default separator for inline style
     },
     dateLine: {
       color: '#64748b',

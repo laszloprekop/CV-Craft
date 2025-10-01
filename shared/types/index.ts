@@ -190,6 +190,8 @@ export interface TemplateConfig {
       gap: string;
       border?: string;
       fontWeight?: number;
+      style?: 'pill' | 'inline'; // pill = rounded tags, inline = separated text
+      separator?: '·' | '|' | '•' | ',' | 'none'; // separator for inline style
     };
     dateLine: {
       color: string;

@@ -402,6 +402,39 @@ export const TemplateConfigPanel: React.FC<TemplateConfigPanelProps> = ({
                 })
               }
             />
+            <SelectControl
+              label="Tag Style"
+              value={config.components.tags.style || 'pill'}
+              onChange={(value) =>
+                updateConfig('components', {
+                  tags: { ...config.components.tags, style: value as 'pill' | 'inline' },
+                })
+              }
+              options={[
+                { value: 'pill', label: 'Pill (rounded tags)' },
+                { value: 'inline', label: 'Inline (separated text)' }
+              ]}
+              description="Choose between pill-style tags or inline separated text"
+            />
+            {config.components.tags.style === 'inline' && (
+              <SelectControl
+                label="Separator Character"
+                value={config.components.tags.separator || '·'}
+                onChange={(value) =>
+                  updateConfig('components', {
+                    tags: { ...config.components.tags, separator: value as '·' | '|' | '•' | ',' | 'none' },
+                  })
+                }
+                options={[
+                  { value: '·', label: '· (middle dot)' },
+                  { value: '|', label: '| (vertical bar)' },
+                  { value: '•', label: '• (bullet)' },
+                  { value: ',', label: ', (comma)' },
+                  { value: 'none', label: 'None (space only)' }
+                ]}
+                description="Character used to separate skills in inline mode"
+              />
+            )}
 
             <h4 className="text-sm font-semibold text-text-primary mb-3 mt-6">Date Line</h4>
             <ColorControl
