@@ -8,6 +8,7 @@ import {
   ToggleControl,
   NumberControl,
   BoxModelControl,
+  FontSelector,
 } from './controls';
 
 interface TemplateConfigPanelProps {
@@ -162,7 +163,7 @@ export const TemplateConfigPanel: React.FC<TemplateConfigPanelProps> = ({
         {activeTab === 'typography' && (
           <div>
             <h4 className="text-sm font-semibold text-text-primary mb-3">Font Families</h4>
-            <SelectControl
+            <FontSelector
               label="Heading Font"
               value={config.typography.fontFamily.heading}
               onChange={(value) =>
@@ -170,15 +171,10 @@ export const TemplateConfigPanel: React.FC<TemplateConfigPanelProps> = ({
                   fontFamily: { ...config.typography.fontFamily, heading: value },
                 })
               }
-              options={[
-                { value: 'Inter, system-ui, sans-serif', label: 'Inter' },
-                { value: 'Roboto, sans-serif', label: 'Roboto' },
-                { value: 'Georgia, serif', label: 'Georgia' },
-                { value: 'Playfair Display, serif', label: 'Playfair Display' },
-                { value: '"Times New Roman", serif', label: 'Times New Roman' },
-              ]}
+              fontType="heading"
+              description="Font used for headings and titles"
             />
-            <SelectControl
+            <FontSelector
               label="Body Font"
               value={config.typography.fontFamily.body}
               onChange={(value) =>
@@ -186,13 +182,8 @@ export const TemplateConfigPanel: React.FC<TemplateConfigPanelProps> = ({
                   fontFamily: { ...config.typography.fontFamily, body: value },
                 })
               }
-              options={[
-                { value: 'Georgia, serif', label: 'Georgia' },
-                { value: 'Inter, system-ui, sans-serif', label: 'Inter' },
-                { value: 'Roboto, sans-serif', label: 'Roboto' },
-                { value: '"Times New Roman", serif', label: 'Times New Roman' },
-                { value: 'Arial, sans-serif', label: 'Arial' },
-              ]}
+              fontType="body"
+              description="Font used for body text and descriptions"
             />
 
             <h4 className="text-sm font-semibold text-text-primary mb-3 mt-6">Font Sizes</h4>

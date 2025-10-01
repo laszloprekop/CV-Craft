@@ -1,6 +1,6 @@
 {
   "name": "cv-craft-frontend",
-  "version": "1.3.1",
+  "version": "1.4.0",
   "description": "Frontend React app for CV Craft - Static CV Generator",
   "private": true,
   "dependencies": {
