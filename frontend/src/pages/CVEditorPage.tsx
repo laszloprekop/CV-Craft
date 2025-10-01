@@ -154,11 +154,13 @@ export const CVEditorPage: React.FC = () => {
     cv,
     content,
     settings,
+    config: savedConfig,
     loading,
     error,
     saveStatus,
     updateContent,
     updateSettings,
+    updateConfig: saveConfig,
     saveCv,
     exportCv
   } = useCVEditor(cvId)
@@ -170,10 +172,19 @@ export const CVEditorPage: React.FC = () => {
     templatesLoading
   } = useTemplates()
 
-  // Template config state - initialized after activeTemplate is available
+  // Template config state - use saved config or default
   const [templateConfig, setTemplateConfig] = useState<TemplateConfig>(
-    activeTemplate?.default_config || DEFAULT_TEMPLATE_CONFIG
+    savedConfig || activeTemplate?.default_config || DEFAULT_TEMPLATE_CONFIG
   )
+
+  // Sync templateConfig with savedConfig when it changes
+  useEffect(() => {
+    if (savedConfig) {
+      setTemplateConfig(savedConfig)
+    } else if (activeTemplate?.default_config) {
+      setTemplateConfig(activeTemplate.default_config)
+    }
+  }, [savedConfig, activeTemplate])
 
   // Debounced preview update (300ms as specified in SDD)
   const debouncedPreviewUpdate = useCallback(
@@ -216,7 +227,10 @@ export const CVEditorPage: React.FC = () => {
         ...newConfig
       }
 
-      // Convert TemplateConfig to TemplateSettings and update settings
+      // Save the full config
+      saveConfig(updated)
+
+      // Also convert TemplateConfig to TemplateSettings for legacy support
       if (newConfig.colors) {
         updateSettings({
           primaryColor: newConfig.colors.primary || updated.colors.primary,
@@ -234,9 +248,9 @@ export const CVEditorPage: React.FC = () => {
 
       return updated
     })
-    // Auto-save settings changes
+    // Auto-save config changes
     setTimeout(() => saveCv(), 500)
-  }, [updateSettings, saveCv])
+  }, [saveConfig, updateSettings, saveCv])
 
   // New header handlers
   const handleImportMarkdown = useCallback((content: string, filename: string) => {
