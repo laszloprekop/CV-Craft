@@ -107,11 +107,14 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
   const renderMarkdown = (text: string) => {
     if (!text) return null
 
-    // Handle bold (**text**)
-    let formatted = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    // Handle line breaks first - convert \n to <br/>
+    let formatted = text.replace(/\n/g, '<br/>')
 
-    // Handle italics (*text*)
-    formatted = formatted.replace(/\*(.*?)\*/g, '<em>$1</em>')
+    // Handle bold (**text**) - use non-greedy match to avoid conflicts with italics
+    formatted = formatted.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+
+    // Handle italics (*text*) - only single asterisks not followed/preceded by another
+    formatted = formatted.replace(/(?<!\*)\*(?!\*)([^*]+)\*(?!\*)/g, '<em>$1</em>')
 
     // Handle links [text](url)
     formatted = formatted.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" className="text-blue-600 underline">$1</a>')
@@ -476,10 +479,19 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
                 {frontmatter && (
                   <div className="mb-6">
                     <div className="text-center mb-4">
-                      <div className="w-16 h-16 rounded-full mx-auto mb-3 flex items-center justify-center"
-                           style={{ backgroundColor: '#d4a574' }}>
-                        <span className="text-white text-xs font-medium">Photo</span>
-                      </div>
+                      {frontmatter.photo ? (
+                        <img
+                          src={frontmatter.photo}
+                          alt="Profile"
+                          className="w-32 h-32 rounded-full mx-auto mb-3 object-cover"
+                          style={{ width: '200px', height: '200px' }}
+                        />
+                      ) : (
+                        <div className="w-32 h-32 rounded-full mx-auto mb-3 flex items-center justify-center"
+                             style={{ backgroundColor: '#d4a574', width: '200px', height: '200px' }}>
+                          <span className="text-white text-xs font-medium">Photo</span>
+                        </div>
+                      )}
                       <h1
                         className="font-bold text-center mb-2"
                         style={{
@@ -880,9 +892,19 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
               <div className="relative z-10" style={{ padding: '20mm 6mm' }}>
                 {/* Profile Photo */}
                 <div className="mb-6 flex justify-center">
-                  <div className="w-24 h-24 bg-gray-300 rounded-full flex items-center justify-center overflow-hidden">
-                    <span className="text-gray-600" style={{ fontSize: 'var(--tiny-font-size)' }}>Photo</span>
-                  </div>
+                  {frontmatter?.photo ? (
+                    <img
+                      src={frontmatter.photo}
+                      alt="Profile"
+                      className="rounded-full object-cover"
+                      style={{ width: '200px', height: '200px' }}
+                    />
+                  ) : (
+                    <div className="bg-gray-300 rounded-full flex items-center justify-center overflow-hidden"
+                         style={{ width: '200px', height: '200px' }}>
+                      <span className="text-gray-600" style={{ fontSize: 'var(--tiny-font-size)' }}>Photo</span>
+                    </div>
+                  )}
                 </div>
 
                 {/* Contact Information */}
