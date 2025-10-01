@@ -515,16 +515,43 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
                       )}
                     </div>
 
-                    {/* Contact details */}
-                    <div className="space-y-2 text-sm">
-                      {frontmatter.email && (
-                        <div style={{ color: '#4a3d2a' }}>{frontmatter.email}</div>
-                      )}
+                    {/* Contact details with icons */}
+                    <div className="space-y-3">
                       {frontmatter.phone && (
-                        <div style={{ color: '#4a3d2a' }}>{frontmatter.phone}</div>
+                        <div className="flex items-center gap-3 text-sm" style={{ color: '#4a3d2a' }}>
+                          <Phone size={16} className="flex-shrink-0" style={{ color: '#6b5b47' }} />
+                          <span>{frontmatter.phone}</span>
+                        </div>
+                      )}
+                      {frontmatter.email && (
+                        <div className="flex items-center gap-3 text-sm" style={{ color: '#4a3d2a' }}>
+                          <Envelope size={16} className="flex-shrink-0" style={{ color: '#6b5b47' }} />
+                          <span className="break-all">{frontmatter.email}</span>
+                        </div>
+                      )}
+                      {frontmatter.linkedin && (
+                        <div className="flex items-center gap-3 text-sm" style={{ color: '#4a3d2a' }}>
+                          <LinkedinLogo size={16} className="flex-shrink-0" style={{ color: '#6b5b47' }} />
+                          <span className="break-all">{frontmatter.linkedin.replace(/^https?:\/\//, '')}</span>
+                        </div>
+                      )}
+                      {frontmatter.github && (
+                        <div className="flex items-center gap-3 text-sm" style={{ color: '#4a3d2a' }}>
+                          <GithubLogo size={16} className="flex-shrink-0" style={{ color: '#6b5b47' }} />
+                          <span className="break-all">{frontmatter.github.replace(/^https?:\/\//, '')}</span>
+                        </div>
+                      )}
+                      {frontmatter.website && (
+                        <div className="flex items-center gap-3 text-sm" style={{ color: '#4a3d2a' }}>
+                          <Globe size={16} className="flex-shrink-0" style={{ color: '#6b5b47' }} />
+                          <span className="break-all">{frontmatter.website.replace(/^https?:\/\//, '')}</span>
+                        </div>
                       )}
                       {frontmatter.location && (
-                        <div style={{ color: '#4a3d2a' }}>{frontmatter.location}</div>
+                        <div className="flex items-center gap-3 text-sm" style={{ color: '#4a3d2a' }}>
+                          <MapPin size={16} className="flex-shrink-0" style={{ color: '#6b5b47' }} />
+                          <span>{frontmatter.location}</span>
+                        </div>
                       )}
                     </div>
                   </div>
@@ -678,10 +705,53 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
 
   // Helper function to render section content consistently
   const renderSectionContent = (section: any, isSidebar: boolean = false) => {
-    // Special handling for skills in sidebar
-    if (isSidebar && section.type === 'skills') {
-      const skillCategories = parseSkills(Array.isArray(section.content) ? section.content.join('\n') : section.content)
+    // Special handling for skills - check both type and title
+    const isSkillsSection = section.type === 'skills' ||
+                           section.title?.toLowerCase().includes('skill') ||
+                           section.title?.toLowerCase().includes('technical')
+
+    if (isSkillsSection) {
+      // Parse skills if content is a string or array of strings
+      let skillCategories
+      if (Array.isArray(section.content)) {
+        // Check if it's already parsed skill categories
+        if (section.content.length > 0 && section.content[0].category) {
+          skillCategories = section.content
+        } else {
+          // Parse from array of strings
+          skillCategories = parseSkills(section.content.join('\n'))
+        }
+      } else if (typeof section.content === 'string') {
+        skillCategories = parseSkills(section.content)
+      } else {
+        skillCategories = []
+      }
+
       return renderSkills(skillCategories, isSidebar)
+    }
+
+    // Special handling for simple list items (languages, interests, etc.)
+    const isSimpleList = ['languages', 'interests', 'tools', 'hobbies'].some(type =>
+      section.title?.toLowerCase().includes(type) || section.type === type
+    )
+
+    if (isSimpleList && Array.isArray(section.content)) {
+      return section.content.map((item, itemIndex) => {
+        const itemText = typeof item === 'string' ? item : (item.name || item.text || String(item))
+        return (
+          <div key={itemIndex} className="mb-2">
+            <p
+              className="leading-relaxed"
+              style={{
+                fontSize: `var(--${isSidebar ? 'small' : 'body'}-font-size)`,
+                color: isSidebar ? '#4a3d2a' : '#2d2d2d'
+              }}
+            >
+              {renderMarkdown(itemText)}
+            </p>
+          </div>
+        )
+      })
     }
 
     return Array.isArray(section.content) ? (
@@ -734,14 +804,14 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
             </div>
           ) : (
             <p className="text-gray-700 leading-relaxed" style={{ fontSize: 'var(--small-font-size)' }}>
-              {JSON.stringify(item)}
+              {renderMarkdown(String(item))}
             </p>
           )}
         </div>
       ))
     ) : (
       <p className="text-gray-700 leading-relaxed" style={{ fontSize: 'var(--small-font-size)' }}>
-        {section.content}
+        {renderMarkdown(String(section.content))}
       </p>
     )
   }
@@ -966,23 +1036,9 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
                   {section.title}
                 </h3>
 
-                {/* Section Content */}
+                {/* Section Content - use unified rendering */}
                 <div className="space-y-3">
-                  {section.type === 'skills' ? (
-                    // Use unified skills rendering
-                    renderSkills(
-                      Array.isArray(section.content) ? section.content : parseSkills(section.content),
-                      true
-                    )
-                  ) : Array.isArray(section.content) ? (
-                    section.content.map((item, itemIndex) => (
-                      <div key={itemIndex} className="text-sm text-gray-700 leading-relaxed">
-                        {typeof item === 'string' ? item : JSON.stringify(item)}
-                      </div>
-                    ))
-                  ) : (
-                    <div className="text-sm text-gray-700 leading-relaxed">{section.content}</div>
-                  )}
+                  {renderSectionContent(section, true)}
                 </div>
                 </div>
                 ))}
