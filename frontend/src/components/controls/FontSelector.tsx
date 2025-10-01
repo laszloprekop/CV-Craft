@@ -26,7 +26,7 @@ export const FONT_OPTIONS: FontOption[] = [
   { value: '"Times New Roman", serif', label: 'Times New Roman', category: 'Serif' },
   { value: 'Courier New, monospace', label: 'Courier New', category: 'Monospace' },
 
-  // Google Fonts - Sans Serif (Professional)
+  // Google Fonts - Sans Serif (Professional/Business)
   { value: '"Roboto", sans-serif', label: 'Roboto', category: 'Sans Serif', isGoogleFont: true },
   { value: '"Open Sans", sans-serif', label: 'Open Sans', category: 'Sans Serif', isGoogleFont: true },
   { value: '"Lato", sans-serif', label: 'Lato', category: 'Sans Serif', isGoogleFont: true },
@@ -37,8 +37,18 @@ export const FONT_OPTIONS: FontOption[] = [
   { value: '"Nunito", sans-serif', label: 'Nunito', category: 'Sans Serif', isGoogleFont: true },
   { value: '"Source Sans Pro", sans-serif', label: 'Source Sans Pro', category: 'Sans Serif', isGoogleFont: true },
   { value: '"IBM Plex Sans", sans-serif', label: 'IBM Plex Sans', category: 'Sans Serif', isGoogleFont: true },
+  { value: '"DM Sans", sans-serif', label: 'DM Sans', category: 'Sans Serif', isGoogleFont: true },
+  { value: '"Karla", sans-serif', label: 'Karla', category: 'Sans Serif', isGoogleFont: true },
+  { value: '"Rubik", sans-serif', label: 'Rubik', category: 'Sans Serif', isGoogleFont: true },
+  { value: '"Manrope", sans-serif', label: 'Manrope', category: 'Sans Serif', isGoogleFont: true },
+  { value: '"Outfit", sans-serif', label: 'Outfit', category: 'Sans Serif', isGoogleFont: true },
+  { value: '"Inter Tight", sans-serif', label: 'Inter Tight', category: 'Sans Serif', isGoogleFont: true },
+  { value: '"Plus Jakarta Sans", sans-serif', label: 'Plus Jakarta Sans', category: 'Sans Serif', isGoogleFont: true },
+  { value: '"Lexend", sans-serif', label: 'Lexend', category: 'Sans Serif', isGoogleFont: true },
+  { value: '"Quicksand", sans-serif', label: 'Quicksand', category: 'Sans Serif', isGoogleFont: true },
+  { value: '"Nunito Sans", sans-serif', label: 'Nunito Sans', category: 'Sans Serif', isGoogleFont: true },
 
-  // Google Fonts - Serif (Classic/Elegant)
+  // Google Fonts - Serif (Classic/Elegant/Calm)
   { value: '"Merriweather", serif', label: 'Merriweather', category: 'Serif', isGoogleFont: true },
   { value: '"Playfair Display", serif', label: 'Playfair Display', category: 'Serif', isGoogleFont: true },
   { value: '"Lora", serif', label: 'Lora', category: 'Serif', isGoogleFont: true },
@@ -47,6 +57,12 @@ export const FONT_OPTIONS: FontOption[] = [
   { value: '"EB Garamond", serif', label: 'EB Garamond', category: 'Serif', isGoogleFont: true },
   { value: '"Cormorant Garamond", serif', label: 'Cormorant Garamond', category: 'Serif', isGoogleFont: true },
   { value: '"Libre Baskerville", serif', label: 'Libre Baskerville', category: 'Serif', isGoogleFont: true },
+  { value: '"Spectral", serif', label: 'Spectral', category: 'Serif', isGoogleFont: true },
+  { value: '"Source Serif Pro", serif', label: 'Source Serif Pro', category: 'Serif', isGoogleFont: true },
+  { value: '"Bitter", serif', label: 'Bitter', category: 'Serif', isGoogleFont: true },
+  { value: '"Cardo", serif', label: 'Cardo', category: 'Serif', isGoogleFont: true },
+  { value: '"Noto Serif", serif', label: 'Noto Serif', category: 'Serif', isGoogleFont: true },
+  { value: '"IBM Plex Serif", serif', label: 'IBM Plex Serif', category: 'Serif', isGoogleFont: true },
 
   // Google Fonts - Monospace (Technical CVs)
   { value: '"Roboto Mono", monospace', label: 'Roboto Mono', category: 'Monospace', isGoogleFont: true },
@@ -54,8 +70,9 @@ export const FONT_OPTIONS: FontOption[] = [
   { value: '"JetBrains Mono", monospace', label: 'JetBrains Mono', category: 'Monospace', isGoogleFont: true },
   { value: '"IBM Plex Mono", monospace', label: 'IBM Plex Mono', category: 'Monospace', isGoogleFont: true },
   { value: '"Fira Code", monospace', label: 'Fira Code', category: 'Monospace', isGoogleFont: true },
+  { value: '"Space Mono", monospace', label: 'Space Mono', category: 'Monospace', isGoogleFont: true },
 
-  // Google Fonts - Display (Modern/Creative)
+  // Google Fonts - Display (Modern/Creative - use sparingly for CVs)
   { value: '"Oswald", sans-serif', label: 'Oswald', category: 'Display', isGoogleFont: true },
   { value: '"Bebas Neue", sans-serif', label: 'Bebas Neue', category: 'Display', isGoogleFont: true },
   { value: '"Abril Fatface", serif', label: 'Abril Fatface', category: 'Display', isGoogleFont: true },
