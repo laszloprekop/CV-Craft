@@ -6,12 +6,13 @@
 
 import React, { useMemo } from 'react'
 import { Phone, Envelope, LinkedinLogo, GithubLogo, MapPin, Globe } from '@phosphor-icons/react'
-import type { CVInstance, Template, TemplateSettings } from '../../../shared/types'
+import type { CVInstance, Template, TemplateSettings, TemplateConfig } from '../../../shared/types'
 
 interface CVPreviewProps {
   cv: CVInstance | null
   template: Template | null
   settings: TemplateSettings
+  config?: TemplateConfig // Add config support
   isPending: boolean
   liveContent?: string // Live content from editor for real-time preview
   zoomLevel?: 'fit-width' | 'fit-height' | 'actual-size' | 'custom'
@@ -24,6 +25,7 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
   cv,
   template,
   settings,
+  config,
   isPending,
   liveContent,
   zoomLevel = 'fit-width',
@@ -255,16 +257,37 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
   const getTemplateStyles = () => {
     if (!template) return {}
 
+    // Prefer config over settings (config is newer, more comprehensive)
+    const activeConfig = config || template.default_config
+
     // Apply template CSS variables and styles
     const baseStyles = {
-      '--primary-color': settings.primaryColor || template.default_settings?.primaryColor || '#2563eb',
-      '--accent-color': settings.accentColor || template.default_settings?.accentColor || '#059669',
-      '--background-color': settings.backgroundColor || template.default_settings?.backgroundColor || '#ffffff',
-      '--surface-color': settings.surfaceColor || template.default_settings?.surfaceColor || '#ffffff',
-      '--font-family': settings.fontFamily || template.default_settings?.fontFamily || 'Inter',
-      '--title-font-size': `${settings.titleFontSize || template.default_settings?.titleFontSize || 24}px`,
-      '--body-font-size': `${settings.bodyFontSize || template.default_settings?.bodyFontSize || 14}px`,
-      '--text-color': '#1f2937'
+      // Colors - prefer config, fallback to settings
+      '--primary-color': activeConfig?.colors.primary || settings.primaryColor || '#2563eb',
+      '--accent-color': activeConfig?.colors.accent || settings.accentColor || '#059669',
+      '--background-color': activeConfig?.colors.background || settings.backgroundColor || '#ffffff',
+      '--surface-color': activeConfig?.colors.secondary || settings.surfaceColor || '#ffffff',
+
+      // Typography - use config when available
+      '--font-family': activeConfig?.typography.fontFamily.body || settings.fontFamily || 'Inter',
+      '--heading-font-family': activeConfig?.typography.fontFamily.heading || 'Inter',
+      '--title-font-size': activeConfig?.typography.fontSize.h1 || `${settings.titleFontSize || 24}px`,
+      '--h2-font-size': activeConfig?.typography.fontSize.h2 || '20px',
+      '--h3-font-size': activeConfig?.typography.fontSize.h3 || '18px',
+      '--body-font-size': activeConfig?.typography.fontSize.body || `${settings.bodyFontSize || 14}px`,
+      '--small-font-size': activeConfig?.typography.fontSize.small || '12px',
+      '--tiny-font-size': activeConfig?.typography.fontSize.tiny || '10px',
+
+      // Layout - use config when available
+      '--page-width': activeConfig?.layout.pageWidth || '210mm',
+      '--page-margin-top': activeConfig?.layout.pageMargin.top || settings.pageMargins?.top || '20mm',
+      '--page-margin-right': activeConfig?.layout.pageMargin.right || settings.pageMargins?.right || '20mm',
+      '--page-margin-bottom': activeConfig?.layout.pageMargin.bottom || settings.pageMargins?.bottom || '20mm',
+      '--page-margin-left': activeConfig?.layout.pageMargin.left || settings.pageMargins?.left || '20mm',
+      '--section-spacing': activeConfig?.layout.sectionSpacing || '24px',
+
+      // Text color
+      '--text-color': activeConfig?.colors.text.primary || '#1f2937'
     } as React.CSSProperties
 
     return baseStyles
@@ -363,9 +386,9 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
         key={pageIndex}
         className="bg-white shadow-lg mx-auto mb-6 relative keep-together"
         style={{
-          width: '210mm',
+          width: templateStyles['--page-width'] as string || '210mm',
           height: '297mm',
-          padding: '20mm 15mm', // Top/bottom: 20mm, Left/right: 15mm
+          padding: `${templateStyles['--page-margin-top']} ${templateStyles['--page-margin-right']} ${templateStyles['--page-margin-bottom']} ${templateStyles['--page-margin-left']}`,
           pageBreakAfter: 'always',
           boxSizing: 'border-box'
         }}
@@ -441,7 +464,7 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
               <div
                 className="w-2/5"
                 style={{
-                  backgroundColor: '#e6d7c3', // Warm neutral darker pastel
+                  backgroundColor: templateStyles['--surface-color'] as string || '#e6d7c3',
                   padding: '0.5cm',
                   height: '100%',
                   overflow: 'hidden'
@@ -499,7 +522,7 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
                       className="text-sm font-bold uppercase tracking-wide mb-3 px-3 py-1 rounded"
                       style={{
                         color: '#ffffff',
-                        backgroundColor: '#c4956c' // Complementary pastel accent
+                        backgroundColor: templateStyles['--accent-color'] as string || '#c4956c'
                       }}
                     >
                       {section.title}
@@ -515,7 +538,7 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
               <div
                 className="flex-1"
                 style={{
-                  backgroundColor: '#f7f5f3', // Warm neutral lighter pastel
+                  backgroundColor: templateStyles['--background-color'] as string || '#f7f5f3',
                   padding: '0.5cm',
                   height: '100%',
                   overflow: 'hidden'
@@ -554,7 +577,7 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
                       className="text-base font-bold uppercase tracking-wide mb-3 px-3 py-1 rounded"
                       style={{
                         color: '#ffffff',
-                        backgroundColor: '#a8956b' // Complementary pastel accent for main sections
+                        backgroundColor: templateStyles['--primary-color'] as string || '#a8956b'
                       }}
                     >
                       {section.title}
@@ -572,7 +595,7 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
         {/* Page number */}
         <div
           className="absolute bottom-4 right-4 text-xs text-gray-500"
-          style={{ fontSize: '8pt' }}
+          style={{ fontSize: 'var(--tiny-font-size)' }}
         >
           Page {pageNumber}
         </div>
@@ -615,7 +638,7 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
             <p
               className="leading-relaxed"
               style={{
-                fontSize: isSidebar ? '8pt' : '9pt',
+                fontSize: `var(--${isSidebar ? 'small' : 'body'}-font-size)`,
                 color: isSidebar ? '#4a3d2a' : '#2d2d2d'
               }}
             >
@@ -628,7 +651,7 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
                   <h3
                     className="font-semibold"
                     style={{
-                      fontSize: isSidebar ? '9pt' : '10pt',
+                      fontSize: `var(--${isSidebar ? 'small' : 'body'}-font-size)`,
                       color: isSidebar ? '#4a3d2a' : '#2d2d2d'
                     }}
                   >
@@ -637,7 +660,7 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
                   {item.company && (
                     <p
                       style={{
-                        fontSize: isSidebar ? '8pt' : '9pt',
+                        fontSize: `var(--${isSidebar ? 'tiny' : 'small'}-font-size)`,
                         color: isSidebar ? '#6b5b47' : '#5d5d5d'
                       }}
                     >
@@ -646,25 +669,25 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
                   )}
                 </div>
                 <div className="text-right text-sm text-gray-600">
-                  {item.location && <p style={{ fontSize: '8pt' }}>{item.location}</p>}
-                  {item.date && <p style={{ fontSize: '8pt' }}>{item.date}</p>}
+                  {item.location && <p style={{ fontSize: 'var(--tiny-font-size)' }}>{item.location}</p>}
+                  {item.date && <p style={{ fontSize: 'var(--tiny-font-size)' }}>{item.date}</p>}
                 </div>
               </div>
               {item.description && (
-                <p className="text-gray-700 leading-relaxed" style={{ fontSize: '8pt' }}>
+                <p className="text-gray-700 leading-relaxed" style={{ fontSize: 'var(--small-font-size)' }}>
                   {renderMarkdown(item.description)}
                 </p>
               )}
             </div>
           ) : (
-            <p className="text-gray-700 leading-relaxed" style={{ fontSize: '8pt' }}>
+            <p className="text-gray-700 leading-relaxed" style={{ fontSize: 'var(--small-font-size)' }}>
               {JSON.stringify(item)}
             </p>
           )}
         </div>
       ))
     ) : (
-      <p className="text-gray-700 leading-relaxed" style={{ fontSize: '8pt' }}>
+      <p className="text-gray-700 leading-relaxed" style={{ fontSize: 'var(--small-font-size)' }}>
         {section.content}
       </p>
     )
@@ -752,32 +775,32 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
                     section.content.map((item, itemIndex) => (
                       <div key={itemIndex}>
                         {typeof item === 'string' ? (
-                          <p className="text-gray-700 leading-relaxed" style={{ fontSize: '8pt' }}>{renderMarkdown(item)}</p>
+                          <p className="text-gray-700 leading-relaxed" style={{ fontSize: 'var(--body-font-size)' }}>{renderMarkdown(item)}</p>
                         ) : typeof item === 'object' && item.title ? (
                           <div className="mb-4">
                             <div className="flex justify-between items-start mb-2">
                               <div>
-                                <h3 className="font-semibold text-gray-900">{item.title}</h3>
-                                {item.company && <p className="text-gray-700">{item.company}</p>}
+                                <h3 className="font-semibold text-gray-900" style={{ fontSize: 'var(--body-font-size)' }}>{item.title}</h3>
+                                {item.company && <p className="text-gray-700" style={{ fontSize: 'var(--small-font-size)' }}>{item.company}</p>}
                               </div>
                               <div className="text-right text-sm text-gray-600">
-                                {item.location && <p>{item.location}</p>}
-                                {item.date && <p>{item.date}</p>}
+                                {item.location && <p style={{ fontSize: 'var(--tiny-font-size)' }}>{item.location}</p>}
+                                {item.date && <p style={{ fontSize: 'var(--tiny-font-size)' }}>{item.date}</p>}
                               </div>
                             </div>
                             {item.description && (
-                              <p className="text-gray-700 text-sm leading-relaxed" style={{ fontSize: '8pt' }}>
+                              <p className="text-gray-700 text-sm leading-relaxed" style={{ fontSize: 'var(--small-font-size)' }}>
                                 {renderMarkdown(item.description)}
                               </p>
                             )}
                           </div>
                         ) : (
-                          <p className="text-gray-700 leading-relaxed" style={{ fontSize: '8pt' }}>{JSON.stringify(item)}</p>
+                          <p className="text-gray-700 leading-relaxed" style={{ fontSize: 'var(--small-font-size)' }}>{JSON.stringify(item)}</p>
                         )}
                       </div>
                     ))
                   ) : (
-                    <p className="text-gray-700 leading-relaxed" style={{ fontSize: '8pt' }}>{section.content}</p>
+                    <p className="text-gray-700 leading-relaxed" style={{ fontSize: 'var(--body-font-size)' }}>{section.content}</p>
                   )}
                 </div>
               </section>
@@ -793,7 +816,7 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
         className="bg-white shadow-lg max-w-5xl mx-auto print:shadow-none relative overflow-hidden"
         style={{
           minHeight: 'auto',
-          width: '210mm',
+          width: templateStyles['--page-width'] as string || '210mm',
           ...templateStyles,
           fontFamily: templateStyles['--font-family'],
           fontSize: templateStyles['--body-font-size'],
@@ -809,14 +832,14 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
               className="w-2/5 relative"
               style={{
                 minHeight: 'auto',
-                backgroundColor: '#e6d7c3' // Warm neutral darker pastel - matching PDF
+                backgroundColor: templateStyles['--surface-color'] as string || '#e6d7c3'
               }}
             >
               <div className="relative z-10" style={{ padding: '20mm 6mm' }}>
                 {/* Profile Photo */}
                 <div className="mb-6 flex justify-center">
                   <div className="w-24 h-24 bg-gray-300 rounded-full flex items-center justify-center overflow-hidden">
-                    <span className="text-gray-600" style={{ fontSize: '7pt' }}>Photo</span>
+                    <span className="text-gray-600" style={{ fontSize: 'var(--tiny-font-size)' }}>Photo</span>
                   </div>
                 </div>
 
@@ -872,7 +895,7 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
                   className="text-sm font-bold uppercase tracking-wide mb-3 px-3 py-1 rounded"
                   style={{
                     color: '#ffffff',
-                    backgroundColor: '#c4956c' // Complementary pastel accent - matching PDF
+                    backgroundColor: templateStyles['--accent-color'] as string || '#c4956c'
                   }}
                 >
                   {section.title}
@@ -889,7 +912,7 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
                             {skillGroup.category}
                           </h4>
                         )}
-                        <div className="text-gray-600 leading-relaxed" style={{ fontSize: '8pt' }}>
+                        <div className="text-gray-600 leading-relaxed" style={{ fontSize: 'var(--small-font-size)' }}>
                           {Array.isArray(skillGroup.skills)
                             ? skillGroup.skills.map((skill, i) => (
                                 <span key={i}>
@@ -919,7 +942,7 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
             </div>
 
             {/* Right Main Content */}
-            <div className="flex-1 relative" style={{ minHeight: 'auto', backgroundColor: '#f7f5f3' }}>
+            <div className="flex-1 relative" style={{ minHeight: 'auto', backgroundColor: templateStyles['--background-color'] as string || '#f7f5f3' }}>
               <div className="relative z-10" style={{ padding: '20mm 8mm' }}>
                 {/* Name and Title Header */}
                 {frontmatter && (
@@ -955,7 +978,7 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
                   className="text-base font-bold uppercase tracking-wide mb-3 px-3 py-1 rounded"
                   style={{
                     color: '#ffffff',
-                    backgroundColor: '#a8956b' // Complementary pastel accent for main sections - matching PDF
+                    backgroundColor: templateStyles['--primary-color'] as string || '#a8956b'
                   }}
                 >
                   {section.title}
@@ -983,13 +1006,13 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
                                 </div>
                                 <div className="text-right ml-4">
                                   {typeof item === 'object' && item.location && (
-                                    <p className="text-gray-600 flex items-center justify-end mb-1" style={{ fontSize: '8pt' }}>
+                                    <p className="text-gray-600 flex items-center justify-end mb-1" style={{ fontSize: 'var(--tiny-font-size)' }}>
                                       <MapPin size={10} className="mr-1" />
                                       {item.location}
                                     </p>
                                   )}
                                   {typeof item === 'object' && item.date && (
-                                    <p className="text-gray-600 italic" style={{ fontSize: '8pt' }}>{item.date}</p>
+                                    <p className="text-gray-600 italic" style={{ fontSize: 'var(--tiny-font-size)' }}>{item.date}</p>
                                   )}
                                 </div>
                               </div>

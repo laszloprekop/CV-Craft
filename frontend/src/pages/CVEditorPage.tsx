@@ -210,13 +210,33 @@ export const CVEditorPage: React.FC = () => {
 
   // Handle template config changes
   const handleConfigChange = useCallback((newConfig: Partial<TemplateConfig>) => {
-    setTemplateConfig(prev => ({
-      ...prev,
-      ...newConfig
-    }))
-    // TODO: Save config to backend
-    // For now, we're just managing it locally
-  }, [])
+    setTemplateConfig(prev => {
+      const updated = {
+        ...prev,
+        ...newConfig
+      }
+
+      // Convert TemplateConfig to TemplateSettings and update settings
+      if (newConfig.colors) {
+        updateSettings({
+          primaryColor: newConfig.colors.primary || updated.colors.primary,
+          accentColor: newConfig.colors.accent || updated.colors.accent,
+          backgroundColor: newConfig.colors.background || updated.colors.background,
+          surfaceColor: newConfig.colors.secondary || updated.colors.secondary,
+        })
+      }
+
+      if (newConfig.typography?.fontFamily) {
+        updateSettings({
+          fontFamily: newConfig.typography.fontFamily.body || updated.typography.fontFamily.body
+        })
+      }
+
+      return updated
+    })
+    // Auto-save settings changes
+    setTimeout(() => saveCv(), 500)
+  }, [updateSettings, saveCv])
 
   // New header handlers
   const handleImportMarkdown = useCallback((content: string, filename: string) => {
@@ -455,6 +475,7 @@ export const CVEditorPage: React.FC = () => {
               cv={cv}
               template={activeTemplate}
               settings={settings}
+              config={templateConfig}
               isPending={isPending}
               liveContent={content}
               zoomLevel={zoomLevel}

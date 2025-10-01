@@ -37,6 +37,36 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
       </div>
 
       <div className="mb-6">
+        <label className="block text-sm font-medium text-text-primary mb-2">Accent Color:</label>
+        <input
+          type="color"
+          value={settings.accentColor || '#059669'}
+          onChange={(e) => onChange({ accentColor: e.target.value })}
+          className="w-full h-10 border border-border rounded cursor-pointer"
+        />
+      </div>
+
+      <div className="mb-6">
+        <label className="block text-sm font-medium text-text-primary mb-2">Background Color:</label>
+        <input
+          type="color"
+          value={settings.backgroundColor || '#ffffff'}
+          onChange={(e) => onChange({ backgroundColor: e.target.value })}
+          className="w-full h-10 border border-border rounded cursor-pointer"
+        />
+      </div>
+
+      <div className="mb-6">
+        <label className="block text-sm font-medium text-text-primary mb-2">Surface Color:</label>
+        <input
+          type="color"
+          value={settings.surfaceColor || '#ffffff'}
+          onChange={(e) => onChange({ surfaceColor: e.target.value })}
+          className="w-full h-10 border border-border rounded cursor-pointer"
+        />
+      </div>
+
+      <div className="mb-6">
         <label className="block text-sm font-medium text-text-primary mb-2">Font Family:</label>
         <select
           value={settings.fontFamily || 'Inter'}
@@ -53,8 +83,8 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
         <label className="flex items-center gap-2 text-sm text-text-primary cursor-pointer">
           <input
             type="checkbox"
-            checked={settings.tagDesign || false}
-            onChange={(e) => onChange({ tagDesign: e.target.checked })}
+            checked={settings.useTagDesign || false}
+            onChange={(e) => onChange({ useTagDesign: e.target.checked })}
             className="w-4 h-4 text-primary border-border rounded focus:ring-primary"
           />
           Tag Design for Skills
