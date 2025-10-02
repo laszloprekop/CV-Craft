@@ -52,19 +52,25 @@ const DEFAULT_TEMPLATE_CONFIG: TemplateConfig = {
     },
   },
   typography: {
+    // Base font size - all other sizes scale relative to this
+    baseFontSize: '10pt',
+
     fontFamily: {
       heading: 'Inter, system-ui, sans-serif',
       body: 'Georgia, serif',
       monospace: 'monospace',
     },
-    fontSize: {
-      h1: '32px',
-      h2: '24px',
-      h3: '20px',
-      body: '16px',
-      small: '14px',
-      tiny: '12px',
+
+    // Font scale - multipliers relative to baseFontSize (10pt)
+    fontScale: {
+      h1: 3.2,      // 32pt (3.2 × 10pt)
+      h2: 2.4,      // 24pt (2.4 × 10pt)
+      h3: 2.0,      // 20pt (2.0 × 10pt)
+      body: 1.6,    // 16pt (1.6 × 10pt)
+      small: 1.4,   // 14pt (1.4 × 10pt)
+      tiny: 1.2,    // 12pt (1.2 × 10pt)
     },
+
     fontWeight: {
       heading: 700,
       subheading: 600,

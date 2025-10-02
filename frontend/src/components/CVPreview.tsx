@@ -317,6 +317,23 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
     // Prefer config over settings (config is newer, more comprehensive)
     const activeConfig = config || template.default_config
 
+    // Calculate font sizes based on baseFontSize and fontScale
+    const calculateFontSize = (scale: number, baseFontSize: string): string => {
+      const baseValue = parseFloat(baseFontSize)
+      const unit = baseFontSize.replace(/[0-9.]/g, '')
+      return `${(baseValue * scale).toFixed(1)}${unit}`
+    }
+
+    const baseFontSize = activeConfig?.typography.baseFontSize || '10pt'
+    const fontScale = activeConfig?.typography.fontScale || {
+      h1: 3.2,
+      h2: 2.4,
+      h3: 2.0,
+      body: 1.6,
+      small: 1.4,
+      tiny: 1.2
+    }
+
     // Apply template CSS variables and styles
     const baseStyles = {
       // Colors - prefer config, fallback to settings
@@ -328,12 +345,15 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
       // Typography - use config when available
       '--font-family': activeConfig?.typography.fontFamily.body || settings.fontFamily || 'Inter',
       '--heading-font-family': activeConfig?.typography.fontFamily.heading || 'Inter',
-      '--title-font-size': activeConfig?.typography.fontSize.h1 || `${settings.titleFontSize || 24}px`,
-      '--h2-font-size': activeConfig?.typography.fontSize.h2 || '20px',
-      '--h3-font-size': activeConfig?.typography.fontSize.h3 || '18px',
-      '--body-font-size': activeConfig?.typography.fontSize.body || `${settings.bodyFontSize || 14}px`,
-      '--small-font-size': activeConfig?.typography.fontSize.small || '12px',
-      '--tiny-font-size': activeConfig?.typography.fontSize.tiny || '10px',
+
+      // Font sizes - calculated from base + scale (prefer new system, fallback to legacy)
+      '--base-font-size': baseFontSize,
+      '--title-font-size': activeConfig?.typography.fontSize?.h1 || calculateFontSize(fontScale.h1, baseFontSize),
+      '--h2-font-size': activeConfig?.typography.fontSize?.h2 || calculateFontSize(fontScale.h2, baseFontSize),
+      '--h3-font-size': activeConfig?.typography.fontSize?.h3 || calculateFontSize(fontScale.h3, baseFontSize),
+      '--body-font-size': activeConfig?.typography.fontSize?.body || calculateFontSize(fontScale.body, baseFontSize),
+      '--small-font-size': activeConfig?.typography.fontSize?.small || calculateFontSize(fontScale.small, baseFontSize),
+      '--tiny-font-size': activeConfig?.typography.fontSize?.tiny || calculateFontSize(fontScale.tiny, baseFontSize),
 
       // Layout - use config when available
       '--page-width': activeConfig?.layout.pageWidth || '210mm',

@@ -117,12 +117,27 @@ export interface TemplateConfig {
 
   // Typography
   typography: {
+    // Base font size - all other sizes are relative to this
+    baseFontSize: string; // e.g., '10pt', '12px', '1rem'
+
     fontFamily: {
       heading: string;
       body: string;
       monospace: string;
     };
-    fontSize: {
+
+    // Font scale - multipliers relative to baseFontSize
+    fontScale: {
+      h1: number;      // e.g., 3.2 means 3.2 × baseFontSize
+      h2: number;      // e.g., 2.4 means 2.4 × baseFontSize
+      h3: number;      // e.g., 2.0 means 2.0 × baseFontSize
+      body: number;    // e.g., 1.6 means 1.6 × baseFontSize
+      small: number;   // e.g., 1.4 means 1.4 × baseFontSize
+      tiny: number;    // e.g., 1.2 means 1.2 × baseFontSize
+    };
+
+    // Legacy absolute sizes - kept for backward compatibility, will be migrated
+    fontSize?: {
       h1: string;
       h2: string;
       h3: string;
@@ -130,6 +145,7 @@ export interface TemplateConfig {
       small: string;
       tiny: string;
     };
+
     fontWeight: {
       heading: number;
       subheading: number;

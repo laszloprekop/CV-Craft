@@ -188,40 +188,93 @@ export const TemplateConfigPanel: React.FC<TemplateConfigPanelProps> = ({
 
             <h4 className="text-xs font-semibold text-text-primary mb-1.5 mt-3">Font Sizes</h4>
             <SpacingControl
-              label="H1 Size"
-              value={config.typography.fontSize.h1}
+              label="Base Font Size"
+              value={config.typography.baseFontSize}
               onChange={(value) =>
-                updateConfig('typography', {
-                  fontSize: { ...config.typography.fontSize, h1: value },
-                })
+                updateConfig('typography', { baseFontSize: value })
               }
+              units={['pt', 'px', 'rem']}
+              description="Base size - all other sizes scale relative to this"
             />
-            <SpacingControl
-              label="H2 Size"
-              value={config.typography.fontSize.h2}
+
+            <h4 className="text-xs font-semibold text-text-primary mb-1.5 mt-2">Font Scale (relative to base)</h4>
+            <NumberControl
+              label="H1 Scale"
+              value={config.typography.fontScale.h1}
               onChange={(value) =>
                 updateConfig('typography', {
-                  fontSize: { ...config.typography.fontSize, h2: value },
+                  fontScale: { ...config.typography.fontScale, h1: value },
                 })
               }
+              min={1}
+              max={5}
+              step={0.1}
+              description={`${(parseFloat(config.typography.baseFontSize) * config.typography.fontScale.h1).toFixed(1)}${config.typography.baseFontSize.replace(/[0-9.]/g, '')}`}
             />
-            <SpacingControl
-              label="H3 Size"
-              value={config.typography.fontSize.h3}
+            <NumberControl
+              label="H2 Scale"
+              value={config.typography.fontScale.h2}
               onChange={(value) =>
                 updateConfig('typography', {
-                  fontSize: { ...config.typography.fontSize, h3: value },
+                  fontScale: { ...config.typography.fontScale, h2: value },
                 })
               }
+              min={1}
+              max={4}
+              step={0.1}
+              description={`${(parseFloat(config.typography.baseFontSize) * config.typography.fontScale.h2).toFixed(1)}${config.typography.baseFontSize.replace(/[0-9.]/g, '')}`}
             />
-            <SpacingControl
-              label="Body Size"
-              value={config.typography.fontSize.body}
+            <NumberControl
+              label="H3 Scale"
+              value={config.typography.fontScale.h3}
               onChange={(value) =>
                 updateConfig('typography', {
-                  fontSize: { ...config.typography.fontSize, body: value },
+                  fontScale: { ...config.typography.fontScale, h3: value },
                 })
               }
+              min={1}
+              max={3}
+              step={0.1}
+              description={`${(parseFloat(config.typography.baseFontSize) * config.typography.fontScale.h3).toFixed(1)}${config.typography.baseFontSize.replace(/[0-9.]/g, '')}`}
+            />
+            <NumberControl
+              label="Body Scale"
+              value={config.typography.fontScale.body}
+              onChange={(value) =>
+                updateConfig('typography', {
+                  fontScale: { ...config.typography.fontScale, body: value },
+                })
+              }
+              min={0.8}
+              max={2}
+              step={0.1}
+              description={`${(parseFloat(config.typography.baseFontSize) * config.typography.fontScale.body).toFixed(1)}${config.typography.baseFontSize.replace(/[0-9.]/g, '')}`}
+            />
+            <NumberControl
+              label="Small Scale"
+              value={config.typography.fontScale.small}
+              onChange={(value) =>
+                updateConfig('typography', {
+                  fontScale: { ...config.typography.fontScale, small: value },
+                })
+              }
+              min={0.6}
+              max={1.5}
+              step={0.1}
+              description={`${(parseFloat(config.typography.baseFontSize) * config.typography.fontScale.small).toFixed(1)}${config.typography.baseFontSize.replace(/[0-9.]/g, '')}`}
+            />
+            <NumberControl
+              label="Tiny Scale"
+              value={config.typography.fontScale.tiny}
+              onChange={(value) =>
+                updateConfig('typography', {
+                  fontScale: { ...config.typography.fontScale, tiny: value },
+                })
+              }
+              min={0.5}
+              max={1.2}
+              step={0.1}
+              description={`${(parseFloat(config.typography.baseFontSize) * config.typography.fontScale.tiny).toFixed(1)}${config.typography.baseFontSize.replace(/[0-9.]/g, '')}`}
             />
 
             <h4 className="text-xs font-semibold text-text-primary mb-1.5 mt-3">Font Weights</h4>

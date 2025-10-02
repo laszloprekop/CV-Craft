@@ -1,9 +1,12 @@
+export * from './defaultTemplateConfig';
 export interface CVInstance {
     id: string;
     name: string;
     content: string;
     parsed_content?: ParsedCVContent;
     template_id: string;
+    photo_asset_id?: string;
+    config?: TemplateConfig;
     settings: TemplateSettings;
     status: 'active' | 'archived' | 'deleted';
     created_at: string;
@@ -57,6 +60,7 @@ export interface Template {
     description?: string;
     css: string;
     config_schema: TemplateConfigSchema;
+    default_config: TemplateConfig;
     default_settings: TemplateSettings;
     preview_image?: string;
     is_active: boolean;
@@ -73,6 +77,144 @@ export interface TemplateSchemaProperty {
     enum?: string[];
     default?: any;
     description?: string;
+}
+export interface TemplateConfig {
+    colors: {
+        primary: string;
+        secondary: string;
+        accent: string;
+        background: string;
+        text: {
+            primary: string;
+            secondary: string;
+            muted: string;
+        };
+        borders: string;
+        links: {
+            default: string;
+            hover: string;
+        };
+        highlight?: string;
+        error?: string;
+        success?: string;
+    };
+    typography: {
+        fontFamily: {
+            heading: string;
+            body: string;
+            monospace: string;
+        };
+        fontSize: {
+            h1: string;
+            h2: string;
+            h3: string;
+            body: string;
+            small: string;
+            tiny: string;
+        };
+        fontWeight: {
+            heading: number;
+            subheading: number;
+            body: number;
+            bold: number;
+        };
+        lineHeight: {
+            heading: number;
+            body: number;
+            compact: number;
+        };
+        letterSpacing?: {
+            heading: string;
+            body: string;
+        };
+    };
+    layout: {
+        pageWidth: string;
+        pageMargin: {
+            top: string;
+            right: string;
+            bottom: string;
+            left: string;
+        };
+        sectionSpacing: string;
+        paragraphSpacing: string;
+        columns?: {
+            enabled: boolean;
+            gap: string;
+            ratio?: string;
+        };
+    };
+    components: {
+        header: {
+            backgroundColor?: string;
+            padding: string;
+            borderBottom?: string;
+            alignment: 'left' | 'center' | 'right';
+            nameSize?: string;
+            contactSize?: string;
+        };
+        section: {
+            marginBottom: string;
+            titleColor?: string;
+            titleBorderBottom?: string;
+            titlePadding?: string;
+            titleTransform?: 'none' | 'uppercase' | 'lowercase' | 'capitalize';
+        };
+        tags: {
+            backgroundColor: string;
+            textColor: string;
+            borderRadius: string;
+            padding: string;
+            fontSize: string;
+            gap: string;
+            border?: string;
+            fontWeight?: number;
+            style?: 'pill' | 'inline';
+            separator?: '·' | '|' | '•' | ',' | 'none';
+        };
+        dateLine: {
+            color: string;
+            fontStyle: 'normal' | 'italic';
+            fontSize: string;
+            fontWeight?: number;
+            alignment: 'left' | 'right';
+            format?: string;
+        };
+        list: {
+            bulletStyle: 'disc' | 'circle' | 'square' | 'none' | 'custom';
+            customBullet?: string;
+            indent: string;
+            spacing: string;
+            markerColor?: string;
+        };
+        links: {
+            underline: boolean;
+            fontWeight?: number;
+            decoration?: 'none' | 'underline' | 'dotted' | 'dashed';
+        };
+        divider: {
+            style: 'solid' | 'dotted' | 'dashed' | 'double' | 'none';
+            color?: string;
+            thickness?: string;
+            spacing?: string;
+        };
+    };
+    pdf: {
+        pageSize: 'A4' | 'Letter' | 'Legal';
+        orientation: 'portrait' | 'landscape';
+        printColorAdjust: boolean;
+        pageNumbers: {
+            enabled: boolean;
+            position: 'top-left' | 'top-center' | 'top-right' | 'bottom-left' | 'bottom-center' | 'bottom-right';
+            format?: string;
+        };
+    };
+    advanced?: {
+        customCSS?: string;
+        animations?: boolean;
+        shadows?: boolean;
+        iconSet?: 'phosphor' | 'lucide' | 'feather' | 'none';
+    };
 }
 export interface TemplateSettings {
     primaryColor: string;
