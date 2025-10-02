@@ -13,6 +13,7 @@ export interface CreateCVInstanceData {
   content: string;
   parsed_content?: ParsedCVContent;
   template_id: string;
+  photo_asset_id?: string;
   config?: TemplateConfig;
   settings?: TemplateSettings;
   metadata?: Record<string, any>;
@@ -23,6 +24,7 @@ export interface UpdateCVInstanceData {
   content?: string;
   parsed_content?: ParsedCVContent;
   template_id?: string;
+  photo_asset_id?: string;
   config?: TemplateConfig;
   settings?: TemplateSettings;
   status?: 'active' | 'archived';
@@ -57,6 +59,7 @@ export class CVInstanceModel {
       content: data.content,
       parsed_content: data.parsed_content ? JSON.stringify(data.parsed_content) : null,
       template_id: data.template_id,
+      photo_asset_id: data.photo_asset_id || null,
       config: data.config ? JSON.stringify(data.config) : null,
       settings: data.settings ? JSON.stringify(data.settings) : null,
       status: 'active',
@@ -79,12 +82,20 @@ export class CVInstanceModel {
         throw new CVInstanceError('Template not found or inactive', 'INVALID_TEMPLATE');
       }
 
+      // Verify photo asset exists if provided
+      if (data.photo_asset_id) {
+        const asset = this.db.prepare('SELECT id FROM assets WHERE id = ? AND file_type = ?').get(data.photo_asset_id, 'image');
+        if (!asset) {
+          throw new CVInstanceError('Photo asset not found or is not an image', 'INVALID_ASSET');
+        }
+      }
+
       // Insert CV instance
       const stmt = this.db.prepare(`
         INSERT INTO cv_instances (
-          id, name, content, parsed_content, template_id, config, settings, status, created_at, updated_at, metadata
+          id, name, content, parsed_content, template_id, photo_asset_id, config, settings, status, created_at, updated_at, metadata
         ) VALUES (
-          @id, @name, @content, @parsed_content, @template_id, @config, @settings, @status, @created_at, @updated_at, @metadata
+          @id, @name, @content, @parsed_content, @template_id, @photo_asset_id, @config, @settings, @status, @created_at, @updated_at, @metadata
         )
       `);
 
@@ -192,7 +203,7 @@ export class CVInstanceModel {
 
     // Build update query
     const updates: string[] = [];
-    const params: Record<string, string | number> = { id };
+    const params: Record<string, string | number | null> = { id };
 
     if (data.name !== undefined) {
       updates.push('name = @name');
@@ -209,6 +220,10 @@ export class CVInstanceModel {
     if (data.template_id !== undefined) {
       updates.push('template_id = @template_id');
       params.template_id = data.template_id;
+    }
+    if (data.photo_asset_id !== undefined) {
+      updates.push('photo_asset_id = @photo_asset_id');
+      params.photo_asset_id = data.photo_asset_id || null;
     }
     if (data.config !== undefined) {
       updates.push('config = @config');
@@ -347,6 +362,7 @@ export class CVInstanceModel {
       content: row.content,
       parsed_content: row.parsed_content ? JSON.parse(row.parsed_content) : undefined,
       template_id: row.template_id,
+      photo_asset_id: row.photo_asset_id || undefined,
       config: row.config ? JSON.parse(row.config) : undefined,
       settings: row.settings ? JSON.parse(row.settings) : {},
       status: row.status,

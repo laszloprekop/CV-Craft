@@ -352,43 +352,23 @@ export const CVEditorPage: React.FC = () => {
     if (!cv) return
 
     try {
+      // Upload the image asset
       const result = await assetApi.uploadImage(file, cv.id)
-      // Get the public URL for the uploaded asset
-      const imageUrl = assetApi.getPublicUrl(result.data)
+      const assetId = result.data.id
 
-      // Insert photo reference in frontmatter or at the beginning
-      const lines = content.split('\n')
-      const frontmatterStart = lines.findIndex(line => line.trim() === '---')
-      const frontmatterEnd = lines.findIndex((line, index) => index > 0 && line.trim() === '---')
+      // Update CV with photo_asset_id (NOT in markdown content)
+      await cvApi.update(cv.id, {
+        photo_asset_id: assetId
+      })
 
-      if (frontmatterStart === 0 && frontmatterEnd > 0) {
-        // Has frontmatter - add photo field to it
-        // Check if photo field already exists
-        const photoLineIndex = lines.findIndex((line, idx) =>
-          idx > frontmatterStart && idx < frontmatterEnd && line.toLowerCase().includes('photo:')
-        )
+      // Trigger a reload by calling saveCv which will refetch the CV
+      await saveCv()
 
-        if (photoLineIndex !== -1) {
-          // Replace existing photo line
-          lines[photoLineIndex] = `photo: ${imageUrl}`
-        } else {
-          // Add new photo field before closing ---
-          lines.splice(frontmatterEnd, 0, `photo: ${imageUrl}`)
-        }
-        updateContent(lines.join('\n'))
-      } else {
-        // No frontmatter - insert markdown image at the beginning
-        const imageReference = `![Profile Photo](${imageUrl})`
-        lines.unshift('', imageReference)
-        updateContent(lines.join('\n'))
-      }
-
-      // Trigger save
-      setTimeout(() => saveCv(), 500)
+      console.log('Photo uploaded and linked to CV:', assetId)
     } catch (error) {
       console.error('Failed to upload asset:', error)
     }
-  }, [cv, content, updateContent, saveCv])
+  }, [cv, saveCv])
 
   // Handle photo upload specifically for header
   const handlePhotoUpload = useCallback(async (file: File) => {

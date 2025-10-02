@@ -9,6 +9,7 @@ export interface CVInstance {
   content: string;
   parsed_content?: ParsedCVContent;
   template_id: string;
+  photo_asset_id?: string; // Reference to profile photo asset
   config?: TemplateConfig; // New comprehensive config
   settings: TemplateSettings; // Legacy support
   status: 'active' | 'archived' | 'deleted';

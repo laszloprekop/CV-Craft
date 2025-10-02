@@ -4,9 +4,10 @@
  * Renders the live preview of the CV with template styling matching design proposal
  */
 
-import React, { useMemo } from 'react'
+import React, { useMemo, useState, useEffect } from 'react'
 import { Phone, Envelope, LinkedinLogo, GithubLogo, MapPin, Globe } from '@phosphor-icons/react'
-import type { CVInstance, Template, TemplateSettings, TemplateConfig } from '../../../shared/types'
+import type { CVInstance, Template, TemplateSettings, TemplateConfig, Asset } from '../../../shared/types'
+import { assetApi } from '../services/api'
 
 interface CVPreviewProps {
   cv: CVInstance | null
@@ -33,6 +34,29 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
   previewMode = 'web',
   onSettingsChange
 }) => {
+  // State for profile photo URL
+  const [photoUrl, setPhotoUrl] = useState<string | null>(null)
+
+  // Load photo from asset when cv.photo_asset_id changes
+  useEffect(() => {
+    const loadPhoto = async () => {
+      if (cv?.photo_asset_id) {
+        try {
+          const response = await assetApi.get(cv.photo_asset_id)
+          const photoAsset = response.data
+          setPhotoUrl(assetApi.getFileUrl(photoAsset))
+        } catch (error) {
+          console.error('Failed to load profile photo:', error)
+          setPhotoUrl(null)
+        }
+      } else {
+        setPhotoUrl(null)
+      }
+    }
+
+    loadPhoto()
+  }, [cv?.photo_asset_id])
+
   // Simple client-side markdown parser for live preview
   const parseMarkdownContent = (content: string) => {
     // Extract frontmatter
@@ -498,9 +522,9 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
                 {frontmatter && (
                   <div className="mb-6">
                     <div className="text-center mb-4">
-                      {frontmatter.photo ? (
+                      {photoUrl ? (
                         <img
-                          src={frontmatter.photo}
+                          src={photoUrl}
                           alt="Profile"
                           className="w-32 h-32 rounded-full mx-auto mb-3 object-cover"
                           style={{ width: '200px', height: '200px' }}
@@ -981,9 +1005,9 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
               <div className="relative z-10" style={{ padding: '20mm 6mm' }}>
                 {/* Profile Photo */}
                 <div className="mb-6 flex justify-center">
-                  {frontmatter?.photo ? (
+                  {photoUrl ? (
                     <img
-                      src={frontmatter.photo}
+                      src={photoUrl}
                       alt="Profile"
                       className="rounded-full object-cover"
                       style={{ width: '200px', height: '200px' }}

@@ -6,12 +6,13 @@
 
 import { CVInstanceModel, CreateCVInstanceData, UpdateCVInstanceData, ListCVInstancesOptions } from '../models/CVInstance';
 import { CVParser, parseCV, validateCVContent } from '../lib/cv-parser';
-import type { CVInstance, ParsedCVContent, TemplateSettings } from '../../../shared/types';
+import type { CVInstance, ParsedCVContent, TemplateSettings, TemplateConfig } from '../../../shared/types';
 
 export interface CreateCVServiceData {
   name: string;
   content: string;
   template_id: string;
+  config?: TemplateConfig;
   settings?: TemplateSettings;
 }
 
@@ -19,6 +20,7 @@ export interface UpdateCVServiceData {
   name?: string;
   content?: string;
   template_id?: string;
+  config?: TemplateConfig;
   settings?: TemplateSettings;
   status?: 'active' | 'archived';
 }
@@ -69,6 +71,7 @@ export class CVService {
       content: data.content,
       parsed_content: parsedContent,
       template_id: data.template_id,
+      config: data.config,
       settings: data.settings,
       metadata: {
         parsed_at: new Date().toISOString(),
@@ -106,6 +109,7 @@ export class CVService {
     const updateData: UpdateCVInstanceData = {
       name: data.name,
       template_id: data.template_id,
+      config: data.config,
       settings: data.settings,
       status: data.status
     };
