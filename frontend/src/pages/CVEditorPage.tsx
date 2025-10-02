@@ -163,6 +163,7 @@ export const CVEditorPage: React.FC = () => {
     updateSettings,
     updateConfig: saveConfig,
     saveCv,
+    reloadCv,
     exportCv
   } = useCVEditor(cvId)
 
@@ -357,18 +358,18 @@ export const CVEditorPage: React.FC = () => {
       const assetId = result.data.id
 
       // Update CV with photo_asset_id (NOT in markdown content)
-      const updatedCVResponse = await cvApi.update(cv.id, {
+      await cvApi.update(cv.id, {
         photo_asset_id: assetId
       })
 
-      // Update local CV state to trigger photo reload
-      setCv(updatedCVResponse.data)
+      // Reload CV to get updated photo_asset_id
+      await reloadCv()
 
       console.log('Photo uploaded and linked to CV:', assetId)
     } catch (error) {
       console.error('Failed to upload asset:', error)
     }
-  }, [cv])
+  }, [cv, reloadCv])
 
   // Handle photo upload specifically for header
   const handlePhotoUpload = useCallback(async (file: File) => {

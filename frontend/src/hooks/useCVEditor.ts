@@ -22,6 +22,7 @@ export interface UseCVEditorReturn {
   updateSettings: (settings: Partial<TemplateSettings>) => void
   updateConfig: (config: Partial<TemplateConfig>) => void
   saveCv: () => Promise<void>
+  reloadCv: () => Promise<void>
   exportCv: (type: 'pdf' | 'web_package') => Promise<void>
 }
 
@@ -235,6 +236,12 @@ export function useCVEditor(cvId?: string): UseCVEditorReturn {
     }
   }, [cv, settings, saveCv])
 
+  const reloadCv = useCallback(async () => {
+    if (cv?.id) {
+      await loadCv(cv.id)
+    }
+  }, [cv?.id])
+
   return {
     cv,
     content,
@@ -247,6 +254,7 @@ export function useCVEditor(cvId?: string): UseCVEditorReturn {
     updateSettings,
     updateConfig,
     saveCv,
+    reloadCv,
     exportCv
   }
 }
