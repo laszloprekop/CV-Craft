@@ -2,7 +2,7 @@ import React from 'react';
 
 interface SpacingControlProps {
   label: string;
-  value: string;
+  value: string | undefined;
   onChange: (value: string) => void;
   description?: string;
   min?: number;
@@ -20,7 +20,8 @@ export const SpacingControl: React.FC<SpacingControlProps> = ({
   units = ['px', 'rem', 'em', '%', 'mm'],
 }) => {
   // Parse value into number and unit
-  const parseValue = (val: string): { num: number; unit: string } => {
+  const parseValue = (val: string | undefined): { num: number; unit: string } => {
+    if (!val) return { num: 0, unit: units[0] };
     const match = val.match(/^([\d.]+)(.*)$/);
     if (!match) return { num: 0, unit: units[0] };
     return {

@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//Users/laszloprekop/Library/CloudStorage/Dropbox/work/learning/linero/CV-Craft/**)",
+      "Bash(rm:*)",
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nchore: Remove Spec kit framework and bump version to 1.0.1\n\n- Removed CV-Craft/ directory (scripts, templates, memory)\n- Removed .claude/commands/ directory\n- Removed specs/ directory\n- Updated CLAUDE.md to remove all Spec kit references\n- Bumped backend and frontend versions from 1.0.0 to 1.0.1\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(find:*)",
+      "Bash(git commit:*)",
+      "Bash(cat:*)",
+      "Bash(npm run test:*)",
+      "Bash(npm install:*)",
+      "Bash(npm run lint)",
+      "Bash(npm run dev:*)",
+      "Bash(lsof:*)",
+      "Bash(kill:*)",
+      "Bash(xargs kill:*)",
+      "Bash(xargs -r kill -9)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

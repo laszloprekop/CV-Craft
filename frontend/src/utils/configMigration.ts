@@ -24,30 +24,47 @@ export function migrateTemplateConfig(config: TemplateConfig | undefined): Templ
     return config
   }
 
-  // If has old fontSize structure, migrate it
-  if (config.typography?.fontSize && !config.typography?.baseFontSize) {
+  // If missing baseFontSize, add it
+  if (!config.typography?.baseFontSize) {
     const migrated = { ...config }
 
-    // Extract base font size from body or h3 (most common reference)
-    const bodySize = config.typography.fontSize.body || '16px'
-    const baseFontSize = extractBaseFontSize(bodySize)
+    // Default base font size
+    let baseFontSize = '10pt'
 
-    // Calculate scale ratios based on old absolute sizes
+    // If has old fontSize structure, extract base from it
+    if (config.typography?.fontSize) {
+      const bodySize = config.typography.fontSize.body || '16px'
+      baseFontSize = extractBaseFontSize(bodySize)
+    }
+
+    // Calculate scale ratios based on old absolute sizes (or use defaults)
     const fontScale = {
-      h1: calculateScale(config.typography.fontSize.h1 || '32px', baseFontSize),
-      h2: calculateScale(config.typography.fontSize.h2 || '24px', baseFontSize),
-      h3: calculateScale(config.typography.fontSize.h3 || '20px', baseFontSize),
-      body: calculateScale(config.typography.fontSize.body || '16px', baseFontSize),
-      small: calculateScale(config.typography.fontSize.small || '14px', baseFontSize),
-      tiny: calculateScale(config.typography.fontSize.tiny || '12px', baseFontSize)
+      h1: config.typography?.fontSize?.h1
+        ? calculateScale(config.typography.fontSize.h1, baseFontSize)
+        : 3.2,
+      h2: config.typography?.fontSize?.h2
+        ? calculateScale(config.typography.fontSize.h2, baseFontSize)
+        : 2.4,
+      h3: config.typography?.fontSize?.h3
+        ? calculateScale(config.typography.fontSize.h3, baseFontSize)
+        : 2.0,
+      body: config.typography?.fontSize?.body
+        ? calculateScale(config.typography.fontSize.body, baseFontSize)
+        : 1.6,
+      small: config.typography?.fontSize?.small
+        ? calculateScale(config.typography.fontSize.small, baseFontSize)
+        : 1.4,
+      tiny: config.typography?.fontSize?.tiny
+        ? calculateScale(config.typography.fontSize.tiny, baseFontSize)
+        : 1.2
     }
 
     migrated.typography = {
       ...config.typography,
       baseFontSize,
       fontScale,
-      // Keep legacy fontSize for backward compatibility
-      fontSize: config.typography.fontSize
+      // Keep legacy fontSize for backward compatibility if it exists
+      fontSize: config.typography?.fontSize
     }
 
     return migrated
