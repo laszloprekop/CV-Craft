@@ -1,12 +1,13 @@
 /**
  * CV Editor Hook
- * 
+ *
  * Manages CV state, auto-save, and editor operations according to SDD specifications
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { cvApi, exportApi } from '../services/api'
 import type { CVInstance, TemplateSettings, TemplateConfig } from '../../../shared/types'
+import { migrateTemplateConfig } from '../utils/configMigration'
 
 export type SaveStatus = 'idle' | 'saving' | 'saved' | 'error'
 
@@ -133,10 +134,18 @@ export function useCVEditor(cvId?: string): UseCVEditorReturn {
       const response = await cvApi.get(id)
       const cvData = response.data
 
+      // Migrate old config structure to new font sizing system
+      const migratedConfig = migrateTemplateConfig(cvData.config)
+
       setCv(cvData)
       setContent(cvData.content)
       setSettings(cvData.settings || {})
-      setConfig(cvData.config)
+      setConfig(migratedConfig)
+
+      // If config was migrated, save it to persist the new structure
+      if (migratedConfig && migratedConfig !== cvData.config) {
+        console.log('[useCVEditor] Config migrated, will auto-save on next change')
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load CV')
     } finally {
