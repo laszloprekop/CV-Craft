@@ -94,6 +94,7 @@ router.put('/:id', validateUuid('id'), validateUpdateCV, asyncHandler(async (req
     name: req.body.name,
     content: req.body.content,
     template_id: req.body.template_id,
+    photo_asset_id: req.body.photo_asset_id,
     settings: req.body.settings,
     config: req.body.config,
     status: req.body.status

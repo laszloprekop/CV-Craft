@@ -39,22 +39,28 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
 
   // Load photo from asset when cv.photo_asset_id changes
   useEffect(() => {
+    console.log('[CVPreview] Photo useEffect triggered, cv.photo_asset_id:', cv?.photo_asset_id)
+
     // Reset immediately to avoid stale photo URL
     setPhotoUrl(null)
 
     // If no photo_asset_id, nothing to load
     if (!cv?.photo_asset_id) {
+      console.log('[CVPreview] No photo_asset_id, skipping load')
       return
     }
 
     // Load asynchronously without blocking render
     const loadPhoto = async () => {
       try {
+        console.log('[CVPreview] Fetching asset:', cv.photo_asset_id)
         const response = await assetApi.get(cv.photo_asset_id!)
         const photoAsset = response.data
-        setPhotoUrl(assetApi.getFileUrl(photoAsset))
+        const photoUrl = assetApi.getFileUrl(photoAsset)
+        console.log('[CVPreview] Photo loaded, URL:', photoUrl)
+        setPhotoUrl(photoUrl)
       } catch (error) {
-        console.error('Failed to load profile photo:', error)
+        console.error('[CVPreview] Failed to load profile photo:', error)
         // Don't set to null here - keep previous state to avoid flicker
       }
     }
