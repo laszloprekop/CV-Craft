@@ -132,12 +132,70 @@ Missing the field at ANY step breaks persistence.
 - `backend/src/services/CVService.ts` - Added config to interfaces and methods
 - `backend/src/models/CVInstance.ts` - Added photo_asset_id support
 - `backend/src/database/migrations/001_add_photo_asset_id.sql` - New migration
+- `backend/src/middleware/validation.ts` - Added photo_asset_id to updateCV schema
+- `backend/src/api/routes/cvs.ts` - Pass photo_asset_id to service layer
+- `backend/src/api/routes/assets.ts` - Content-Disposition inline for images
+- `backend/src/app.ts` - Helmet crossOriginResourcePolicy configuration
 - `shared/types/index.ts` - Added photo_asset_id to CVInstance
 
 ### Frontend
 - `frontend/package.json` - Version bump to 1.4.3
-- `frontend/src/pages/CVEditorPage.tsx` - Refactored photo upload
+- `frontend/src/pages/CVEditorPage.tsx` - Refactored photo upload with reloadCv
 - `frontend/src/components/CVPreview.tsx` - Load photo from asset reference
+- `frontend/src/hooks/useCVEditor.ts` - Added reloadCv function to hook interface
+
+---
+
+### 🔧 Validation and CORS Fixes
+
+**Problem:**
+- 422 Validation Error when updating CV with `photo_asset_id`
+- `photo_asset_id` not persisting to database (remained NULL)
+- CORS error blocking image display: `ERR_BLOCKED_BY_RESPONSE.NotSameOrigin`
+
+**Root Causes:**
+1. **Validation:** Joi schema missing `photo_asset_id` field
+2. **API Route:** Route handler not passing `photo_asset_id` to service layer
+3. **CORS:** Content-Disposition "attachment" + missing crossOriginResourcePolicy in Helmet
+
+**Solutions:**
+- **Validation (backend/src/middleware/validation.ts):**
+  - Added `photo_asset_id: Joi.string().uuid().allow(null).optional()` to updateCV schema
+- **API Route (backend/src/api/routes/cvs.ts:97):**
+  - Added `photo_asset_id: req.body.photo_asset_id` to updateData object
+- **CORS (backend/src/api/routes/assets.ts:265-269):**
+  - Changed Content-Disposition from "attachment" to "inline" for images
+  - Images now display in browser instead of forcing download
+- **Helmet (backend/src/app.ts:61-64):**
+  - Added `crossOriginResourcePolicy: { policy: "cross-origin" }`
+  - Allows frontend to load images from backend without CORS blocking
+
+**Key Insight:**
+> When adding new database fields, verify they propagate through ALL layers:
+> 1. Database schema ✓
+> 2. TypeScript types ✓
+> 3. Validation schemas ✓
+> 4. Service interfaces ✓
+> 5. **API route handlers** ← Often forgotten!
+> 6. Model methods ✓
+
+---
+
+### 🐛 Runtime Error Fixes
+
+**Problem:**
+- `ReferenceError: setCv is not defined` in handleAssetUpload
+
+**Root Cause:**
+- `setCv` is internal to useCVEditor hook and not exposed
+
+**Solution:**
+- **Hook Interface (frontend/src/hooks/useCVEditor.ts):**
+  - Added `reloadCv: () => Promise<void>` to UseCVEditorReturn interface
+  - Implemented reloadCv function that calls loadCv(cv.id)
+- **Photo Upload (frontend/src/pages/CVEditorPage.tsx:366):**
+  - Changed from `setCv(response.data)` to `await reloadCv()`
+  - Properly refreshes CV state after photo upload
 
 ---
 
@@ -149,6 +207,11 @@ Missing the field at ANY step breaks persistence.
 - [x] Backward compatibility with existing CVs
 - [x] Database migration executes successfully
 - [x] TypeScript compilation (dev mode with ts-node)
+- [x] Validation allows photo_asset_id field
+- [x] API route passes photo_asset_id to service
+- [x] CORS allows cross-origin image loading
+- [x] Content-Disposition set to inline for images
+- [x] Photo loads and displays without errors
 
 ---
 
