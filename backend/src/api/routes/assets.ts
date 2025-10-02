@@ -259,8 +259,15 @@ router.get('/:id/file', validateUuid(), asyncHandler(async (req, res) => {
 
   // Set appropriate headers
   res.setHeader('Content-Type', asset.mime_type);
-  res.setHeader('Content-Disposition', `attachment; filename="${asset.filename}"`);
-  
+  res.setHeader('Cache-Control', 'public, max-age=31536000'); // Cache for 1 year
+
+  // For images, display inline; for other files, force download
+  if (asset.file_type === 'image') {
+    res.setHeader('Content-Disposition', `inline; filename="${asset.filename}"`);
+  } else {
+    res.setHeader('Content-Disposition', `attachment; filename="${asset.filename}"`);
+  }
+
   // Send file
   res.sendFile(filePath);
 }));

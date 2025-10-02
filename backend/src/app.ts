@@ -59,7 +59,8 @@ export class CVCraftApp {
   private setupMiddleware(): void {
     // Security middleware
     this.app.use(helmet({
-      crossOriginEmbedderPolicy: false // Allow file downloads
+      crossOriginEmbedderPolicy: false, // Allow file downloads
+      crossOriginResourcePolicy: { policy: "cross-origin" } // Allow images to be loaded from frontend
     }));
 
     // Rate limiting - prevent abuse
