@@ -346,14 +346,14 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
       '--font-family': activeConfig?.typography.fontFamily.body || settings.fontFamily || 'Inter',
       '--heading-font-family': activeConfig?.typography.fontFamily.heading || 'Inter',
 
-      // Font sizes - calculated from base + scale (prefer new system, fallback to legacy)
+      // Font sizes - calculated from base + scale (always use new system)
       '--base-font-size': baseFontSize,
-      '--title-font-size': activeConfig?.typography.fontSize?.h1 || calculateFontSize(fontScale.h1, baseFontSize),
-      '--h2-font-size': activeConfig?.typography.fontSize?.h2 || calculateFontSize(fontScale.h2, baseFontSize),
-      '--h3-font-size': activeConfig?.typography.fontSize?.h3 || calculateFontSize(fontScale.h3, baseFontSize),
-      '--body-font-size': activeConfig?.typography.fontSize?.body || calculateFontSize(fontScale.body, baseFontSize),
-      '--small-font-size': activeConfig?.typography.fontSize?.small || calculateFontSize(fontScale.small, baseFontSize),
-      '--tiny-font-size': activeConfig?.typography.fontSize?.tiny || calculateFontSize(fontScale.tiny, baseFontSize),
+      '--title-font-size': calculateFontSize(fontScale.h1, baseFontSize),
+      '--h2-font-size': calculateFontSize(fontScale.h2, baseFontSize),
+      '--h3-font-size': calculateFontSize(fontScale.h3, baseFontSize),
+      '--body-font-size': calculateFontSize(fontScale.body, baseFontSize),
+      '--small-font-size': calculateFontSize(fontScale.small, baseFontSize),
+      '--tiny-font-size': calculateFontSize(fontScale.tiny, baseFontSize),
 
       // Layout - use config when available
       '--page-width': activeConfig?.layout.pageWidth || '210mm',
@@ -501,7 +501,7 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
                     <p
                       className="font-medium mb-4"
                       style={{
-                        fontSize: '1.125rem',
+                        fontSize: templateStyles['--h3-font-size'],
                         color: templateStyles['--accent-color'] || '#6b7280'
                       }}
                     >
@@ -580,7 +580,7 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
                         <p
                           className="font-medium text-center mb-4"
                           style={{
-                            fontSize: '1rem',
+                            fontSize: templateStyles['--body-font-size'],
                             color: '#6b5b47'
                           }}
                         >
@@ -678,7 +678,7 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
                       <p
                         className="font-medium mb-4"
                         style={{
-                          fontSize: '1.125rem',
+                          fontSize: templateStyles['--h3-font-size'],
                           color: '#6b5b47'
                         }}
                       >
@@ -1139,7 +1139,7 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
                   <p
                     className="font-medium"
                     style={{
-                      fontSize: '1.125rem',
+                      fontSize: templateStyles['--h3-font-size'],
                       color: templateStyles['--accent-color'] || '#6b7280'
                     }}
                   >
