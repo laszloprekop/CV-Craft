@@ -7,11 +7,12 @@
 import { Router } from 'express';
 import { getDatabase } from '../../database/connection';
 import { createCVInstanceModel } from '../../models/CVInstance';
+import { createTemplateModel } from '../../models/Template';
 import { createCVService, CVServiceError } from '../../services/CVService';
-import { 
-  asyncHandler, 
-  createApiResponse, 
-  createPaginatedResponse 
+import {
+  asyncHandler,
+  createApiResponse,
+  createPaginatedResponse
 } from '../../middleware/errorHandler';
 import {
   validateCreateCV,
@@ -27,7 +28,8 @@ const router = Router();
 const getServices = () => {
   const db = getDatabase();
   const cvModel = createCVInstanceModel(db);
-  const cvService = createCVService(cvModel);
+  const templateModel = createTemplateModel(db);
+  const cvService = createCVService(cvModel, templateModel);
   return { cvService, cvModel };
 };
 

@@ -99,12 +99,21 @@ export interface TemplateConfig {
         success?: string;
     };
     typography: {
+        baseFontSize: string;
         fontFamily: {
             heading: string;
             body: string;
             monospace: string;
         };
-        fontSize: {
+        fontScale: {
+            h1: number;
+            h2: number;
+            h3: number;
+            body: number;
+            small: number;
+            tiny: number;
+        };
+        fontSize?: {
             h1: string;
             h2: string;
             h3: string;

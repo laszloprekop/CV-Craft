@@ -8,23 +8,30 @@ import type { TemplateConfig } from './index';
 
 export const DEFAULT_TEMPLATE_CONFIG: TemplateConfig = {
   colors: {
-    primary: '#2563eb',      // Blue-600
-    secondary: '#64748b',    // Slate-500
-    accent: '#f59e0b',       // Amber-500
-    background: '#ffffff',   // White
+    primary: '#2563eb',       // Blue-600
+    onPrimary: '#ffffff',     // White text on primary
+    secondary: '#64748b',     // Slate-500
+    onSecondary: '#ffffff',   // White text on secondary
+    tertiary: '#f59e0b',      // Amber-500 (renamed from accent)
+    onTertiary: '#ffffff',    // White text on tertiary
+    background: '#ffffff',    // White
+    muted: '#f1f5f9',         // Slate-100
+    onMuted: '#334155',       // Slate-700 text on muted
     text: {
-      primary: '#0f172a',    // Slate-900
-      secondary: '#475569',  // Slate-600
-      muted: '#94a3b8',      // Slate-400
+      primary: '#0f172a',     // Slate-900
+      secondary: '#475569',   // Slate-600
+      muted: '#94a3b8',       // Slate-400
     },
-    borders: '#e2e8f0',      // Slate-200
+    borders: '#e2e8f0',       // Slate-200
     links: {
-      default: '#2563eb',    // Blue-600
-      hover: '#1d4ed8',      // Blue-700
+      default: '#2563eb',     // Blue-600
+      hover: '#1d4ed8',       // Blue-700
     },
-    highlight: '#fef3c7',    // Amber-100
-    error: '#dc2626',        // Red-600
-    success: '#16a34a',      // Green-600
+    // Legacy support
+    accent: '#f59e0b',        // Deprecated, use tertiary
+    highlight: '#fef3c7',     // Amber-100
+    error: '#dc2626',         // Red-600
+    success: '#16a34a',       // Green-600
   },
 
   typography: {

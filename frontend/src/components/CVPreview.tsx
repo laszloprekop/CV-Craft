@@ -37,6 +37,21 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
   // State for profile photo URL
   const [photoUrl, setPhotoUrl] = useState<string | null>(null)
 
+  // Ref for measuring actual section heights
+  const measureContainerRef = React.useRef<HTMLDivElement>(null)
+  const [measuredHeights, setMeasuredHeights] = useState<Map<string, number>>(new Map())
+
+  // Create stable key from measured heights for dependency tracking
+  const measuredHeightsKey = useMemo(() => {
+    return Array.from(measuredHeights.entries())
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([key, value]) => `${key}:${value.toFixed(2)}`)
+      .join('|')
+  }, [measuredHeights])
+
+  // Track overflow issues for PDF mode
+  const [overflowWarnings, setOverflowWarnings] = useState<string[]>([])
+
   // Load photo from asset when cv.photo_asset_id changes
   useEffect(() => {
     console.log('[CVPreview] Photo useEffect triggered, cv.photo_asset_id:', cv?.photo_asset_id)
@@ -310,8 +325,40 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
     return null
   }, [liveContent, cv?.parsed_content])
 
-  // Apply template-based styling
-  const getTemplateStyles = () => {
+  // Measure actual section heights in PDF mode
+  useEffect(() => {
+    if (previewMode !== 'pdf' || !measureContainerRef.current || !parsedContent) {
+      return
+    }
+
+    // Wait for next frame to ensure DOM is rendered
+    requestAnimationFrame(() => {
+      if (!measureContainerRef.current) return
+
+      const newHeights = new Map<string, number>()
+      const container = measureContainerRef.current
+
+      // Measure header height
+      const header = container.querySelector('[data-measure="header"]')
+      if (header) {
+        newHeights.set('header', header.getBoundingClientRect().height)
+      }
+
+      // Measure each section
+      container.querySelectorAll('[data-measure-section]').forEach((element) => {
+        const sectionIndex = element.getAttribute('data-measure-section')
+        if (sectionIndex) {
+          newHeights.set(`section-${sectionIndex}`, element.getBoundingClientRect().height)
+        }
+      })
+
+      console.log('[CVPreview] Measured heights:', Object.fromEntries(newHeights))
+      setMeasuredHeights(newHeights)
+    })
+  }, [previewMode, parsedContent])
+
+  // Apply template-based styling - memoized to prevent infinite re-renders
+  const templateStyles = useMemo(() => {
     if (!template) return {}
 
     // Prefer config over settings (config is newer, more comprehensive)
@@ -341,13 +388,25 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
 
     // Apply template CSS variables and styles (config is single source of truth)
     const baseStyles = {
-      // Colors - from config only
+      // Main Color Pairs - Background colors and their text colors
       '--primary-color': activeConfig?.colors.primary || '#2563eb',
-      '--accent-color': activeConfig?.colors.accent || '#059669',
-      '--background-color': activeConfig?.colors.background || '#ffffff',
-      '--surface-color': activeConfig?.colors.secondary || '#ffffff',
+      '--on-primary-color': activeConfig?.colors.onPrimary || '#ffffff',
 
-      // Text colors
+      '--secondary-color': activeConfig?.colors.secondary || '#64748b',
+      '--on-secondary-color': activeConfig?.colors.onSecondary || '#ffffff',
+
+      '--tertiary-color': activeConfig?.colors.tertiary || activeConfig?.colors.accent || '#f59e0b',
+      '--on-tertiary-color': activeConfig?.colors.onTertiary || '#ffffff',
+
+      '--muted-color': activeConfig?.colors.muted || '#f1f5f9',
+      '--on-muted-color': activeConfig?.colors.onMuted || '#334155',
+
+      '--background-color': activeConfig?.colors.background || '#ffffff',
+      '--on-background-color': activeConfig?.colors.text.primary || '#1f2937',
+
+      // Legacy color variables for backward compatibility
+      '--accent-color': activeConfig?.colors.tertiary || activeConfig?.colors.accent || '#f59e0b',
+      '--surface-color': activeConfig?.colors.secondary || '#64748b',
       '--text-color': activeConfig?.colors.text.primary || '#1f2937',
       '--text-secondary': activeConfig?.colors.text.secondary || '#64748b',
       '--text-muted': activeConfig?.colors.text.muted || '#94a3b8',
@@ -390,19 +449,21 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
       '--section-spacing': activeConfig?.layout.sectionSpacing || '24px',
       '--paragraph-spacing': activeConfig?.layout.paragraphSpacing || '12px',
 
-      // Component styles
-      '--tag-bg-color': activeConfig?.components.tags.backgroundColor || '#e0e7ff',
-      '--tag-text-color': activeConfig?.components.tags.textColor || '#3730a3',
+      // Component styles (use new color pairs)
+      '--tag-bg-color': activeConfig?.colors.tertiary || activeConfig?.colors.accent || '#f59e0b',
+      '--tag-text-color': activeConfig?.colors.onTertiary || '#ffffff',
       '--tag-border-radius': activeConfig?.components.tags.borderRadius || '4px',
-      '--date-line-color': activeConfig?.components.dateLine.color || '#64748b',
+      '--date-line-color': activeConfig?.colors.text.secondary || '#64748b',
     } as React.CSSProperties
 
     return baseStyles
-  }
+  }, [template, config])
 
-  // Calculate content height and split into pages for PDF mode
-  const splitContentIntoPages = (content: any) => {
-    if (previewMode !== 'pdf') return [content]
+  // Calculate content height and split into pages for PDF mode - memoized to prevent infinite re-renders
+  const pdfPagesData = useMemo(() => {
+    if (!parsedContent || previewMode !== 'pdf') {
+      return { pages: [parsedContent], warnings: [] }
+    }
 
     // A4 dimensions: 210mm × 297mm
     // With margins: 20mm top/bottom, 15mm left/right
@@ -412,10 +473,18 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
     const pageHeightPx = pageContentHeight * mmToPx // ~971px
 
     const pages = []
-    const { frontmatter, sections } = content
+    const { frontmatter, sections } = parsedContent
+    const warnings: string[] = []
 
-    // First page includes header
-    const headerHeight = 150 // approximate height in px for name/title
+    // Use measured header height or fallback to estimate
+    const headerHeight = measuredHeights.get('header') || 150
+    console.log('[splitContentIntoPages] Using header height:', headerHeight)
+
+    // Check if header alone is too large
+    if (headerHeight > pageHeightPx * 0.4) {
+      warnings.push(`Header is very large (${Math.round(headerHeight)}px). Consider shortening your name or title.`)
+    }
+
     let currentPage = {
       frontmatter,
       sections: [],
@@ -424,28 +493,50 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
     }
     let currentHeight = headerHeight
 
-    sections.forEach((section) => {
-      // More accurate section height estimation
-      let sectionHeight = 80 // base height for section header
+    sections.forEach((section, index) => {
+      // Use measured height if available, otherwise estimate
+      const measuredKey = `section-${index}`
+      let sectionHeight: number
 
-      if (Array.isArray(section.content)) {
-        section.content.forEach((item) => {
-          if (typeof item === 'string') {
-            // Estimate paragraph height based on character count
-            const lines = Math.ceil(item.length / 80) // ~80 chars per line
-            sectionHeight += lines * 20 + 10 // line height + spacing
-          } else if (typeof item === 'object' && item.title) {
-            // Job/education entry with title, company, description
-            sectionHeight += 120 // fixed height for structured entry
-          }
-        })
+      if (measuredHeights.has(measuredKey)) {
+        sectionHeight = measuredHeights.get(measuredKey)!
+        console.log(`[splitContentIntoPages] Using measured height for section ${index}:`, sectionHeight)
       } else {
-        sectionHeight += 60 // simple text section
+        // Fallback estimation if measurements not yet available
+        sectionHeight = 80 // base height for section header
+
+        if (Array.isArray(section.content)) {
+          section.content.forEach((item) => {
+            if (typeof item === 'string') {
+              // Estimate paragraph height based on character count
+              const lines = Math.ceil(item.length / 80) // ~80 chars per line
+              sectionHeight += lines * 20 + 10 // line height + spacing
+            } else if (typeof item === 'object' && item.title) {
+              // Job/education entry with title, company, description
+              sectionHeight += 120 // fixed height for structured entry
+            }
+          })
+        } else {
+          sectionHeight += 60 // simple text section
+        }
+        console.log(`[splitContentIntoPages] Using estimated height for section ${index}:`, sectionHeight)
+      }
+
+      // Check if single section is too large for one page
+      if (sectionHeight > pageHeightPx) {
+        warnings.push(`Section "${section.title}" is too large (${Math.round(sectionHeight)}px) to fit on one page. Consider breaking it into smaller sections.`)
       }
 
       // Check if section fits on current page (with keep-together logic)
       if (currentHeight + sectionHeight > pageHeightPx && currentPage.sections.length > 0) {
         // Section doesn't fit, start new page
+        console.log(`[splitContentIntoPages] Section ${index} doesn't fit (${currentHeight + sectionHeight}px > ${pageHeightPx}px), creating new page`)
+
+        // Check if current page is nearly empty (< 20% filled)
+        if (currentHeight < pageHeightPx * 0.2) {
+          warnings.push(`Page ${currentPage.pageNumber} has very little content. Consider adjusting content distribution.`)
+        }
+
         pages.push(currentPage)
         currentPage = {
           frontmatter: null, // No header on continuation pages
@@ -466,13 +557,25 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
       pages.push(currentPage)
     }
 
-    return pages.length > 0 ? pages : [{ frontmatter, sections, pageNumber: 1, isFirstPage: true }]
-  }
+    console.log(`[splitContentIntoPages] Created ${pages.length} pages`)
+
+    const finalPages = pages.length > 0 ? pages : [{ frontmatter, sections, pageNumber: 1, isFirstPage: true }]
+    return { pages: finalPages, warnings }
+  }, [parsedContent, previewMode, measuredHeightsKey])
+
+  // Update overflow warnings when PDF pages data changes
+  useEffect(() => {
+    if (previewMode === 'pdf') {
+      setOverflowWarnings(pdfPagesData.warnings)
+    } else {
+      setOverflowWarnings([])
+    }
+  }, [previewMode, pdfPagesData.warnings])
 
   // Render individual PDF page
   const renderPDFPage = (pageData: any, pageIndex: number) => {
     const { frontmatter, sections, pageNumber, isFirstPage } = pageData
-    const templateStyles = getTemplateStyles()
+    const styles = templateStyles
     const useMinimalLayout = template?.name.includes('Minimal') || template?.name.includes('Clean')
 
     // Separate sections for two-column layout
@@ -757,7 +860,7 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
     const activeConfig = config || template?.default_config
     const tagStyle = activeConfig?.components?.tags?.style || 'pill'
     const separator = activeConfig?.components?.tags?.separator || '·'
-    const templateStyles = getTemplateStyles()
+    const styles = templateStyles
 
     return skillCategories.map((category, categoryIndex) => (
       <div key={categoryIndex} className="mb-4">
@@ -925,7 +1028,7 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
     if (!parsedContent) return null
 
     const { frontmatter, sections } = parsedContent
-    const templateStyles = getTemplateStyles()
+    const styles = templateStyles
 
     // Apply different layouts based on template
     const useModernLayout = template?.name.includes('Modern') || template?.name.includes('Professional')
@@ -933,10 +1036,9 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
 
     // For PDF mode, render paginated layout
     if (previewMode === 'pdf') {
-      const pages = splitContentIntoPages(parsedContent)
       return (
         <div className="max-w-5xl mx-auto">
-          {pages.map((page, index) => renderPDFPage(page, index))}
+          {pdfPagesData.pages.map((page, index) => renderPDFPage(page, index))}
         </div>
       )
     }
@@ -1282,6 +1384,84 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
       {isPending && (
         <div className="absolute inset-0 bg-surface/80 flex items-center justify-center z-10">
           <div className="text-sm text-gray-600">Updating preview...</div>
+        </div>
+      )}
+
+      {/* Overflow Warnings for PDF mode */}
+      {previewMode === 'pdf' && overflowWarnings.length > 0 && (
+        <div className="mx-6 mt-4 mb-2 p-3 bg-yellow-50 border border-yellow-300 rounded-lg">
+          <div className="flex items-start gap-2">
+            <svg className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+            </svg>
+            <div className="flex-1">
+              <h4 className="text-sm font-semibold text-yellow-800 mb-1">PDF Layout Warnings</h4>
+              <ul className="text-xs text-yellow-700 space-y-1">
+                {overflowWarnings.map((warning, index) => (
+                  <li key={index}>• {warning}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Hidden measuring container for PDF mode */}
+      {previewMode === 'pdf' && parsedContent && (
+        <div
+          ref={measureContainerRef}
+          style={{
+            position: 'absolute',
+            left: '-9999px',
+            top: 0,
+            width: '210mm',
+            visibility: 'hidden',
+            pointerEvents: 'none'
+          }}
+        >
+          {/* Render header for measurement */}
+          {parsedContent.frontmatter && (
+            <header data-measure="header" className="mb-8" style={templateStyles}>
+              <h1
+                className="font-bold uppercase tracking-wide mb-2"
+                style={{
+                  fontSize: 'var(--title-font-size)',
+                  fontFamily: 'var(--heading-font-family)',
+                  color: 'var(--primary-color)'
+                }}
+              >
+                {parsedContent.frontmatter.name || 'Your Name'}
+              </h1>
+              {parsedContent.frontmatter.title && (
+                <p
+                  className="font-medium"
+                  style={{
+                    fontSize: 'var(--h3-font-size)',
+                    color: 'var(--accent-color)'
+                  }}
+                >
+                  {parsedContent.frontmatter.title}
+                </p>
+              )}
+            </header>
+          )}
+
+          {/* Render each section for measurement */}
+          {parsedContent.sections.map((section, index) => (
+            <section
+              key={index}
+              data-measure-section={index}
+              className="mb-8"
+              style={templateStyles}
+            >
+              <h3 className="text-base font-bold uppercase tracking-wide mb-3 px-3 py-1 rounded">
+                {section.title}
+              </h3>
+              <div className="space-y-3">
+                {renderSectionContent(section, false)}
+              </div>
+            </section>
+          ))}
         </div>
       )}
 

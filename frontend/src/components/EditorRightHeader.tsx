@@ -15,7 +15,8 @@ import {
   Package,
   Minus,
   Plus,
-  Sidebar
+  Sidebar,
+  CircleNotch
 } from '@phosphor-icons/react'
 
 
@@ -88,7 +89,7 @@ export const EditorRightHeader: React.FC<EditorRightHeaderProps> = ({
               : 'bg-transparent text-text-primary border-border hover:bg-background hover:border-primary'
           }`}
         >
-          <Sidebar size={14} />
+          <Sidebar size={18} weight="bold" />
         </button>
 
         <div className="w-px h-4 bg-border mx-0.5" />
@@ -111,7 +112,7 @@ export const EditorRightHeader: React.FC<EditorRightHeaderProps> = ({
           title="Template settings"
           className="flex items-center gap-1 px-1.5 py-1 text-xs border border-border rounded bg-transparent text-text-primary hover:bg-background hover:border-primary transition-all duration-150"
         >
-          <Gear size={14} />
+          <Gear size={18} weight="bold" />
           Settings
         </button>
       </div>
@@ -124,7 +125,7 @@ export const EditorRightHeader: React.FC<EditorRightHeaderProps> = ({
           title="Zoom out"
           className="flex items-center px-1.5 py-1 text-xs border border-border rounded bg-transparent text-text-primary hover:bg-background hover:border-primary transition-all duration-150"
         >
-          <Minus size={14} />
+          <Minus size={18} weight="bold" />
         </button>
 
         <span className="px-2 py-1 text-xs text-text-primary min-w-[45px] text-center">
@@ -136,7 +137,7 @@ export const EditorRightHeader: React.FC<EditorRightHeaderProps> = ({
           title="Zoom in"
           className="flex items-center px-1.5 py-1 text-xs border border-border rounded bg-transparent text-text-primary hover:bg-background hover:border-primary transition-all duration-150"
         >
-          <Plus size={14} />
+          <Plus size={18} weight="bold" />
         </button>
 
         <div className="w-px h-4 bg-border mx-1" />
@@ -151,7 +152,7 @@ export const EditorRightHeader: React.FC<EditorRightHeaderProps> = ({
           onClick={() => onZoomChange?.('fit-height')}
           title="Fit to height"
         >
-          <ArrowsVertical size={14} />
+          <ArrowsVertical size={18} weight="bold" />
         </button>
 
         <button 
@@ -163,7 +164,7 @@ export const EditorRightHeader: React.FC<EditorRightHeaderProps> = ({
           onClick={() => onZoomChange?.('fit-width')}
           title="Fit to width"
         >
-          <ArrowsHorizontal size={14} />
+          <ArrowsHorizontal size={18} weight="bold" />
         </button>
 
         <button 
@@ -175,7 +176,7 @@ export const EditorRightHeader: React.FC<EditorRightHeaderProps> = ({
           onClick={() => onZoomChange?.('actual-size')}
           title="1:1 (approximate print size)"
         >
-          <MagnifyingGlass size={14} />
+          <MagnifyingGlass size={18} weight="bold" />
           1:1
         </button>
 
@@ -190,7 +191,7 @@ export const EditorRightHeader: React.FC<EditorRightHeaderProps> = ({
           onClick={() => onPreviewModeChange?.('web')}
           title="Web preview (continuous)"
         >
-          <Globe size={14} />
+          <Globe size={18} weight="bold" />
           Web
         </button>
 
@@ -203,7 +204,7 @@ export const EditorRightHeader: React.FC<EditorRightHeaderProps> = ({
           onClick={() => onPreviewModeChange?.('pdf')}
           title="PDF preview (paginated)"
         >
-          <FilePdf size={14} />
+          <FilePdf size={18} weight="bold" />
           PDF
         </button>
       </div>
@@ -214,10 +215,14 @@ export const EditorRightHeader: React.FC<EditorRightHeaderProps> = ({
           onClick={onSave}
           title="Save CV"
           disabled={isSaving}
-          className="flex items-center gap-1 px-3 py-1.5 text-sm border-none rounded bg-primary text-text-inverse hover:bg-primary-hover transition-all duration-150 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex items-center gap-1.5 px-3 py-1.5 text-sm border-none rounded bg-primary text-text-inverse hover:bg-primary-hover transition-all duration-150 font-medium disabled:opacity-50 disabled:cursor-not-allowed min-w-[80px] justify-center"
         >
-          <FloppyDisk size={16} />
-          {isSaving ? 'Saving...' : 'Save'}
+          {isSaving ? (
+            <CircleNotch size={20} weight="bold" className="animate-spin" />
+          ) : (
+            <FloppyDisk size={20} weight="bold" />
+          )}
+          Save
         </button>
 
         <button
@@ -225,7 +230,7 @@ export const EditorRightHeader: React.FC<EditorRightHeaderProps> = ({
           title="Export as PDF"
           className="flex items-center gap-0.5 px-1.5 py-1 text-xs border border-success rounded bg-success text-text-inverse hover:opacity-90 transition-all duration-150"
         >
-          <FilePdf size={14} />
+          <FilePdf size={18} weight="bold" />
           PDF
         </button>
 
@@ -234,7 +239,7 @@ export const EditorRightHeader: React.FC<EditorRightHeaderProps> = ({
           title="Export web package"
           className="flex items-center gap-0.5 px-1.5 py-1 text-xs border border-success rounded bg-success text-text-inverse hover:opacity-90 transition-all duration-150"
         >
-          <Package size={14} />
+          <Package size={18} weight="bold" />
           Web
         </button>
       </div>

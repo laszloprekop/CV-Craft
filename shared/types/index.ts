@@ -97,9 +97,14 @@ export interface TemplateConfig {
   // Color Palette
   colors: {
     primary: string;
+    onPrimary: string; // Text color on primary background
     secondary: string;
-    accent: string;
+    onSecondary: string; // Text color on secondary background
+    tertiary: string; // Renamed from accent
+    onTertiary: string; // Text color on tertiary background
     background: string;
+    muted: string;
+    onMuted: string; // Text color on muted background
     text: {
       primary: string;
       secondary: string;
@@ -110,6 +115,8 @@ export interface TemplateConfig {
       default: string;
       hover: string;
     };
+    // Legacy support - will be migrated
+    accent?: string; // Deprecated, use tertiary instead
     highlight?: string;
     error?: string;
     success?: string;

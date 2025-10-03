@@ -96,6 +96,13 @@ export class CVCraftApp {
       lastModified: true
     }));
 
+    // Static file serving for exports (PDFs and web packages)
+    this.app.use('/exports', express.static('./exports', {
+      maxAge: '1h', // Cache exports for 1 hour
+      etag: true,
+      lastModified: true
+    }));
+
     // Health check endpoint
     this.app.get('/health', (req, res) => {
       const db = getDatabase();

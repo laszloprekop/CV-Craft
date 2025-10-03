@@ -6,7 +6,11 @@
 
 import { CVInstanceModel, CreateCVInstanceData, UpdateCVInstanceData, ListCVInstancesOptions } from '../models/CVInstance';
 import { CVParser, parseCV, validateCVContent } from '../lib/cv-parser';
-import type { CVInstance, ParsedCVContent, TemplateSettings, TemplateConfig } from '../../../shared/types';
+import { getPDFGenerator } from '../lib/pdf-generator';
+import type { CVInstance, ParsedCVContent, TemplateSettings, TemplateConfig, Template } from '../../../shared/types';
+import path from 'path';
+import fs from 'fs/promises';
+import { TemplateModel } from '../models/Template';
 
 export interface CreateCVServiceData {
   name: string;
@@ -38,6 +42,7 @@ export interface CVExportResult {
 export class CVService {
   constructor(
     private cvModel: CVInstanceModel,
+    private templateModel: TemplateModel,
     private parser: CVParser = new CVParser()
   ) {}
 
@@ -273,31 +278,54 @@ export class CVService {
    */
   async exportCV(id: string, exportType: 'pdf' | 'web_package'): Promise<CVExportResult> {
     const cv = await this.getById(id);
-    
+
     if (!cv.parsed_content) {
       throw new CVServiceError('CV content not parsed', 'UNPARSED_CONTENT');
+    }
+
+    // Get template
+    const template = this.templateModel.findById(cv.template_id);
+    if (!template) {
+      throw new CVServiceError('Template not found', 'TEMPLATE_NOT_FOUND');
     }
 
     // Generate filename based on CV data
     const name = cv.parsed_content.frontmatter.name || 'CV';
     const safeName = name.replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, '_');
-    const filename = exportType === 'pdf' 
+    const filename = exportType === 'pdf'
       ? `${safeName}_CV.pdf`
       : `${safeName}_CV_web.zip`;
 
-    // For now, return a mock result to satisfy the quickstart validation
-    // In a full implementation, this would generate actual files
-    const exportResult: CVExportResult = {
-      filename,
-      file_path: `/exports/${filename}`,
-      size: 1024 * 100, // Mock 100KB file
-      generated_at: new Date().toISOString()
-    };
+    // Ensure exports directory exists
+    const exportsDir = path.join(process.cwd(), 'exports');
+    await fs.mkdir(exportsDir, { recursive: true });
 
-    // TODO: Implement actual PDF generation using Puppeteer
-    // TODO: Implement web package generation with HTML/CSS/assets
-    
-    return exportResult;
+    const outputPath = path.join(exportsDir, filename);
+
+    if (exportType === 'pdf') {
+      // Generate PDF using Puppeteer
+      const pdfGenerator = getPDFGenerator();
+
+      // Use CV's config if available, otherwise fall back to template default
+      const config = cv.config || template.default_config;
+
+      const result = await pdfGenerator.generatePDF({
+        cv,
+        template,
+        config,
+        outputPath
+      });
+
+      return {
+        filename: result.filename,
+        file_path: `/exports/${result.filename}`,
+        size: result.size,
+        generated_at: new Date().toISOString()
+      };
+    } else {
+      // TODO: Implement web package generation with HTML/CSS/assets
+      throw new CVServiceError('Web package export not yet implemented', 'NOT_IMPLEMENTED');
+    }
   }
 
   // Private helper methods
@@ -376,6 +404,6 @@ export class CVServiceError extends Error {
 /**
  * Factory function to create CV service with dependencies
  */
-export function createCVService(cvModel: CVInstanceModel): CVService {
-  return new CVService(cvModel);
+export function createCVService(cvModel: CVInstanceModel, templateModel: TemplateModel): CVService {
+  return new CVService(cvModel, templateModel);
 }

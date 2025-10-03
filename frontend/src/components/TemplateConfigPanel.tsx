@@ -153,76 +153,96 @@ export const TemplateConfigPanel: React.FC<TemplateConfigPanelProps> = ({
         {activeTab === 'colors' && (
           <div>
             <h4 className="text-xs font-semibold text-text-primary mb-1.5">Main Colors</h4>
-            <ColorControl
-              label="Primary"
-              value={config.colors.primary}
-              onChange={(value) => updateConfig('colors', { primary: value })}
-              onChangeComplete={(value) => commitConfig('colors', { primary: value })}
-            />
-            <ColorControl
-              label="Secondary"
-              value={config.colors.secondary}
-              onChange={(value) => updateConfig('colors', { secondary: value })}
-              onChangeComplete={(value) => commitConfig('colors', { secondary: value })}
-            />
-            <ColorControl
-              label="Accent"
-              value={config.colors.accent}
-              onChange={(value) => updateConfig('colors', { accent: value })}
-              onChangeComplete={(value) => commitConfig('colors', { accent: value })}
-            />
-            <ColorControl
-              label="Background"
-              value={config.colors.background}
-              onChange={(value) => updateConfig('colors', { background: value })}
-              onChangeComplete={(value) => commitConfig('colors', { background: value })}
-            />
 
-            <h4 className="text-xs font-semibold text-text-primary mb-1.5 mt-3">Text Colors</h4>
-            <ColorControl
-              label="Primary Text"
-              value={config.colors.text.primary}
-              onChange={(value) =>
-                updateConfig('colors', {
-                  text: { ...config.colors.text, primary: value },
-                })
-              }
-              onChangeComplete={(value) =>
-                commitConfig('colors', {
-                  text: { ...config.colors.text, primary: value },
-                })
-              }
-            />
-            <ColorControl
-              label="Secondary Text"
-              value={config.colors.text.secondary}
-              onChange={(value) =>
-                updateConfig('colors', {
-                  text: { ...config.colors.text, secondary: value },
-                })
-              }
-              onChangeComplete={(value) =>
-                commitConfig('colors', {
-                  text: { ...config.colors.text, secondary: value },
-                })
-              }
-            />
-            <ColorControl
-              label="Muted Text"
-              value={config.colors.text.muted}
-              onChange={(value) =>
-                updateConfig('colors', {
-                  text: { ...config.colors.text, muted: value },
-                })
-              }
-              onChangeComplete={(value) =>
-                commitConfig('colors', {
-                  text: { ...config.colors.text, muted: value },
-                })
-              }
-            />
+            {/* Primary & On Primary */}
+            <div className="grid grid-cols-2 gap-1">
+              <ColorControl
+                label="Primary"
+                value={config.colors.primary}
+                onChange={(value) => updateConfig('colors', { primary: value })}
+                onChangeComplete={(value) => commitConfig('colors', { primary: value })}
+              />
+              <ColorControl
+                label="On Primary"
+                value={config.colors.onPrimary}
+                onChange={(value) => updateConfig('colors', { onPrimary: value })}
+                onChangeComplete={(value) => commitConfig('colors', { onPrimary: value })}
+              />
+            </div>
 
-            <h4 className="text-xs font-semibold text-text-primary mb-1.5 mt-3">Other Colors</h4>
+            {/* Secondary & On Secondary */}
+            <div className="grid grid-cols-2 gap-1">
+              <ColorControl
+                label="Secondary"
+                value={config.colors.secondary}
+                onChange={(value) => updateConfig('colors', { secondary: value })}
+                onChangeComplete={(value) => commitConfig('colors', { secondary: value })}
+              />
+              <ColorControl
+                label="On Secondary"
+                value={config.colors.onSecondary}
+                onChange={(value) => updateConfig('colors', { onSecondary: value })}
+                onChangeComplete={(value) => commitConfig('colors', { onSecondary: value })}
+              />
+            </div>
+
+            {/* Tertiary & On Tertiary */}
+            <div className="grid grid-cols-2 gap-1">
+              <ColorControl
+                label="Tertiary"
+                value={config.colors.tertiary}
+                onChange={(value) => updateConfig('colors', { tertiary: value })}
+                onChangeComplete={(value) => commitConfig('colors', { tertiary: value })}
+              />
+              <ColorControl
+                label="On Tertiary"
+                value={config.colors.onTertiary}
+                onChange={(value) => updateConfig('colors', { onTertiary: value })}
+                onChangeComplete={(value) => commitConfig('colors', { onTertiary: value })}
+              />
+            </div>
+
+            {/* Muted & On Muted */}
+            <div className="grid grid-cols-2 gap-1">
+              <ColorControl
+                label="Muted"
+                value={config.colors.muted}
+                onChange={(value) => updateConfig('colors', { muted: value })}
+                onChangeComplete={(value) => commitConfig('colors', { muted: value })}
+              />
+              <ColorControl
+                label="On Muted"
+                value={config.colors.onMuted}
+                onChange={(value) => updateConfig('colors', { onMuted: value })}
+                onChangeComplete={(value) => commitConfig('colors', { onMuted: value })}
+              />
+            </div>
+
+            {/* Background & On Background */}
+            <div className="grid grid-cols-2 gap-1">
+              <ColorControl
+                label="Background"
+                value={config.colors.background}
+                onChange={(value) => updateConfig('colors', { background: value })}
+                onChangeComplete={(value) => commitConfig('colors', { background: value })}
+              />
+              <ColorControl
+                label="On Background"
+                value={config.colors.text.primary}
+                onChange={(value) =>
+                  updateConfig('colors', {
+                    text: { ...config.colors.text, primary: value },
+                  })
+                }
+                onChangeComplete={(value) =>
+                  commitConfig('colors', {
+                    text: { ...config.colors.text, primary: value },
+                  })
+                }
+              />
+            </div>
+
+            <h4 className="text-xs font-semibold text-text-primary mb-1.5 mt-3">Border & Links</h4>
             <ColorControl
               label="Borders"
               value={config.colors.borders}

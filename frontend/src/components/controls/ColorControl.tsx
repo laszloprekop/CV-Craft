@@ -48,7 +48,8 @@ export const ColorControl: React.FC<ColorControlProps> = ({
           onMouseDown={() => setIsDragging(true)}
           onMouseUp={(e) => handleComplete((e.target as HTMLInputElement).value)}
           onBlur={(e) => handleComplete(e.target.value)}
-          className="w-8 h-8 border border-border rounded cursor-pointer"
+          className="w-7 h-7 border border-border rounded cursor-pointer flex-shrink-0"
+          style={{ aspectRatio: '1/1' }}
         />
         <input
           type="text"
@@ -60,7 +61,7 @@ export const ColorControl: React.FC<ColorControlProps> = ({
               handleComplete((e.target as HTMLInputElement).value);
             }
           }}
-          className="flex-1 px-2 py-1 text-xs border border-border rounded bg-background text-text-primary focus:outline-none focus:border-primary font-mono"
+          className="w-[85px] px-2 py-1 text-xs border border-border rounded bg-background text-text-primary focus:outline-none focus:border-primary font-mono"
           placeholder="#000000"
         />
       </div>
