@@ -317,6 +317,11 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
     // Prefer config over settings (config is newer, more comprehensive)
     const activeConfig = config || template.default_config
 
+    console.log('[CVPreview] 🎨 Applying styles:', {
+      'accent': activeConfig?.colors.accent,
+      'baseFontSize': activeConfig?.typography.baseFontSize,
+    })
+
     // Calculate font sizes based on baseFontSize and fontScale
     const calculateFontSize = (scale: number, baseFontSize: string): string => {
       const baseValue = parseFloat(baseFontSize)
@@ -334,16 +339,16 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
       tiny: 1.2
     }
 
-    // Apply template CSS variables and styles
+    // Apply template CSS variables and styles (config is single source of truth)
     const baseStyles = {
-      // Colors - prefer config, fallback to settings
-      '--primary-color': activeConfig?.colors.primary || settings.primaryColor || '#2563eb',
-      '--accent-color': activeConfig?.colors.accent || settings.accentColor || '#059669',
-      '--background-color': activeConfig?.colors.background || settings.backgroundColor || '#ffffff',
-      '--surface-color': activeConfig?.colors.secondary || settings.surfaceColor || '#ffffff',
+      // Colors - from config only
+      '--primary-color': activeConfig?.colors.primary || '#2563eb',
+      '--accent-color': activeConfig?.colors.accent || '#059669',
+      '--background-color': activeConfig?.colors.background || '#ffffff',
+      '--surface-color': activeConfig?.colors.secondary || '#ffffff',
 
-      // Typography - use config when available
-      '--font-family': activeConfig?.typography.fontFamily.body || settings.fontFamily || 'Inter',
+      // Typography - from config only
+      '--font-family': activeConfig?.typography.fontFamily.body || 'Inter',
       '--heading-font-family': activeConfig?.typography.fontFamily.heading || 'Inter',
 
       // Font sizes - calculated from base + scale (always use new system)
@@ -355,12 +360,12 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
       '--small-font-size': calculateFontSize(fontScale.small, baseFontSize),
       '--tiny-font-size': calculateFontSize(fontScale.tiny, baseFontSize),
 
-      // Layout - use config when available
+      // Layout - from config only
       '--page-width': activeConfig?.layout.pageWidth || '210mm',
-      '--page-margin-top': activeConfig?.layout.pageMargin.top || settings.pageMargins?.top || '20mm',
-      '--page-margin-right': activeConfig?.layout.pageMargin.right || settings.pageMargins?.right || '20mm',
-      '--page-margin-bottom': activeConfig?.layout.pageMargin.bottom || settings.pageMargins?.bottom || '20mm',
-      '--page-margin-left': activeConfig?.layout.pageMargin.left || settings.pageMargins?.left || '20mm',
+      '--page-margin-top': activeConfig?.layout.pageMargin.top || '20mm',
+      '--page-margin-right': activeConfig?.layout.pageMargin.right || '20mm',
+      '--page-margin-bottom': activeConfig?.layout.pageMargin.bottom || '20mm',
+      '--page-margin-left': activeConfig?.layout.pageMargin.left || '20mm',
       '--section-spacing': activeConfig?.layout.sectionSpacing || '24px',
 
       // Text color

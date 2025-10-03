@@ -141,9 +141,11 @@ const DEFAULT_TEMPLATE_CONFIG: TemplateConfig = {
 };
 
 export const CVEditorPage: React.FC = () => {
+  const instanceId = React.useRef(Math.random().toString(36).substr(2, 9))
+
   const { cvId } = useParams<{ cvId?: string }>()
   const navigate = useNavigate()
-  
+
   // React 18 Concurrent Features for non-blocking updates
   const [isPending, startTransition] = useTransition()
   
@@ -180,19 +182,34 @@ export const CVEditorPage: React.FC = () => {
     templatesLoading
   } = useTemplates()
 
-  // Template config state - use saved config or default
-  const [templateConfig, setTemplateConfig] = useState<TemplateConfig>(
-    savedConfig || activeTemplate?.default_config || DEFAULT_TEMPLATE_CONFIG
-  )
-
-  // Sync templateConfig with savedConfig when it changes
-  useEffect(() => {
-    if (savedConfig) {
-      setTemplateConfig(savedConfig)
-    } else if (activeTemplate?.default_config) {
-      setTemplateConfig(activeTemplate.default_config)
+  // Deep merge helper for nested config objects
+  const deepMergeConfig = (prev: TemplateConfig, partial: Partial<TemplateConfig>): TemplateConfig => {
+    return {
+      colors: partial.colors ? { ...prev.colors, ...partial.colors } : prev.colors,
+      typography: partial.typography ? { ...prev.typography, ...partial.typography } : prev.typography,
+      layout: partial.layout ? { ...prev.layout, ...partial.layout } : prev.layout,
+      components: partial.components ? { ...prev.components, ...partial.components } : prev.components,
+      pdf: partial.pdf ? { ...prev.pdf, ...partial.pdf } : prev.pdf,
+      advanced: partial.advanced ? { ...prev.advanced, ...partial.advanced } : prev.advanced,
     }
-  }, [savedConfig, activeTemplate])
+  }
+
+  // Template config state - for live preview updates only
+  // Tracks temporary changes before they're saved to database
+  const [liveConfigChanges, setLiveConfigChanges] = useState<Partial<TemplateConfig> | null>(null)
+
+  // Effective config combines saved config with live changes
+  const baseConfig = savedConfig || activeTemplate?.default_config || DEFAULT_TEMPLATE_CONFIG
+  const effectiveConfig = liveConfigChanges
+    ? deepMergeConfig(baseConfig, liveConfigChanges)
+    : baseConfig
+
+  console.log('[CVEditorPage] 🎯 effectiveConfig:', {
+    'accent': effectiveConfig.colors.accent,
+    'baseFontSize': effectiveConfig.typography.baseFontSize,
+    'hasLiveChanges': !!liveConfigChanges,
+    'hasSavedConfig': !!savedConfig,
+  })
 
   // Debounced preview update (300ms as specified in SDD)
   const debouncedPreviewUpdate = useCallback(
@@ -227,38 +244,34 @@ export const CVEditorPage: React.FC = () => {
     setTimeout(() => saveCv(), 500)
   }, [updateSettings, saveCv])
 
-  // Handle template config changes
+  // Handle template config changes (live preview, no save)
   const handleConfigChange = useCallback((newConfig: Partial<TemplateConfig>) => {
-    setTemplateConfig(prev => {
-      const updated = {
-        ...prev,
-        ...newConfig
-      }
+    setLiveConfigChanges(prev => prev ? { ...prev, ...newConfig } : newConfig)
+  }, [])
 
-      // Save the full config
-      saveConfig(updated)
-
-      // Also convert TemplateConfig to TemplateSettings for legacy support
-      if (newConfig.colors) {
-        updateSettings({
-          primaryColor: newConfig.colors.primary || updated.colors.primary,
-          accentColor: newConfig.colors.accent || updated.colors.accent,
-          backgroundColor: newConfig.colors.background || updated.colors.background,
-          surfaceColor: newConfig.colors.secondary || updated.colors.secondary,
-        })
-      }
-
-      if (newConfig.typography?.fontFamily) {
-        updateSettings({
-          fontFamily: newConfig.typography.fontFamily.body || updated.typography.fontFamily.body
-        })
-      }
-
-      return updated
+  // Handle config change complete (save to database)
+  const handleConfigChangeComplete = useCallback((newConfig: Partial<TemplateConfig>) => {
+    console.log(`[CVEditorPage] 💾 Committing change:`, {
+      'colors.accent': newConfig.colors?.accent,
     })
-    // Auto-save config changes
-    setTimeout(() => saveCv(), 500)
-  }, [saveConfig, updateSettings, saveCv])
+
+    // Merge the partial change with base config
+    const updated = deepMergeConfig(baseConfig, newConfig)
+
+    console.log(`[CVEditorPage] 💾 After merge:`, {
+      'accent': updated.colors.accent,
+      'baseFontSize': updated.typography.baseFontSize,
+    })
+
+    // Update config in useCVEditor and save to database
+    saveConfig(updated)
+    setTimeout(() => {
+      console.log(`[CVEditorPage] 💾 Saving to DB...`)
+      saveCv()
+      // Clear live changes after save
+      setLiveConfigChanges(null)
+    }, 100)
+  }, [saveConfig, saveCv, baseConfig, deepMergeConfig])
 
   // New header handlers
   const handleImportMarkdown = useCallback((content: string, filename: string) => {
@@ -285,12 +298,8 @@ export const CVEditorPage: React.FC = () => {
     setShowSettings(prev => !prev)
   }, [])
 
-  // Sync template config when active template changes
-  useEffect(() => {
-    if (activeTemplate?.default_config) {
-      setTemplateConfig(activeTemplate.default_config)
-    }
-  }, [activeTemplate])
+  // Note: No need for sync effect anymore
+  // baseConfig automatically uses savedConfig || activeTemplate?.default_config || DEFAULT_TEMPLATE_CONFIG
 
   // Zoom handlers
   const handleZoomIn = useCallback(() => {
@@ -514,7 +523,7 @@ export const CVEditorPage: React.FC = () => {
               cv={cv}
               template={activeTemplate}
               settings={settings}
-              config={templateConfig}
+              config={effectiveConfig}
               isPending={isPending}
               liveContent={content}
               zoomLevel={zoomLevel}
@@ -529,8 +538,9 @@ export const CVEditorPage: React.FC = () => {
       {/* Settings Panel Overlay */}
       {showSettings && (
         <TemplateConfigPanel
-          config={templateConfig}
+          config={effectiveConfig}
           onChange={handleConfigChange}
+          onChangeComplete={handleConfigChangeComplete}
           onClose={() => setShowSettings(false)}
         />
       )}

@@ -14,6 +14,7 @@ import {
 interface TemplateConfigPanelProps {
   config: TemplateConfig;
   onChange: (config: Partial<TemplateConfig>) => void;
+  onChangeComplete?: (config: Partial<TemplateConfig>) => void; // Called after user finishes editing
   onClose: () => void;
 }
 
@@ -22,9 +23,18 @@ type TabType = 'colors' | 'typography' | 'layout' | 'components' | 'pdf' | 'adva
 export const TemplateConfigPanel: React.FC<TemplateConfigPanelProps> = ({
   config,
   onChange,
+  onChangeComplete,
   onClose,
 }) => {
   const [activeTab, setActiveTab] = useState<TabType>('colors');
+
+  // Log when panel initializes with config
+  React.useEffect(() => {
+    console.log('[TemplateConfigPanel] 🎨 Opened:', {
+      'accent': config.colors.accent,
+      'baseFontSize': config.typography.baseFontSize,
+    })
+  }, [])
 
   const tabs: { id: TabType; label: string }[] = [
     { id: 'colors', label: 'Colors' },
@@ -35,7 +45,7 @@ export const TemplateConfigPanel: React.FC<TemplateConfigPanelProps> = ({
     { id: 'advanced', label: 'Advanced' },
   ];
 
-  // Helper to update nested config
+  // Helper to update nested config (live preview)
   const updateConfig = <K extends keyof TemplateConfig>(
     section: K,
     value: Partial<TemplateConfig[K]>
@@ -46,6 +56,21 @@ export const TemplateConfigPanel: React.FC<TemplateConfigPanelProps> = ({
         ...value,
       },
     } as Partial<TemplateConfig>);
+  };
+
+  // Helper to commit config changes (save to database)
+  const commitConfig = <K extends keyof TemplateConfig>(
+    section: K,
+    value: Partial<TemplateConfig[K]>
+  ) => {
+    if (onChangeComplete) {
+      onChangeComplete({
+        [section]: {
+          ...config[section],
+          ...value,
+        },
+      } as Partial<TemplateConfig>);
+    }
   };
 
   return (
@@ -87,21 +112,25 @@ export const TemplateConfigPanel: React.FC<TemplateConfigPanelProps> = ({
               label="Primary"
               value={config.colors.primary}
               onChange={(value) => updateConfig('colors', { primary: value })}
+              onChangeComplete={(value) => commitConfig('colors', { primary: value })}
             />
             <ColorControl
               label="Secondary"
               value={config.colors.secondary}
               onChange={(value) => updateConfig('colors', { secondary: value })}
+              onChangeComplete={(value) => commitConfig('colors', { secondary: value })}
             />
             <ColorControl
               label="Accent"
               value={config.colors.accent}
               onChange={(value) => updateConfig('colors', { accent: value })}
+              onChangeComplete={(value) => commitConfig('colors', { accent: value })}
             />
             <ColorControl
               label="Background"
               value={config.colors.background}
               onChange={(value) => updateConfig('colors', { background: value })}
+              onChangeComplete={(value) => commitConfig('colors', { background: value })}
             />
 
             <h4 className="text-xs font-semibold text-text-primary mb-1.5 mt-3">Text Colors</h4>
@@ -110,6 +139,11 @@ export const TemplateConfigPanel: React.FC<TemplateConfigPanelProps> = ({
               value={config.colors.text.primary}
               onChange={(value) =>
                 updateConfig('colors', {
+                  text: { ...config.colors.text, primary: value },
+                })
+              }
+              onChangeComplete={(value) =>
+                commitConfig('colors', {
                   text: { ...config.colors.text, primary: value },
                 })
               }
@@ -122,12 +156,22 @@ export const TemplateConfigPanel: React.FC<TemplateConfigPanelProps> = ({
                   text: { ...config.colors.text, secondary: value },
                 })
               }
+              onChangeComplete={(value) =>
+                commitConfig('colors', {
+                  text: { ...config.colors.text, secondary: value },
+                })
+              }
             />
             <ColorControl
               label="Muted Text"
               value={config.colors.text.muted}
               onChange={(value) =>
                 updateConfig('colors', {
+                  text: { ...config.colors.text, muted: value },
+                })
+              }
+              onChangeComplete={(value) =>
+                commitConfig('colors', {
                   text: { ...config.colors.text, muted: value },
                 })
               }
@@ -138,6 +182,7 @@ export const TemplateConfigPanel: React.FC<TemplateConfigPanelProps> = ({
               label="Borders"
               value={config.colors.borders}
               onChange={(value) => updateConfig('colors', { borders: value })}
+              onChangeComplete={(value) => commitConfig('colors', { borders: value })}
             />
             <ColorControl
               label="Link (Default)"
@@ -147,12 +192,22 @@ export const TemplateConfigPanel: React.FC<TemplateConfigPanelProps> = ({
                   links: { ...config.colors.links, default: value },
                 })
               }
+              onChangeComplete={(value) =>
+                commitConfig('colors', {
+                  links: { ...config.colors.links, default: value },
+                })
+              }
             />
             <ColorControl
               label="Link (Hover)"
               value={config.colors.links.hover}
               onChange={(value) =>
                 updateConfig('colors', {
+                  links: { ...config.colors.links, hover: value },
+                })
+              }
+              onChangeComplete={(value) =>
+                commitConfig('colors', {
                   links: { ...config.colors.links, hover: value },
                 })
               }
@@ -440,12 +495,22 @@ export const TemplateConfigPanel: React.FC<TemplateConfigPanelProps> = ({
                   tags: { ...config.components.tags, backgroundColor: value },
                 })
               }
+              onChangeComplete={(value) =>
+                commitConfig('components', {
+                  tags: { ...config.components.tags, backgroundColor: value },
+                })
+              }
             />
             <ColorControl
               label="Text Color"
               value={config.components.tags.textColor}
               onChange={(value) =>
                 updateConfig('components', {
+                  tags: { ...config.components.tags, textColor: value },
+                })
+              }
+              onChangeComplete={(value) =>
+                commitConfig('components', {
                   tags: { ...config.components.tags, textColor: value },
                 })
               }
@@ -499,6 +564,11 @@ export const TemplateConfigPanel: React.FC<TemplateConfigPanelProps> = ({
               value={config.components.dateLine.color}
               onChange={(value) =>
                 updateConfig('components', {
+                  dateLine: { ...config.components.dateLine, color: value },
+                })
+              }
+              onChangeComplete={(value) =>
+                commitConfig('components', {
                   dateLine: { ...config.components.dateLine, color: value },
                 })
               }

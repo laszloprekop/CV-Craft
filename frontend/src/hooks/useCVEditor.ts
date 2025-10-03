@@ -131,22 +131,54 @@ export function useCVEditor(cvId?: string): UseCVEditorReturn {
       setLoading(true)
       setError(null)
 
+      console.log('[useCVEditor] Loading CV:', id)
       const response = await cvApi.get(id)
       const cvData = response.data
 
+      // Log what we received from database
+      console.log('[useCVEditor] 📥 Raw data from database:', {
+        id: cvData.id,
+        'config.colors.accent': cvData.config?.colors?.accent,
+        'config.typography.baseFontSize': cvData.config?.typography?.baseFontSize,
+        'config.typography.fontScale': cvData.config?.typography?.fontScale,
+        'settings.accentColor': cvData.settings?.accentColor,
+      })
+
       // Migrate old config structure to new font sizing system
       const migratedConfig = migrateTemplateConfig(cvData.config)
+
+      // Check if migration actually changed anything (check for presence of new structure)
+      const needsMigration = cvData.config &&
+        (!cvData.config.typography?.baseFontSize || !cvData.config.typography?.fontScale)
+
+      console.log('[useCVEditor] 🔍 Migration check:', {
+        needsMigration,
+        hasBaseFontSize: !!cvData.config?.typography?.baseFontSize,
+        hasFontScale: !!cvData.config?.typography?.fontScale,
+        'migratedConfig.colors.accent': migratedConfig?.colors?.accent,
+        'originalConfig.colors.accent': cvData.config?.colors?.accent,
+      })
 
       setCv(cvData)
       setContent(cvData.content)
       setSettings(cvData.settings || {})
       setConfig(migratedConfig)
 
-      // If config was migrated, save it to persist the new structure
-      if (migratedConfig && migratedConfig !== cvData.config) {
-        console.log('[useCVEditor] Config migrated, will auto-save on next change')
+      // Only save migration if config actually needed migration
+      if (needsMigration && migratedConfig) {
+        console.log('[useCVEditor] 🔄 Config needs migration, saving to database immediately')
+        try {
+          await cvApi.update(id, { config: migratedConfig })
+          console.log('[useCVEditor] ✅ Migrated config saved successfully')
+        } catch (saveErr) {
+          console.error('[useCVEditor] ❌ Failed to save migrated config:', saveErr)
+          // Don't fail the load if migration save fails
+        }
+      } else {
+        console.log('[useCVEditor] ✅ Config already migrated, skipping save')
       }
     } catch (err) {
+      console.error('[useCVEditor] ❌ Failed to load CV:', err)
       setError(err instanceof Error ? err.message : 'Failed to load CV')
     } finally {
       setLoading(false)
@@ -166,7 +198,24 @@ export function useCVEditor(cvId?: string): UseCVEditorReturn {
   }, [])
 
   const updateConfig = useCallback((newConfig: Partial<TemplateConfig>) => {
-    setConfig(prev => ({ ...prev, ...newConfig } as TemplateConfig))
+    setConfig(prev => {
+      // Deep merge to preserve nested properties
+      const updated: TemplateConfig = {
+        colors: newConfig.colors ? { ...prev?.colors, ...newConfig.colors } : prev?.colors,
+        typography: newConfig.typography ? { ...prev?.typography, ...newConfig.typography } : prev?.typography,
+        layout: newConfig.layout ? { ...prev?.layout, ...newConfig.layout } : prev?.layout,
+        components: newConfig.components ? { ...prev?.components, ...newConfig.components } : prev?.components,
+        pdf: newConfig.pdf ? { ...prev?.pdf, ...newConfig.pdf } : prev?.pdf,
+        advanced: newConfig.advanced ? { ...prev?.advanced, ...newConfig.advanced } : prev?.advanced,
+      } as TemplateConfig
+
+      console.log('[useCVEditor] 📝 updateConfig:', {
+        'new.colors.accent': newConfig.colors?.accent,
+        'result.colors.accent': updated.colors?.accent,
+        'result.typography.baseFontSize': updated.typography?.baseFontSize,
+      })
+      return updated
+    })
     hasUnsavedChangesRef.current = true
     setSaveStatus('idle')
   }, [])
@@ -179,6 +228,13 @@ export function useCVEditor(cvId?: string): UseCVEditorReturn {
       hasUnsavedChangesRef.current = false
 
       if (cv) {
+        console.log('[useCVEditor] 💾 Saving to database:', {
+          id: cv.id,
+          'config.colors.accent': config?.colors?.accent,
+          'config.typography.baseFontSize': config?.typography?.baseFontSize,
+          'config.typography.fontScale.h1': config?.typography?.fontScale?.h1,
+          'settings.accentColor': settings?.accentColor,
+        })
         // Update existing CV
         const response = await cvApi.update(cv.id, {
           content,
@@ -186,6 +242,7 @@ export function useCVEditor(cvId?: string): UseCVEditorReturn {
           config
         })
         setCv(response.data)
+        console.log('[useCVEditor] ✅ CV saved successfully')
       } else {
         // Create new CV
         const name = extractNameFromContent(content) || 'New CV'
