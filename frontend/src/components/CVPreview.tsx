@@ -347,6 +347,16 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
       '--background-color': activeConfig?.colors.background || '#ffffff',
       '--surface-color': activeConfig?.colors.secondary || '#ffffff',
 
+      // Text colors
+      '--text-color': activeConfig?.colors.text.primary || '#1f2937',
+      '--text-secondary': activeConfig?.colors.text.secondary || '#64748b',
+      '--text-muted': activeConfig?.colors.text.muted || '#94a3b8',
+
+      // Border & Link colors
+      '--border-color': activeConfig?.colors.borders || '#e2e8f0',
+      '--link-color': activeConfig?.colors.links.default || '#2563eb',
+      '--link-hover-color': activeConfig?.colors.links.hover || '#1d4ed8',
+
       // Typography - from config only
       '--font-family': activeConfig?.typography.fontFamily.body || 'Inter',
       '--heading-font-family': activeConfig?.typography.fontFamily.heading || 'Inter',
@@ -360,6 +370,17 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
       '--small-font-size': calculateFontSize(fontScale.small, baseFontSize),
       '--tiny-font-size': calculateFontSize(fontScale.tiny, baseFontSize),
 
+      // Font weights
+      '--heading-weight': activeConfig?.typography.fontWeight.heading || 700,
+      '--subheading-weight': activeConfig?.typography.fontWeight.subheading || 600,
+      '--body-weight': activeConfig?.typography.fontWeight.body || 400,
+      '--bold-weight': activeConfig?.typography.fontWeight.bold || 600,
+
+      // Line heights
+      '--heading-line-height': activeConfig?.typography.lineHeight.heading || 1.2,
+      '--body-line-height': activeConfig?.typography.lineHeight.body || 1.6,
+      '--compact-line-height': activeConfig?.typography.lineHeight.compact || 1.4,
+
       // Layout - from config only
       '--page-width': activeConfig?.layout.pageWidth || '210mm',
       '--page-margin-top': activeConfig?.layout.pageMargin.top || '20mm',
@@ -367,9 +388,13 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
       '--page-margin-bottom': activeConfig?.layout.pageMargin.bottom || '20mm',
       '--page-margin-left': activeConfig?.layout.pageMargin.left || '20mm',
       '--section-spacing': activeConfig?.layout.sectionSpacing || '24px',
+      '--paragraph-spacing': activeConfig?.layout.paragraphSpacing || '12px',
 
-      // Text color
-      '--text-color': activeConfig?.colors.text.primary || '#1f2937'
+      // Component styles
+      '--tag-bg-color': activeConfig?.components.tags.backgroundColor || '#e0e7ff',
+      '--tag-text-color': activeConfig?.components.tags.textColor || '#3730a3',
+      '--tag-border-radius': activeConfig?.components.tags.borderRadius || '4px',
+      '--date-line-color': activeConfig?.components.dateLine.color || '#64748b',
     } as React.CSSProperties
 
     return baseStyles

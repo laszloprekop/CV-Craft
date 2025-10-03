@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { X } from '@phosphor-icons/react';
 import type { TemplateConfig } from '../../../shared/types';
 import {
@@ -27,14 +27,29 @@ export const TemplateConfigPanel: React.FC<TemplateConfigPanelProps> = ({
   onClose,
 }) => {
   const [activeTab, setActiveTab] = useState<TabType>('colors');
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const pendingChangesRef = useRef<Partial<TemplateConfig> | null>(null);
 
   // Log when panel initializes with config
-  React.useEffect(() => {
+  useEffect(() => {
     console.log('[TemplateConfigPanel] 🎨 Opened:', {
       'accent': config.colors.accent,
       'baseFontSize': config.typography.baseFontSize,
     })
   }, [])
+
+  // Cleanup debounce timer on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+        // Save any pending changes before unmounting
+        if (pendingChangesRef.current && onChangeComplete) {
+          onChangeComplete(pendingChangesRef.current);
+        }
+      }
+    };
+  }, [onChangeComplete])
 
   const tabs: { id: TabType; label: string }[] = [
     { id: 'colors', label: 'Colors' },
@@ -45,17 +60,39 @@ export const TemplateConfigPanel: React.FC<TemplateConfigPanelProps> = ({
     { id: 'advanced', label: 'Advanced' },
   ];
 
-  // Helper to update nested config (live preview)
+  // Helper to update nested config (live preview) with debounced save
   const updateConfig = <K extends keyof TemplateConfig>(
     section: K,
     value: Partial<TemplateConfig[K]>
   ) => {
-    onChange({
+    const update = {
       [section]: {
         ...config[section],
         ...value,
       },
-    } as Partial<TemplateConfig>);
+    } as Partial<TemplateConfig>;
+
+    // Immediate live preview update
+    onChange(update);
+
+    // Accumulate changes for debounced save
+    pendingChangesRef.current = {
+      ...pendingChangesRef.current,
+      ...update,
+    };
+
+    // Debounced database save (1 second after last change)
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+
+    debounceTimerRef.current = setTimeout(() => {
+      if (pendingChangesRef.current && onChangeComplete) {
+        console.log('[TemplateConfigPanel] 💾 Auto-saving changes after 1s delay');
+        onChangeComplete(pendingChangesRef.current);
+        pendingChangesRef.current = null;
+      }
+    }, 1000); // 1 second debounce
   };
 
   // Helper to commit config changes (save to database)
