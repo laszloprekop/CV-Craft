@@ -29,6 +29,12 @@ export const TemplateConfigPanel: React.FC<TemplateConfigPanelProps> = ({
   const [activeTab, setActiveTab] = useState<TabType>('colors');
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
   const pendingChangesRef = useRef<Partial<TemplateConfig> | null>(null);
+  const onChangeCompleteRef = useRef(onChangeComplete);
+
+  // Keep ref up to date
+  useEffect(() => {
+    onChangeCompleteRef.current = onChangeComplete;
+  }, [onChangeComplete]);
 
   // Log when panel initializes with config
   useEffect(() => {
@@ -38,18 +44,20 @@ export const TemplateConfigPanel: React.FC<TemplateConfigPanelProps> = ({
     })
   }, [])
 
-  // Cleanup debounce timer on unmount
+  // Cleanup debounce timer on unmount - ONLY RUN ONCE
   useEffect(() => {
     return () => {
       if (debounceTimerRef.current) {
         clearTimeout(debounceTimerRef.current);
-        // Save any pending changes before unmounting
-        if (pendingChangesRef.current && onChangeComplete) {
-          onChangeComplete(pendingChangesRef.current);
-        }
+      }
+      // Save any pending changes before unmounting
+      if (pendingChangesRef.current && onChangeCompleteRef.current) {
+        console.log('[TemplateConfigPanel] 🚪 Unmounting - saving pending changes');
+        onChangeCompleteRef.current(pendingChangesRef.current);
+        pendingChangesRef.current = null;
       }
     };
-  }, [onChangeComplete])
+  }, []); // Empty deps - only run on mount/unmount
 
   const tabs: { id: TabType; label: string }[] = [
     { id: 'colors', label: 'Colors' },
@@ -87,9 +95,9 @@ export const TemplateConfigPanel: React.FC<TemplateConfigPanelProps> = ({
     }
 
     debounceTimerRef.current = setTimeout(() => {
-      if (pendingChangesRef.current && onChangeComplete) {
+      if (pendingChangesRef.current && onChangeCompleteRef.current) {
         console.log('[TemplateConfigPanel] 💾 Auto-saving changes after 1s delay');
-        onChangeComplete(pendingChangesRef.current);
+        onChangeCompleteRef.current(pendingChangesRef.current);
         pendingChangesRef.current = null;
       }
     }, 1000); // 1 second debounce
