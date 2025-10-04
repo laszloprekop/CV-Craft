@@ -9,3 +9,4 @@ export { FontManager } from './FontManager';
 export { TextStyleControl } from './TextStyleControl';
 export { LayoutPicker } from './LayoutPicker';
 export { BulletStylePicker, MultiLevelBulletPicker } from './BulletStylePicker';
+export { ColorPairControl } from './ColorPairControl';

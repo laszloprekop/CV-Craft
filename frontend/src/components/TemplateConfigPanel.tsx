@@ -13,6 +13,7 @@ import {
   TextStyleControl,
   LayoutPicker,
   MultiLevelBulletPicker,
+  ColorPairControl,
 } from './controls';
 
 interface TemplateConfigPanelProps {
@@ -637,31 +638,34 @@ export const TemplateConfigPanel: React.FC<TemplateConfigPanelProps> = ({
             />
 
             <h4 className="text-xs font-semibold text-text-primary mb-1.5 mt-3">Tags</h4>
-            <ColorControl
-              label="Background Color"
-              value={config.components.tags.backgroundColor}
-              onChange={(value) =>
+            <ColorPairControl
+              label="Tag Colors"
+              colorPair={config.components.tags.colorPair || 'tertiary'}
+              backgroundOpacity={config.components.tags.backgroundOpacity ?? 0.2}
+              textOpacity={config.components.tags.textOpacity ?? 1.0}
+              onColorPairChange={(value) =>
                 updateConfig('components', {
-                  tags: { ...config.components.tags, backgroundColor: value },
+                  tags: { ...config.components.tags, colorPair: value },
                 })
               }
-              onChangeComplete={(value) =>
-                commitConfig('components', {
-                  tags: { ...config.components.tags, backgroundColor: value },
-                })
-              }
-            />
-            <ColorControl
-              label="Text Color"
-              value={config.components.tags.textColor}
-              onChange={(value) =>
+              onBackgroundOpacityChange={(value) =>
                 updateConfig('components', {
-                  tags: { ...config.components.tags, textColor: value },
+                  tags: { ...config.components.tags, backgroundOpacity: value },
                 })
               }
-              onChangeComplete={(value) =>
+              onTextOpacityChange={(value) =>
+                updateConfig('components', {
+                  tags: { ...config.components.tags, textOpacity: value },
+                })
+              }
+              onChangeComplete={() =>
                 commitConfig('components', {
-                  tags: { ...config.components.tags, textColor: value },
+                  tags: {
+                    ...config.components.tags,
+                    colorPair: config.components.tags.colorPair || 'tertiary',
+                    backgroundOpacity: config.components.tags.backgroundOpacity ?? 0.2,
+                    textOpacity: config.components.tags.textOpacity ?? 1.0,
+                  },
                 })
               }
             />

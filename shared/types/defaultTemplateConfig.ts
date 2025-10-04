@@ -202,8 +202,11 @@ export const DEFAULT_TEMPLATE_CONFIG: TemplateConfig = {
       color: '#0f172a',
     },
     tags: {
-      backgroundColor: '#e0e7ff', // Indigo-100
-      textColor: '#3730a3',       // Indigo-800
+      colorPair: 'tertiary',      // Use tertiary color pair by default
+      backgroundOpacity: 0.2,     // 20% opacity for background
+      textOpacity: 1.0,           // 100% opacity for text
+      backgroundColor: '#e0e7ff', // Legacy fallback: Indigo-100
+      textColor: '#3730a3',       // Legacy fallback: Indigo-800
       borderRadius: '4px',
       padding: '4px 8px',
       fontSize: '14px',

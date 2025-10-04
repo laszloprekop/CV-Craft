@@ -460,8 +460,59 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
       '--paragraph-spacing': activeConfig?.layout.paragraphSpacing || '12px',
 
       // Component styles (use new color pairs)
-      '--tag-bg-color': activeConfig?.colors.tertiary || activeConfig?.colors.accent || '#f59e0b',
-      '--tag-text-color': activeConfig?.colors.onTertiary || '#ffffff',
+      // Tags - use semantic color pairs with transparency
+      '--tag-bg-color': (() => {
+        const colorPair = activeConfig?.components.tags?.colorPair || 'tertiary';
+        const opacity = activeConfig?.components.tags?.backgroundOpacity ?? 0.2;
+        let baseColor = '';
+
+        switch (colorPair) {
+          case 'primary':
+            baseColor = activeConfig?.colors.primary || '#2563eb';
+            break;
+          case 'secondary':
+            baseColor = activeConfig?.colors.secondary || '#64748b';
+            break;
+          case 'tertiary':
+            baseColor = activeConfig?.colors.tertiary || activeConfig?.colors.accent || '#f59e0b';
+            break;
+          case 'muted':
+            baseColor = activeConfig?.colors.muted || '#f1f5f9';
+            break;
+        }
+
+        // Convert hex to rgba with opacity
+        const r = parseInt(baseColor.slice(1, 3), 16);
+        const g = parseInt(baseColor.slice(3, 5), 16);
+        const b = parseInt(baseColor.slice(5, 7), 16);
+        return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+      })(),
+      '--tag-text-color': (() => {
+        const colorPair = activeConfig?.components.tags?.colorPair || 'tertiary';
+        const opacity = activeConfig?.components.tags?.textOpacity ?? 1.0;
+        let baseColor = '';
+
+        switch (colorPair) {
+          case 'primary':
+            baseColor = activeConfig?.colors.onPrimary || '#ffffff';
+            break;
+          case 'secondary':
+            baseColor = activeConfig?.colors.onSecondary || '#ffffff';
+            break;
+          case 'tertiary':
+            baseColor = activeConfig?.colors.onTertiary || '#ffffff';
+            break;
+          case 'muted':
+            baseColor = activeConfig?.colors.onMuted || '#334155';
+            break;
+        }
+
+        // Convert hex to rgba with opacity
+        const r = parseInt(baseColor.slice(1, 3), 16);
+        const g = parseInt(baseColor.slice(3, 5), 16);
+        const b = parseInt(baseColor.slice(5, 7), 16);
+        return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+      })(),
       '--tag-border-radius': activeConfig?.components.tags.borderRadius || '4px',
       '--date-line-color': activeConfig?.colors.text.secondary || '#64748b',
 
@@ -995,9 +1046,9 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
                   key={skillIndex}
                   className="inline-block px-2 py-1 text-xs rounded"
                   style={{
-                    backgroundColor: templateStyles['--accent-color'] as string || '#d4a574',
-                    color: 'var(--on-tertiary-color)',
-                    borderRadius: activeConfig?.components?.tags?.borderRadius || '4px',
+                    backgroundColor: templateStyles['--tag-bg-color'] as string,
+                    color: templateStyles['--tag-text-color'] as string,
+                    borderRadius: templateStyles['--tag-border-radius'] as string,
                     fontFamily: templateStyles['--heading-font-family'],
                     fontSize: activeConfig?.components?.tags?.fontSize || '9px',
                     fontWeight: activeConfig?.components?.tags?.fontWeight || 500

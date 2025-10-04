@@ -284,8 +284,11 @@ export interface TemplateConfig {
       color?: string;
     };
     tags: {
-      backgroundColor: string;
-      textColor: string;
+      colorPair?: 'primary' | 'secondary' | 'tertiary' | 'muted'; // Which semantic color pair to use
+      backgroundOpacity?: number; // 0-1, opacity for background color
+      textOpacity?: number; // 0-1, opacity for text color
+      backgroundColor?: string; // Legacy: direct color (will be deprecated)
+      textColor?: string; // Legacy: direct color (will be deprecated)
       borderRadius: string;
       padding: string;
       fontSize: string;

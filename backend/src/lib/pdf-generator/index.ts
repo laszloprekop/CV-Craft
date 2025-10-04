@@ -172,6 +172,13 @@ export class PDFGenerator {
       return `${(baseValue * scale).toFixed(1)}${unit}`
     }
 
+    const hexToRgba = (hex: string, opacity: number): string => {
+      const r = parseInt(hex.slice(1, 3), 16)
+      const g = parseInt(hex.slice(3, 5), 16)
+      const b = parseInt(hex.slice(5, 7), 16)
+      return `rgba(${r}, ${g}, ${b}, ${opacity})`
+    }
+
     const baseFontSize = config.typography.baseFontSize || '10pt'
     const fontScale = config.typography.fontScale || {
       h1: 3.2,
@@ -224,6 +231,53 @@ export class PDFGenerator {
       '--page-margin-left': config.layout.pageMargin.left,
       '--section-spacing': config.layout.sectionSpacing,
       '--paragraph-spacing': config.layout.paragraphSpacing,
+
+      // Tags - use semantic color pairs with transparency
+      '--tag-bg-color': (() => {
+        const colorPair = config.components.tags?.colorPair || 'tertiary'
+        const opacity = config.components.tags?.backgroundOpacity ?? 0.2
+        let baseColor = ''
+
+        switch (colorPair) {
+          case 'primary':
+            baseColor = config.colors.primary
+            break
+          case 'secondary':
+            baseColor = config.colors.secondary
+            break
+          case 'tertiary':
+            baseColor = config.colors.tertiary || config.colors.accent || '#f59e0b'
+            break
+          case 'muted':
+            baseColor = config.colors.muted || '#f1f5f9'
+            break
+        }
+
+        return hexToRgba(baseColor, opacity)
+      })(),
+      '--tag-text-color': (() => {
+        const colorPair = config.components.tags?.colorPair || 'tertiary'
+        const opacity = config.components.tags?.textOpacity ?? 1.0
+        let baseColor = ''
+
+        switch (colorPair) {
+          case 'primary':
+            baseColor = config.colors.onPrimary
+            break
+          case 'secondary':
+            baseColor = config.colors.onSecondary
+            break
+          case 'tertiary':
+            baseColor = config.colors.onTertiary || '#ffffff'
+            break
+          case 'muted':
+            baseColor = config.colors.onMuted || '#334155'
+            break
+        }
+
+        return hexToRgba(baseColor, opacity)
+      })(),
+      '--tag-border-radius': config.components.tags.borderRadius,
 
       // Component-specific styles
       // Name (H1)
