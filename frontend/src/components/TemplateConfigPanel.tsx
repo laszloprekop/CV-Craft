@@ -626,70 +626,25 @@ export const TemplateConfigPanel: React.FC<TemplateConfigPanelProps> = ({
             <CollapsibleSection id="components-name" label="Name (H1)" defaultOpen={true}>
               <TextStyleControl
                 label="Name Styling"
-                fontFamily={config.components.name?.fontFamily || config.typography.fontFamily.heading}
-                fontSize={config.components.name?.fontSize || '32px'}
-                fontWeight={config.components.name?.fontWeight || config.typography.fontWeight.heading}
-                color={config.components.name?.color || config.colors.text.primary}
-                letterSpacing={config.components.name?.letterSpacing || '0px'}
-                onFontFamilyChange={(value) =>
+                value={{
+                  fontSize: config.components.name?.fontSize || '32px',
+                  fontWeight: config.components.name?.fontWeight || config.typography.fontWeight.heading,
+                  color: config.components.name?.color || config.colors.text.primary,
+                  letterSpacing: config.components.name?.letterSpacing || '0px',
+                  textTransform: config.components.name?.textTransform || 'none',
+                }}
+                onChange={(value) =>
                   updateConfig('components', {
-                    name: { ...config.components.name, fontFamily: value },
+                    name: { ...config.components.name, ...value },
                   })
                 }
-                onFontSizeChange={(value) =>
-                  updateConfig('components', {
-                    name: { ...config.components.name, fontSize: value },
-                  })
-                }
-                onFontWeightChange={(value) =>
-                  updateConfig('components', {
-                    name: { ...config.components.name, fontWeight: value },
-                  })
-                }
-                onColorChange={(value) =>
-                  updateConfig('components', {
-                    name: { ...config.components.name, color: value },
-                  })
-                }
-                onLetterSpacingChange={(value) =>
-                  updateConfig('components', {
-                    name: { ...config.components.name, letterSpacing: value },
-                  })
-                }
-                onColorChangeComplete={(value) =>
+                onChangeComplete={(value) =>
                   commitConfig('components', {
-                    name: { ...config.components.name, color: value },
+                    name: { ...config.components.name, ...value },
                   })
                 }
-              />
-              <SelectControl
-                label="Text Transform"
-                value={config.components.name?.textTransform || 'none'}
-                onChange={(value) =>
-                  updateConfig('components', {
-                    name: { ...config.components.name, textTransform: value as any },
-                  })
-                }
-                options={[
-                  { value: 'none', label: 'None' },
-                  { value: 'uppercase', label: 'Uppercase' },
-                  { value: 'lowercase', label: 'Lowercase' },
-                  { value: 'capitalize', label: 'Capitalize' },
-                ]}
-              />
-              <SelectControl
-                label="Alignment"
-                value={config.components.name?.alignment || 'left'}
-                onChange={(value) =>
-                  updateConfig('components', {
-                    name: { ...config.components.name, alignment: value as any },
-                  })
-                }
-                options={[
-                  { value: 'left', label: 'Left' },
-                  { value: 'center', label: 'Center' },
-                  { value: 'right', label: 'Right' },
-                ]}
+                showLetterSpacing={true}
+                showAlignment={true}
               />
             </CollapsibleSection>
 
@@ -697,56 +652,24 @@ export const TemplateConfigPanel: React.FC<TemplateConfigPanelProps> = ({
             <CollapsibleSection id="components-section-headers" label="Section Headers (H2)" defaultOpen={true}>
               <TextStyleControl
                 label="Section Header Styling"
-                fontFamily={config.components.sectionHeader?.fontFamily || config.typography.fontFamily.heading}
-                fontSize={config.components.sectionHeader?.fontSize || '20px'}
-                fontWeight={config.components.sectionHeader?.fontWeight || config.typography.fontWeight.heading}
-                color={config.components.sectionHeader?.color || config.colors.text.primary}
-                letterSpacing={config.components.sectionHeader?.letterSpacing || '0px'}
-                onFontFamilyChange={(value) =>
-                  updateConfig('components', {
-                    sectionHeader: { ...config.components.sectionHeader, fontFamily: value },
-                  })
-                }
-                onFontSizeChange={(value) =>
-                  updateConfig('components', {
-                    sectionHeader: { ...config.components.sectionHeader, fontSize: value },
-                  })
-                }
-                onFontWeightChange={(value) =>
-                  updateConfig('components', {
-                    sectionHeader: { ...config.components.sectionHeader, fontWeight: value },
-                  })
-                }
-                onColorChange={(value) =>
-                  updateConfig('components', {
-                    sectionHeader: { ...config.components.sectionHeader, color: value },
-                  })
-                }
-                onLetterSpacingChange={(value) =>
-                  updateConfig('components', {
-                    sectionHeader: { ...config.components.sectionHeader, letterSpacing: value },
-                  })
-                }
-                onColorChangeComplete={(value) =>
-                  commitConfig('components', {
-                    sectionHeader: { ...config.components.sectionHeader, color: value },
-                  })
-                }
-              />
-              <SelectControl
-                label="Text Transform"
-                value={config.components.sectionHeader?.textTransform || 'none'}
+                value={{
+                  fontSize: config.components.sectionHeader?.fontSize || '20px',
+                  fontWeight: config.components.sectionHeader?.fontWeight || config.typography.fontWeight.heading,
+                  color: config.components.sectionHeader?.color || config.colors.text.primary,
+                  letterSpacing: config.components.sectionHeader?.letterSpacing || '0px',
+                  textTransform: config.components.sectionHeader?.textTransform || 'none',
+                }}
                 onChange={(value) =>
                   updateConfig('components', {
-                    sectionHeader: { ...config.components.sectionHeader, textTransform: value as any },
+                    sectionHeader: { ...config.components.sectionHeader, ...value },
                   })
                 }
-                options={[
-                  { value: 'none', label: 'None' },
-                  { value: 'uppercase', label: 'Uppercase' },
-                  { value: 'lowercase', label: 'Lowercase' },
-                  { value: 'capitalize', label: 'Capitalize' },
-                ]}
+                onChangeComplete={(value) =>
+                  commitConfig('components', {
+                    sectionHeader: { ...config.components.sectionHeader, ...value },
+                  })
+                }
+                showLetterSpacing={true}
               />
               <SelectControl
                 label="Divider Style"
