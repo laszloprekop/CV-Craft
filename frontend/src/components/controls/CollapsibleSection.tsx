@@ -67,33 +67,33 @@ export const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
   }, [isOpen, children]);
 
   return (
-    <div className="mb-2 border border-border rounded-md overflow-hidden bg-surface">
+    <div className="mb-3 border border-border/50 rounded overflow-hidden bg-surface/30">
       {/* Header */}
       <button
         onClick={toggle}
-        className="w-full flex items-center justify-between px-3 py-2 hover:bg-surface-hover transition-colors cursor-pointer"
+        className="w-full flex items-center justify-between px-3 py-2 hover:bg-surface-hover/50 transition-colors cursor-pointer"
         aria-expanded={isOpen}
         aria-controls={`collapsible-content-${id}`}
       >
         <div className="flex items-center gap-2">
           {/* Chevron Icon */}
           <CaretRight
-            size={14}
+            size={12}
             weight="bold"
-            className="text-text-secondary transition-transform duration-200"
+            className="text-text-muted transition-transform duration-150"
             style={{
               transform: isOpen ? 'rotate(90deg)' : 'rotate(0deg)',
             }}
           />
 
           {/* Label */}
-          <span className="text-xs font-semibold text-text-primary">
+          <span className="text-[11px] font-semibold text-text-primary tracking-tight">
             {label}
           </span>
 
           {/* Optional Badge */}
           {badge && (
-            <span className="text-[10px] px-1.5 py-0.5 bg-primary/10 text-primary rounded">
+            <span className="text-[9px] px-1.5 py-0.5 bg-primary/10 text-primary rounded">
               {badge}
             </span>
           )}
@@ -103,12 +103,12 @@ export const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
       {/* Collapsible Content */}
       <div
         id={`collapsible-content-${id}`}
-        className="overflow-hidden transition-all duration-200 ease-in-out"
+        className="overflow-hidden transition-all duration-150 ease-in-out"
         style={{
           height: height !== undefined ? `${height}px` : 'auto',
         }}
       >
-        <div ref={contentRef} className="px-3 pb-3 pt-1">
+        <div ref={contentRef} className="px-3 pb-3 pt-0">
           {children}
         </div>
       </div>

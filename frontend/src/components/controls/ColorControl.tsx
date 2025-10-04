@@ -36,12 +36,12 @@ export const ColorControl: React.FC<ColorControlProps> = ({
   };
 
   return (
-    <div className="mb-2">
-      <label className="block text-xs font-medium text-text-primary mb-1">
+    <div className="mb-3">
+      <label className="block text-[11px] font-medium text-text-primary mb-1">
         {label}
       </label>
       {description && (
-        <p className="text-[10px] text-text-secondary mb-1">{description}</p>
+        <p className="text-[10px] text-text-muted mb-1">{description}</p>
       )}
       <div className="flex items-center gap-2">
         <input
@@ -51,7 +51,7 @@ export const ColorControl: React.FC<ColorControlProps> = ({
           onMouseDown={() => setIsDragging(true)}
           onMouseUp={(e) => handleComplete((e.target as HTMLInputElement).value)}
           onBlur={(e) => handleComplete(e.target.value)}
-          className="w-7 h-7 border border-border rounded cursor-pointer flex-shrink-0"
+          className="w-7 h-7 border border-border/50 rounded cursor-pointer flex-shrink-0"
           style={{ aspectRatio: '1/1' }}
         />
         <input
@@ -64,7 +64,7 @@ export const ColorControl: React.FC<ColorControlProps> = ({
               handleComplete((e.target as HTMLInputElement).value);
             }
           }}
-          className="w-[85px] px-2 py-1 text-xs border border-border rounded bg-background text-text-primary focus:outline-none focus:border-primary font-mono"
+          className="flex-1 px-2.5 py-1.5 text-[11px] border border-border/50 rounded bg-surface text-text-primary focus:outline-none focus:border-primary font-mono transition-colors"
           placeholder="#000000"
         />
       </div>

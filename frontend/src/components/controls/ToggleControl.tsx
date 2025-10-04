@@ -14,18 +14,18 @@ export const ToggleControl: React.FC<ToggleControlProps> = ({
   description,
 }) => {
   return (
-    <div className="mb-4">
-      <label className="flex items-center gap-3 cursor-pointer">
+    <div className="mb-3">
+      <label className="flex items-center gap-2.5 cursor-pointer">
         <input
           type="checkbox"
           checked={value}
           onChange={(e) => onChange(e.target.checked)}
-          className="w-4 h-4 text-primary border-border rounded focus:ring-primary"
+          className="w-4 h-4 text-primary border-border/50 rounded focus:ring-primary"
         />
         <div className="flex-1">
-          <span className="text-sm font-medium text-text-primary">{label}</span>
+          <span className="text-[11px] font-medium text-text-primary">{label}</span>
           {description && (
-            <p className="text-xs text-text-secondary mt-1">{description}</p>
+            <p className="text-[10px] text-text-muted mt-0.5">{description}</p>
           )}
         </div>
       </label>

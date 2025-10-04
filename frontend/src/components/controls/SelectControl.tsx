@@ -21,17 +21,17 @@ export const SelectControl: React.FC<SelectControlProps> = ({
   description,
 }) => {
   return (
-    <div className="mb-4">
-      <label className="block text-sm font-medium text-text-primary mb-2">
+    <div className="mb-3">
+      <label className="block text-[11px] font-medium text-text-primary mb-1">
         {label}
       </label>
       {description && (
-        <p className="text-xs text-text-secondary mb-2">{description}</p>
+        <p className="text-[10px] text-text-muted mb-1.5">{description}</p>
       )}
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full px-3 py-2 text-sm border border-border rounded bg-background text-text-primary focus:outline-none focus:border-primary"
+        className="w-full px-2.5 py-1.5 text-[11px] border border-border/50 rounded bg-surface text-text-primary focus:outline-none focus:border-primary transition-colors"
       >
         {options.map((option) => (
           <option key={option.value} value={option.value}>
