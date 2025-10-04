@@ -53,8 +53,8 @@ export const TextStyleControl: React.FC<TextStyleControlProps> = ({
   };
 
   return (
-    <div className="mb-3 p-2 border border-border rounded bg-surface/50">
-      <h5 className="text-xs font-semibold text-text-primary mb-2">{label}</h5>
+    <div className="">
+      {/*<h5 className="text-xs font-semibold text-text-primary mb-2">{label}</h5>*/}
 
       {/* Font Size & Weight */}
       <div className="grid grid-cols-2 gap-1 mb-2">

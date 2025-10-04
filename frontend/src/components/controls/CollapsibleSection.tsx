@@ -77,7 +77,7 @@ export const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
   }, [isOpen, children]);
 
   return (
-    <div className="mb-3 border border-border/50 rounded overflow-hidden bg-surface/30">
+    <div className="border border-border/50 overflow-hidden bg-surface/30">
       {/* Header */}
       <button
         onClick={toggle}
@@ -118,7 +118,7 @@ export const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
           height: height !== undefined ? `${height}px` : 'auto',
         }}
       >
-        <div ref={contentRef} className="px-3 pb-3 pt-0">
+        <div ref={contentRef} className="px-3 pt-0">
           {children}
         </div>
       </div>
