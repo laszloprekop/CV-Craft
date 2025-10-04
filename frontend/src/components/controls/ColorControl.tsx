@@ -18,6 +18,9 @@ export const ColorControl: React.FC<ColorControlProps> = ({
   const [isDragging, setIsDragging] = useState(false);
   const lastCommittedValue = useRef(value);
 
+  // Ensure value is always a valid color (HTML5 color input requires #rrggbb format)
+  const safeValue = value || '#000000';
+
   const handleChange = (newValue: string) => {
     onChange(newValue);
   };
@@ -43,7 +46,7 @@ export const ColorControl: React.FC<ColorControlProps> = ({
       <div className="flex items-center gap-2">
         <input
           type="color"
-          value={value}
+          value={safeValue}
           onChange={(e) => handleChange(e.target.value)}
           onMouseDown={() => setIsDragging(true)}
           onMouseUp={(e) => handleComplete((e.target as HTMLInputElement).value)}
@@ -53,7 +56,7 @@ export const ColorControl: React.FC<ColorControlProps> = ({
         />
         <input
           type="text"
-          value={value}
+          value={safeValue}
           onChange={(e) => handleChange(e.target.value)}
           onBlur={(e) => handleComplete(e.target.value)}
           onKeyDown={(e) => {
