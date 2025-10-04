@@ -680,11 +680,16 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
               {frontmatter && (
                 <header className="text-center mb-6 pb-4" style={{ borderBottom: `2px solid ${templateStyles['--accent-color']}` }}>
                   <h1
-                    className="font-bold uppercase tracking-wide mb-2"
+                    className="font-bold mb-2"
                     style={{
-                      fontSize: templateStyles['--title-font-size'],
-                      fontFamily: templateStyles['--heading-font-family'],
-                      color: templateStyles['--primary-color'] || '#1f2937'
+                      fontSize: templateStyles['--name-font-size'],
+                      fontWeight: templateStyles['--name-font-weight'],
+                      color: templateStyles['--name-color'],
+                      letterSpacing: templateStyles['--name-letter-spacing'],
+                      textTransform: templateStyles['--name-text-transform'] as any,
+                      textAlign: templateStyles['--name-alignment'] as any,
+                      marginBottom: templateStyles['--name-margin-bottom'],
+                      fontFamily: templateStyles['--heading-font-family']
                     }}
                   >
                     {frontmatter.name || 'Your Name'}
@@ -701,7 +706,11 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
                     </p>
                   )}
                   {/* Contact info centered */}
-                  <div className="flex justify-center gap-4 text-sm mb-4" style={{ color: 'var(--text-secondary)' }}>
+                  <div className="flex justify-center gap-4 mb-4" style={{
+                    color: templateStyles['--contact-icon-color'],
+                    fontSize: templateStyles['--contact-font-size'],
+                    gap: templateStyles['--contact-spacing']
+                  }}>
                     {frontmatter.email && <span>{frontmatter.email}</span>}
                     {frontmatter.phone && <span>{frontmatter.phone}</span>}
                     {frontmatter.location && <span>{frontmatter.location}</span>}
@@ -716,8 +725,16 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
                     className="text-lg font-bold uppercase tracking-wide mb-3 pb-1"
                     style={{
                       fontFamily: templateStyles['--heading-font-family'],
-                      color: templateStyles['--primary-color'] || '#1f2937',
-                      borderBottom: `1px solid ${templateStyles['--accent-color'] || '#6b7280'}`
+                      fontSize: templateStyles['--section-header-font-size'],
+                      fontWeight: templateStyles['--section-header-font-weight'],
+                      color: templateStyles['--section-header-color'],
+                      textTransform: templateStyles['--section-header-text-transform'] as any,
+                      letterSpacing: templateStyles['--section-header-letter-spacing'],
+                      borderBottom: templateStyles['--section-header-border-bottom'],
+                      borderColor: templateStyles['--section-header-border-color'],
+                      padding: templateStyles['--section-header-padding'],
+                      marginTop: templateStyles['--section-header-margin-top'],
+                      marginBottom: templateStyles['--section-header-margin-bottom']
                     }}
                   >
                     {section.title}
@@ -759,11 +776,16 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
                         </div>
                       )}
                       <h1
-                        className="font-bold text-center mb-2"
+                        className="font-bold mb-2"
                         style={{
-                          fontSize: templateStyles['--title-font-size'],
-                          fontFamily: templateStyles['--heading-font-family'],
-                          color: 'var(--on-secondary-color)'
+                          fontSize: templateStyles['--name-font-size'],
+                          fontWeight: templateStyles['--name-font-weight'],
+                          color: 'var(--on-secondary-color)',
+                          letterSpacing: templateStyles['--name-letter-spacing'],
+                          textTransform: templateStyles['--name-text-transform'] as any,
+                          textAlign: 'center',
+                          marginBottom: templateStyles['--name-margin-bottom'],
+                          fontFamily: templateStyles['--heading-font-family']
                         }}
                       >
                         {frontmatter.name || 'Your Name'}
@@ -782,40 +804,64 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
                     </div>
 
                     {/* Contact details with icons */}
-                    <div className="space-y-3">
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: templateStyles['--contact-spacing'] }}>
                       {frontmatter.phone && (
-                        <div className="flex items-center gap-3 text-sm" style={{ color: 'var(--on-secondary-color)' }}>
-                          <Phone size={16} className="flex-shrink-0" style={{ color: 'var(--on-secondary-color)' }} />
+                        <div className="flex items-center text-sm" style={{
+                          color: 'var(--on-secondary-color)',
+                          fontSize: templateStyles['--contact-font-size'],
+                          gap: templateStyles['--contact-spacing']
+                        }}>
+                          <Phone size={parseInt(templateStyles['--contact-icon-size'] as string) || 16} className="flex-shrink-0" style={{ color: templateStyles['--contact-icon-color'] }} />
                           <span>{frontmatter.phone}</span>
                         </div>
                       )}
                       {frontmatter.email && (
-                        <div className="flex items-center gap-3 text-sm" style={{ color: 'var(--on-secondary-color)' }}>
-                          <Envelope size={16} className="flex-shrink-0" style={{ color: 'var(--on-secondary-color)' }} />
+                        <div className="flex items-center text-sm" style={{
+                          color: 'var(--on-secondary-color)',
+                          fontSize: templateStyles['--contact-font-size'],
+                          gap: templateStyles['--contact-spacing']
+                        }}>
+                          <Envelope size={parseInt(templateStyles['--contact-icon-size'] as string) || 16} className="flex-shrink-0" style={{ color: templateStyles['--contact-icon-color'] }} />
                           <span className="break-all">{frontmatter.email}</span>
                         </div>
                       )}
                       {frontmatter.linkedin && (
-                        <div className="flex items-center gap-3 text-sm" style={{ color: 'var(--on-secondary-color)' }}>
-                          <LinkedinLogo size={16} className="flex-shrink-0" style={{ color: 'var(--on-secondary-color)' }} />
+                        <div className="flex items-center text-sm" style={{
+                          color: 'var(--on-secondary-color)',
+                          fontSize: templateStyles['--contact-font-size'],
+                          gap: templateStyles['--contact-spacing']
+                        }}>
+                          <LinkedinLogo size={parseInt(templateStyles['--contact-icon-size'] as string) || 16} className="flex-shrink-0" style={{ color: templateStyles['--contact-icon-color'] }} />
                           <span className="break-all">{frontmatter.linkedin.replace(/^https?:\/\//, '')}</span>
                         </div>
                       )}
                       {frontmatter.github && (
-                        <div className="flex items-center gap-3 text-sm" style={{ color: 'var(--on-secondary-color)' }}>
-                          <GithubLogo size={16} className="flex-shrink-0" style={{ color: 'var(--on-secondary-color)' }} />
+                        <div className="flex items-center text-sm" style={{
+                          color: 'var(--on-secondary-color)',
+                          fontSize: templateStyles['--contact-font-size'],
+                          gap: templateStyles['--contact-spacing']
+                        }}>
+                          <GithubLogo size={parseInt(templateStyles['--contact-icon-size'] as string) || 16} className="flex-shrink-0" style={{ color: templateStyles['--contact-icon-color'] }} />
                           <span className="break-all">{frontmatter.github.replace(/^https?:\/\//, '')}</span>
                         </div>
                       )}
                       {frontmatter.website && (
-                        <div className="flex items-center gap-3 text-sm" style={{ color: 'var(--on-secondary-color)' }}>
-                          <Globe size={16} className="flex-shrink-0" style={{ color: 'var(--on-secondary-color)' }} />
+                        <div className="flex items-center text-sm" style={{
+                          color: 'var(--on-secondary-color)',
+                          fontSize: templateStyles['--contact-font-size'],
+                          gap: templateStyles['--contact-spacing']
+                        }}>
+                          <Globe size={parseInt(templateStyles['--contact-icon-size'] as string) || 16} className="flex-shrink-0" style={{ color: templateStyles['--contact-icon-color'] }} />
                           <span className="break-all">{frontmatter.website.replace(/^https?:\/\//, '')}</span>
                         </div>
                       )}
                       {frontmatter.location && (
-                        <div className="flex items-center gap-3 text-sm" style={{ color: 'var(--on-secondary-color)' }}>
-                          <MapPin size={16} className="flex-shrink-0" style={{ color: 'var(--on-secondary-color)' }} />
+                        <div className="flex items-center text-sm" style={{
+                          color: 'var(--on-secondary-color)',
+                          fontSize: templateStyles['--contact-font-size'],
+                          gap: templateStyles['--contact-spacing']
+                        }}>
+                          <MapPin size={parseInt(templateStyles['--contact-icon-size'] as string) || 16} className="flex-shrink-0" style={{ color: templateStyles['--contact-icon-color'] }} />
                           <span>{frontmatter.location}</span>
                         </div>
                       )}
@@ -859,9 +905,14 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
                     <h1
                       className="font-bold uppercase tracking-wide mb-2"
                       style={{
-                        fontSize: templateStyles['--title-font-size'],
-                        fontFamily: templateStyles['--heading-font-family'],
-                        color: 'var(--on-background-color)'
+                        fontSize: templateStyles['--name-font-size'],
+                        fontWeight: templateStyles['--name-font-weight'],
+                        color: templateStyles['--name-color'],
+                        letterSpacing: templateStyles['--name-letter-spacing'],
+                        textTransform: templateStyles['--name-text-transform'] as any,
+                        textAlign: templateStyles['--name-alignment'] as any,
+                        marginBottom: templateStyles['--name-margin-bottom'],
+                        fontFamily: templateStyles['--heading-font-family']
                       }}
                     >
                       {frontmatter.name || 'Your Name'}
@@ -883,16 +934,22 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
                 {/* Main content sections */}
                 {mainSections.map((section, sectionIndex) => (
                   <section key={sectionIndex} className="mb-6 keep-together" style={{ pageBreakInside: 'avoid', breakInside: 'avoid' }}>
-                    <h3
+                    <h2
                       className="text-base font-bold uppercase tracking-wide mb-3 px-3 py-1 rounded"
                       style={{
                         fontFamily: templateStyles['--heading-font-family'],
+                        fontSize: templateStyles['--section-header-font-size'],
+                        fontWeight: templateStyles['--section-header-font-weight'],
                         color: 'var(--on-primary-color)',
-                        backgroundColor: templateStyles['--primary-color'] as string || '#a8956b'
+                        textTransform: templateStyles['--section-header-text-transform'] as any,
+                        letterSpacing: templateStyles['--section-header-letter-spacing'],
+                        backgroundColor: templateStyles['--primary-color'] as string || '#a8956b',
+                        marginTop: templateStyles['--section-header-margin-top'],
+                        marginBottom: templateStyles['--section-header-margin-bottom']
                       }}
                     >
                       {section.title}
-                    </h3>
+                    </h2>
                     <div className="space-y-3">
                       {renderSectionContent(section, false)}
                     </div>
@@ -1043,8 +1100,10 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
                   <h3
                     className="font-semibold"
                     style={{
-                      fontSize: `var(--${isSidebar ? 'small' : 'body'}-font-size)`,
-                      color: isSidebar ? '#4a3d2a' : '#2d2d2d'
+                      fontSize: isSidebar ? 'var(--small-font-size)' : templateStyles['--job-title-font-size'],
+                      fontWeight: isSidebar ? 600 : templateStyles['--job-title-font-weight'],
+                      color: isSidebar ? '#4a3d2a' : templateStyles['--job-title-color'],
+                      marginBottom: isSidebar ? '2px' : templateStyles['--job-title-margin-bottom']
                     }}
                   >
                     {item.title}
@@ -1052,8 +1111,10 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
                   {item.company && (
                     <p
                       style={{
-                        fontSize: `var(--${isSidebar ? 'tiny' : 'small'}-font-size)`,
-                        color: isSidebar ? '#6b5b47' : '#5d5d5d'
+                        fontSize: isSidebar ? 'var(--tiny-font-size)' : templateStyles['--org-name-font-size'],
+                        fontWeight: isSidebar ? 400 : templateStyles['--org-name-font-weight'],
+                        color: isSidebar ? '#6b5b47' : templateStyles['--org-name-color'],
+                        fontStyle: isSidebar ? 'normal' : templateStyles['--org-name-font-style'] as any
                       }}
                     >
                       {item.company}
@@ -1137,14 +1198,27 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
           <div className="p-8">
             {/* Header */}
             <header className="text-center mb-6 pb-4" style={{ borderBottom: `2px solid ${templateStyles['--accent-color']}` }}>
-              <h1 className="text-3xl font-bold mb-2" style={{ fontFamily: templateStyles['--heading-font-family'], color: templateStyles['--primary-color'], fontSize: templateStyles['--title-font-size'] }}>
+              <h1 className="text-3xl font-bold mb-2" style={{
+                fontFamily: templateStyles['--heading-font-family'],
+                fontSize: templateStyles['--name-font-size'],
+                fontWeight: templateStyles['--name-font-weight'],
+                color: templateStyles['--name-color'],
+                letterSpacing: templateStyles['--name-letter-spacing'],
+                textTransform: templateStyles['--name-text-transform'] as any,
+                textAlign: templateStyles['--name-alignment'] as any,
+                marginBottom: templateStyles['--name-margin-bottom']
+              }}>
                 {frontmatter.name || 'Your Name'}
               </h1>
               {frontmatter.title && (
                 <p className="mb-4" style={{ fontSize: 'var(--h3-font-size)', color: 'var(--text-secondary)' }}>{frontmatter.title}</p>
               )}
               {/* Contact Info in Minimal Style */}
-              <div className="flex justify-center gap-4 text-sm" style={{ color: 'var(--text-secondary)' }}>
+              <div className="flex justify-center gap-4 text-sm" style={{
+                color: templateStyles['--contact-icon-color'],
+                fontSize: templateStyles['--contact-font-size'],
+                gap: templateStyles['--contact-spacing']
+              }}>
                 {frontmatter.email && <span>{frontmatter.email}</span>}
                 {frontmatter.phone && <span>{frontmatter.phone}</span>}
                 {frontmatter.location && <span>{frontmatter.location}</span>}
@@ -1156,8 +1230,16 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
               <section key={index} className="mb-6">
                 <h2 className="text-xl font-semibold mb-3 pb-1" style={{
                   fontFamily: templateStyles['--heading-font-family'],
-                  color: templateStyles['--primary-color'],
-                  borderBottom: `1px solid ${templateStyles['--accent-color']}`
+                  fontSize: templateStyles['--section-header-font-size'],
+                  fontWeight: templateStyles['--section-header-font-weight'],
+                  color: templateStyles['--section-header-color'],
+                  textTransform: templateStyles['--section-header-text-transform'] as any,
+                  letterSpacing: templateStyles['--section-header-letter-spacing'],
+                  borderBottom: templateStyles['--section-header-border-bottom'],
+                  borderColor: templateStyles['--section-header-border-color'],
+                  padding: templateStyles['--section-header-padding'],
+                  marginTop: templateStyles['--section-header-margin-top'],
+                  marginBottom: templateStyles['--section-header-margin-bottom']
                 }}>
                   {section.title}
                 </h2>
@@ -1172,8 +1254,18 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
                           <div className="mb-4">
                             <div className="flex justify-between items-start mb-2">
                               <div>
-                                <h3 className="font-semibold" style={{ fontSize: 'var(--body-font-size)', color: 'var(--on-background-color)' }}>{item.title}</h3>
-                                {item.company && <p style={{ fontSize: 'var(--small-font-size)', color: 'var(--on-background-color)' }}>{item.company}</p>}
+                                <h3 className="font-semibold" style={{
+                                  fontSize: templateStyles['--job-title-font-size'],
+                                  fontWeight: templateStyles['--job-title-font-weight'],
+                                  color: templateStyles['--job-title-color'],
+                                  marginBottom: templateStyles['--job-title-margin-bottom']
+                                }}>{item.title}</h3>
+                                {item.company && <p style={{
+                                  fontSize: templateStyles['--org-name-font-size'],
+                                  fontWeight: templateStyles['--org-name-font-weight'],
+                                  color: templateStyles['--org-name-color'],
+                                  fontStyle: templateStyles['--org-name-font-style'] as any
+                                }}>{item.company}</p>}
                               </div>
                               <div className="text-right text-sm" style={{ color: 'var(--text-secondary)' }}>
                                 {item.location && <p style={{ fontSize: 'var(--tiny-font-size)' }}>{item.location}</p>}
@@ -1248,40 +1340,64 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
                 {/* Contact Information */}
                 {frontmatter && (
                   <div className="mb-8">
-                <div className="space-y-3">
+                <div style={{ display: 'flex', flexDirection: 'column', gap: templateStyles['--contact-spacing'] }}>
                   {frontmatter.phone && (
-                    <div className="flex items-center gap-3 text-sm" style={{ color: 'var(--on-secondary-color)' }}>
-                      <Phone size={16} className="flex-shrink-0" style={{ color: 'var(--on-secondary-color)' }} />
+                    <div className="flex items-center text-sm" style={{
+                      color: 'var(--on-secondary-color)',
+                      fontSize: templateStyles['--contact-font-size'],
+                      gap: templateStyles['--contact-spacing']
+                    }}>
+                      <Phone size={parseInt(templateStyles['--contact-icon-size'] as string) || 16} className="flex-shrink-0" style={{ color: templateStyles['--contact-icon-color'] }} />
                       <span>{frontmatter.phone}</span>
                     </div>
                   )}
                   {frontmatter.email && (
-                    <div className="flex items-center gap-3 text-sm" style={{ color: 'var(--on-secondary-color)' }}>
-                      <Envelope size={16} className="flex-shrink-0" style={{ color: 'var(--on-secondary-color)' }} />
+                    <div className="flex items-center text-sm" style={{
+                      color: 'var(--on-secondary-color)',
+                      fontSize: templateStyles['--contact-font-size'],
+                      gap: templateStyles['--contact-spacing']
+                    }}>
+                      <Envelope size={parseInt(templateStyles['--contact-icon-size'] as string) || 16} className="flex-shrink-0" style={{ color: templateStyles['--contact-icon-color'] }} />
                       <span className="break-all">{frontmatter.email}</span>
                     </div>
                   )}
                   {frontmatter.linkedin && (
-                    <div className="flex items-center gap-3 text-sm" style={{ color: 'var(--on-secondary-color)' }}>
-                      <LinkedinLogo size={16} className="flex-shrink-0" style={{ color: 'var(--on-secondary-color)' }} />
+                    <div className="flex items-center text-sm" style={{
+                      color: 'var(--on-secondary-color)',
+                      fontSize: templateStyles['--contact-font-size'],
+                      gap: templateStyles['--contact-spacing']
+                    }}>
+                      <LinkedinLogo size={parseInt(templateStyles['--contact-icon-size'] as string) || 16} className="flex-shrink-0" style={{ color: templateStyles['--contact-icon-color'] }} />
                       <span className="break-all">{frontmatter.linkedin.replace(/^https?:\/\//, '')}</span>
                     </div>
                   )}
                   {frontmatter.github && (
-                    <div className="flex items-center gap-3 text-sm" style={{ color: 'var(--on-secondary-color)' }}>
-                      <GithubLogo size={16} className="flex-shrink-0" style={{ color: 'var(--on-secondary-color)' }} />
+                    <div className="flex items-center text-sm" style={{
+                      color: 'var(--on-secondary-color)',
+                      fontSize: templateStyles['--contact-font-size'],
+                      gap: templateStyles['--contact-spacing']
+                    }}>
+                      <GithubLogo size={parseInt(templateStyles['--contact-icon-size'] as string) || 16} className="flex-shrink-0" style={{ color: templateStyles['--contact-icon-color'] }} />
                       <span className="break-all">{frontmatter.github.replace(/^https?:\/\//, '')}</span>
                     </div>
                   )}
                   {frontmatter.website && (
-                    <div className="flex items-center gap-3 text-sm" style={{ color: 'var(--on-secondary-color)' }}>
-                      <Globe size={16} className="flex-shrink-0" style={{ color: 'var(--on-secondary-color)' }} />
+                    <div className="flex items-center text-sm" style={{
+                      color: 'var(--on-secondary-color)',
+                      fontSize: templateStyles['--contact-font-size'],
+                      gap: templateStyles['--contact-spacing']
+                    }}>
+                      <Globe size={parseInt(templateStyles['--contact-icon-size'] as string) || 16} className="flex-shrink-0" style={{ color: templateStyles['--contact-icon-color'] }} />
                       <span className="break-all">{frontmatter.website.replace(/^https?:\/\//, '')}</span>
                     </div>
                   )}
                   {frontmatter.location && (
-                    <div className="flex items-center gap-3 text-sm" style={{ color: 'var(--on-secondary-color)' }}>
-                      <MapPin size={16} className="flex-shrink-0" style={{ color: 'var(--on-secondary-color)' }} />
+                    <div className="flex items-center text-sm" style={{
+                      color: 'var(--on-secondary-color)',
+                      fontSize: templateStyles['--contact-font-size'],
+                      gap: templateStyles['--contact-spacing']
+                    }}>
+                      <MapPin size={parseInt(templateStyles['--contact-icon-size'] as string) || 16} className="flex-shrink-0" style={{ color: templateStyles['--contact-icon-color'] }} />
                       <span>{frontmatter.location}</span>
                     </div>
                   )}
@@ -1322,9 +1438,14 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
                 <h1
                   className="font-bold uppercase tracking-wide mb-2"
                   style={{
-                    fontSize: templateStyles['--title-font-size'],
-                    fontFamily: templateStyles['--heading-font-family'],
-                    color: templateStyles['--primary-color'] || '#1f2937'
+                    fontSize: templateStyles['--name-font-size'],
+                    fontWeight: templateStyles['--name-font-weight'],
+                    color: templateStyles['--name-color'],
+                    letterSpacing: templateStyles['--name-letter-spacing'],
+                    textTransform: templateStyles['--name-text-transform'] as any,
+                    textAlign: templateStyles['--name-alignment'] as any,
+                    marginBottom: templateStyles['--name-margin-bottom'],
+                    fontFamily: templateStyles['--heading-font-family']
                   }}
                 >
                   {frontmatter.name || 'Your Name'}
@@ -1347,16 +1468,22 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
             {mainSections.map((section, index) => (
               <section key={index} className="mb-8 keep-together" style={{ pageBreakInside: 'avoid', breakInside: 'avoid' }}>
                 {/* Section Header matching PDF style */}
-                <h3
+                <h2
                   className="text-base font-bold uppercase tracking-wide mb-3 px-3 py-1 rounded"
                   style={{
                     fontFamily: templateStyles['--heading-font-family'],
+                    fontSize: templateStyles['--section-header-font-size'],
+                    fontWeight: templateStyles['--section-header-font-weight'],
                     color: 'var(--on-primary-color)',
-                    backgroundColor: templateStyles['--primary-color'] as string || '#a8956b'
+                    textTransform: templateStyles['--section-header-text-transform'] as any,
+                    letterSpacing: templateStyles['--section-header-letter-spacing'],
+                    backgroundColor: templateStyles['--primary-color'] as string || '#a8956b',
+                    marginTop: templateStyles['--section-header-margin-top'],
+                    marginBottom: templateStyles['--section-header-margin-bottom']
                   }}
                 >
                   {section.title}
-                </h3>
+                </h2>
 
                 {/* Section Content */}
                 <div className="space-y-4">
@@ -1372,10 +1499,20 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
                               <div className="flex justify-between items-start">
                                 <div className="flex-1">
                                   {typeof item === 'object' && item.title && (
-                                    <h3 className="font-bold text-lg mb-1" style={{ color: 'var(--on-background-color)' }}>{item.title}</h3>
+                                    <h3 className="font-bold text-lg mb-1" style={{
+                                      fontSize: templateStyles['--job-title-font-size'],
+                                      fontWeight: templateStyles['--job-title-font-weight'],
+                                      color: templateStyles['--job-title-color'],
+                                      marginBottom: templateStyles['--job-title-margin-bottom']
+                                    }}>{item.title}</h3>
                                   )}
                                   {typeof item === 'object' && item.company && (
-                                    <p className="font-semibold text-base" style={{ color: 'var(--on-background-color)' }}>{item.company}</p>
+                                    <p className="font-semibold text-base" style={{
+                                      fontSize: templateStyles['--org-name-font-size'],
+                                      fontWeight: templateStyles['--org-name-font-weight'],
+                                      color: templateStyles['--org-name-color'],
+                                      fontStyle: templateStyles['--org-name-font-style'] as any
+                                    }}>{item.company}</p>
                                   )}
                                 </div>
                                 <div className="text-right ml-4">
@@ -1487,9 +1624,14 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
               <h1
                 className="font-bold uppercase tracking-wide mb-2"
                 style={{
-                  fontSize: 'var(--title-font-size)',
-                  fontFamily: 'var(--heading-font-family)',
-                  color: 'var(--primary-color)'
+                  fontSize: 'var(--name-font-size)',
+                  fontWeight: 'var(--name-font-weight)',
+                  color: 'var(--name-color)',
+                  letterSpacing: 'var(--name-letter-spacing)',
+                  textTransform: 'var(--name-text-transform)' as any,
+                  textAlign: 'var(--name-alignment)' as any,
+                  marginBottom: 'var(--name-margin-bottom)',
+                  fontFamily: 'var(--heading-font-family)'
                 }}
               >
                 {parsedContent.frontmatter.name || 'Your Name'}
