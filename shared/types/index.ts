@@ -127,6 +127,10 @@ export interface TemplateConfig {
     // Base font size - all other sizes are relative to this
     baseFontSize: string; // e.g., '10pt', '12px', '1rem'
 
+    // Google Fonts Integration
+    availableFonts?: string[]; // User-curated list of Google Fonts
+    fontLoadingStrategy?: 'preload' | 'lazy';
+
     fontFamily: {
       heading: string;
       body: string;
@@ -172,6 +176,8 @@ export interface TemplateConfig {
 
   // Layout & Spacing
   layout: {
+    templateType?: 'single-column' | 'two-column' | 'sidebar-left' | 'sidebar-right';
+    sidebarWidth?: string; // e.g., '35%', '300px'
     pageWidth: string;
     pageMargin: {
       top: string;
@@ -190,6 +196,34 @@ export interface TemplateConfig {
 
   // Component-Specific Styling
   components: {
+    // Main name (H1)
+    name: {
+      fontSize?: string;
+      fontWeight?: number;
+      color?: string;
+      letterSpacing?: string;
+      textTransform?: 'none' | 'uppercase' | 'lowercase' | 'capitalize';
+      alignment?: 'left' | 'center' | 'right';
+      marginBottom?: string;
+    };
+    // Contact information bar
+    contactInfo: {
+      layout?: 'inline' | 'stacked' | 'grid';
+      iconSize?: string;
+      iconColor?: string;
+      spacing?: string;
+      fontSize?: string;
+      showIcons?: boolean;
+      iconPosition?: 'left' | 'right';
+    };
+    // Profile photo
+    profilePhoto: {
+      size?: string;
+      borderRadius?: string;
+      border?: string;
+      borderColor?: string;
+      position?: 'left' | 'center' | 'right';
+    };
     header: {
       backgroundColor?: string;
       padding: string;
@@ -198,12 +232,56 @@ export interface TemplateConfig {
       nameSize?: string;
       contactSize?: string;
     };
+    // Section headers (H2)
+    sectionHeader: {
+      fontSize?: string;
+      fontWeight?: number;
+      color?: string;
+      textTransform?: 'none' | 'uppercase' | 'lowercase' | 'capitalize';
+      borderBottom?: string;
+      borderColor?: string;
+      borderWidth?: string;
+      padding?: string;
+      marginTop?: string;
+      marginBottom?: string;
+      letterSpacing?: string;
+      backgroundColor?: string;
+    };
     section: {
       marginBottom: string;
       titleColor?: string;
       titleBorderBottom?: string;
       titlePadding?: string;
       titleTransform?: 'none' | 'uppercase' | 'lowercase' | 'capitalize';
+    };
+    // Job/education titles (H3)
+    jobTitle: {
+      fontSize?: string;
+      fontWeight?: number;
+      color?: string;
+      marginBottom?: string;
+      textTransform?: 'none' | 'uppercase' | 'lowercase' | 'capitalize';
+    };
+    // Organization/company names
+    organizationName: {
+      fontSize?: string;
+      fontWeight?: number;
+      color?: string;
+      fontStyle?: 'normal' | 'italic';
+    };
+    // Key-value pairs (e.g., "Label: value")
+    keyValue: {
+      labelColor?: string;
+      labelWeight?: number;
+      valueColor?: string;
+      valueWeight?: number;
+      separator?: ':' | '-' | '•' | 'none';
+      spacing?: string;
+    };
+    // Emphasized text (bold)
+    emphasis: {
+      fontWeight?: number;
+      color?: string;
     };
     tags: {
       backgroundColor: string;
@@ -226,9 +304,28 @@ export interface TemplateConfig {
       format?: string; // date format string
     };
     list: {
-      bulletStyle: 'disc' | 'circle' | 'square' | 'none' | 'custom';
+      level1?: {
+        bulletStyle?: 'disc' | 'circle' | 'square' | 'none' | 'custom';
+        customBullet?: string;
+        color?: string;
+        indent?: string;
+      };
+      level2?: {
+        bulletStyle?: 'disc' | 'circle' | 'square' | 'none' | 'custom';
+        customBullet?: string;
+        color?: string;
+        indent?: string;
+      };
+      level3?: {
+        bulletStyle?: 'disc' | 'circle' | 'square' | 'none' | 'custom';
+        customBullet?: string;
+        color?: string;
+        indent?: string;
+      };
+      // Legacy support
+      bulletStyle?: 'disc' | 'circle' | 'square' | 'none' | 'custom';
       customBullet?: string;
-      indent: string;
+      indent?: string;
       spacing: string;
       markerColor?: string;
     };

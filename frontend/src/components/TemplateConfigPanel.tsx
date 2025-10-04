@@ -9,6 +9,10 @@ import {
   NumberControl,
   BoxModelControl,
   FontSelector,
+  FontManager,
+  TextStyleControl,
+  LayoutPicker,
+  MultiLevelBulletPicker,
 } from './controls';
 
 interface TemplateConfigPanelProps {
@@ -18,7 +22,7 @@ interface TemplateConfigPanelProps {
   onClose: () => void;
 }
 
-type TabType = 'colors' | 'typography' | 'layout' | 'components' | 'pdf' | 'advanced';
+type TabType = 'fonts' | 'colors' | 'typography' | 'layout' | 'components' | 'pdf' | 'advanced';
 
 export const TemplateConfigPanel: React.FC<TemplateConfigPanelProps> = ({
   config,
@@ -60,6 +64,7 @@ export const TemplateConfigPanel: React.FC<TemplateConfigPanelProps> = ({
   }, []); // Empty deps - only run on mount/unmount
 
   const tabs: { id: TabType; label: string }[] = [
+    { id: 'fonts', label: 'Fonts' },
     { id: 'colors', label: 'Colors' },
     { id: 'typography', label: 'Typography' },
     { id: 'layout', label: 'Layout' },
@@ -150,6 +155,69 @@ export const TemplateConfigPanel: React.FC<TemplateConfigPanelProps> = ({
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto px-2 py-2">
+        {activeTab === 'fonts' && (
+          <div>
+            <h4 className="text-xs font-semibold text-text-primary mb-2">Font Library</h4>
+            <p className="text-[10px] text-text-secondary mb-3">
+              Add Google Fonts to your library. Only fonts you add will appear in font selectors throughout the app.
+            </p>
+
+            <FontManager
+              availableFonts={config.typography.availableFonts || []}
+              onAdd={(fontFamily) => {
+                const currentFonts = config.typography.availableFonts || [];
+                updateConfig('typography', {
+                  availableFonts: [...currentFonts, fontFamily],
+                });
+              }}
+              onRemove={(fontFamily) => {
+                const currentFonts = config.typography.availableFonts || [];
+                updateConfig('typography', {
+                  availableFonts: currentFonts.filter(f => f !== fontFamily),
+                });
+              }}
+            />
+
+            <h4 className="text-xs font-semibold text-text-primary mb-2 mt-4">Active Fonts</h4>
+            <FontSelector
+              label="Heading Font"
+              value={config.typography.fontFamily.heading}
+              onChange={(value) =>
+                updateConfig('typography', {
+                  fontFamily: { ...config.typography.fontFamily, heading: value },
+                })
+              }
+              fontType="heading"
+              description="Font used for headings and titles"
+              availableFonts={config.typography.availableFonts}
+            />
+            <FontSelector
+              label="Body Font"
+              value={config.typography.fontFamily.body}
+              onChange={(value) =>
+                updateConfig('typography', {
+                  fontFamily: { ...config.typography.fontFamily, body: value },
+                })
+              }
+              fontType="body"
+              description="Font used for body text and descriptions"
+              availableFonts={config.typography.availableFonts}
+            />
+            <FontSelector
+              label="Monospace Font"
+              value={config.typography.fontFamily.monospace}
+              onChange={(value) =>
+                updateConfig('typography', {
+                  fontFamily: { ...config.typography.fontFamily, monospace: value },
+                })
+              }
+              fontType="monospace"
+              description="Font used for code and technical content"
+              availableFonts={config.typography.availableFonts}
+            />
+          </div>
+        )}
+
         {activeTab === 'colors' && (
           <div>
             <h4 className="text-xs font-semibold text-text-primary mb-1.5">Main Colors</h4>
@@ -457,6 +525,23 @@ export const TemplateConfigPanel: React.FC<TemplateConfigPanelProps> = ({
 
         {activeTab === 'layout' && (
           <div>
+            {/* Layout Template Picker */}
+            <LayoutPicker
+              value={config.layout.templateType || 'two-column'}
+              onChange={(value) => updateConfig('layout', { templateType: value })}
+            />
+
+            {/* Sidebar Width (for sidebar layouts) */}
+            {(config.layout.templateType === 'sidebar-left' || config.layout.templateType === 'sidebar-right') && (
+              <SpacingControl
+                label="Sidebar Width"
+                value={config.layout.sidebarWidth || '35%'}
+                onChange={(value) => updateConfig('layout', { sidebarWidth: value })}
+                units={['%', 'px', 'rem']}
+              />
+            )}
+
+            <h4 className="text-xs font-semibold text-text-primary mb-1.5 mt-3">Page Dimensions</h4>
             <SpacingControl
               label="Page Width"
               value={config.layout.pageWidth}
@@ -675,6 +760,25 @@ export const TemplateConfigPanel: React.FC<TemplateConfigPanelProps> = ({
                 })
               }
             />
+
+            {/* Multi-Level Bullet Picker */}
+            <div className="mt-4">
+              <MultiLevelBulletPicker
+                level1={config.components.list.level1}
+                level2={config.components.list.level2}
+                level3={config.components.list.level3}
+                onChange={(updates) =>
+                  updateConfig('components', {
+                    list: { ...config.components.list, ...updates },
+                  })
+                }
+                onChangeComplete={(updates) =>
+                  commitConfig('components', {
+                    list: { ...config.components.list, ...updates },
+                  })
+                }
+              />
+            </div>
           </div>
         )}
 

@@ -5,3 +5,7 @@ export { ToggleControl } from './ToggleControl';
 export { NumberControl } from './NumberControl';
 export { BoxModelControl } from './BoxModelControl';
 export { FontSelector, FONT_OPTIONS, getGoogleFontsUrl } from './FontSelector';
+export { FontManager } from './FontManager';
+export { TextStyleControl } from './TextStyleControl';
+export { LayoutPicker } from './LayoutPicker';
+export { BulletStylePicker, MultiLevelBulletPicker } from './BulletStylePicker';

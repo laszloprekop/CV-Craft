@@ -35,11 +35,40 @@ export const DEFAULT_TEMPLATE_CONFIG: TemplateConfig = {
   },
 
   typography: {
+    // Base font size for scaling
+    baseFontSize: '10pt',
+
+    // Google Fonts Integration
+    availableFonts: [
+      'Inter',
+      'Roboto',
+      'Open Sans',
+      'Lato',
+      'Montserrat',
+      'Poppins',
+      'Raleway',
+      'Merriweather',
+      'Playfair Display',
+      'Lora'
+    ],
+    fontLoadingStrategy: 'preload',
+
     fontFamily: {
       heading: 'Inter, system-ui, -apple-system, sans-serif',
       body: 'Georgia, "Times New Roman", serif',
       monospace: '"Fira Code", "Courier New", monospace',
     },
+
+    // Font scale relative to baseFontSize
+    fontScale: {
+      h1: 3.2,
+      h2: 2.4,
+      h3: 2.0,
+      body: 1.6,
+      small: 1.4,
+      tiny: 1.2,
+    },
+
     fontSize: {
       h1: '32px',
       h2: '24px',
@@ -66,6 +95,8 @@ export const DEFAULT_TEMPLATE_CONFIG: TemplateConfig = {
   },
 
   layout: {
+    templateType: 'two-column',
+    sidebarWidth: '35%',
     pageWidth: '210mm', // A4 width
     pageMargin: {
       top: '20mm',
@@ -83,6 +114,34 @@ export const DEFAULT_TEMPLATE_CONFIG: TemplateConfig = {
   },
 
   components: {
+    // Main name (H1)
+    name: {
+      fontSize: '32px',
+      fontWeight: 700,
+      color: '#0f172a',
+      letterSpacing: '-0.02em',
+      textTransform: 'uppercase',
+      alignment: 'left',
+      marginBottom: '8px',
+    },
+    // Contact information
+    contactInfo: {
+      layout: 'inline',
+      iconSize: '16px',
+      iconColor: '#64748b',
+      spacing: '12px',
+      fontSize: '14px',
+      showIcons: true,
+      iconPosition: 'left',
+    },
+    // Profile photo
+    profilePhoto: {
+      size: '200px',
+      borderRadius: '50%',
+      border: '3px solid #e2e8f0',
+      borderColor: '#e2e8f0',
+      position: 'center',
+    },
     header: {
       backgroundColor: undefined,
       padding: '0 0 16px 0',
@@ -91,12 +150,56 @@ export const DEFAULT_TEMPLATE_CONFIG: TemplateConfig = {
       nameSize: '36px',
       contactSize: '14px',
     },
+    // Section headers (H2)
+    sectionHeader: {
+      fontSize: '20px',
+      fontWeight: 700,
+      color: '#0f172a',
+      textTransform: 'uppercase',
+      borderBottom: '2px solid #2563eb',
+      borderColor: '#2563eb',
+      borderWidth: '2px',
+      padding: '0 0 4px 0',
+      marginTop: '24px',
+      marginBottom: '12px',
+      letterSpacing: '0.05em',
+      backgroundColor: undefined,
+    },
     section: {
       marginBottom: '24px',
       titleColor: '#0f172a',
       titleBorderBottom: '1px solid #e2e8f0',
       titlePadding: '0 0 8px 0',
       titleTransform: 'none',
+    },
+    // Job/education titles (H3)
+    jobTitle: {
+      fontSize: '18px',
+      fontWeight: 600,
+      color: '#0f172a',
+      marginBottom: '4px',
+      textTransform: 'none',
+    },
+    // Organization/company names
+    organizationName: {
+      fontSize: '16px',
+      fontWeight: 500,
+      color: '#475569',
+      fontStyle: 'normal',
+    },
+    // Key-value pairs
+    keyValue: {
+      labelColor: '#0f172a',
+      labelWeight: 600,
+      valueColor: '#475569',
+      valueWeight: 400,
+      separator: ':',
+      spacing: '4px',
+    },
+    // Emphasized text
+    emphasis: {
+      fontWeight: 600,
+      color: '#0f172a',
     },
     tags: {
       backgroundColor: '#e0e7ff', // Indigo-100
@@ -119,6 +222,25 @@ export const DEFAULT_TEMPLATE_CONFIG: TemplateConfig = {
       format: 'MMM YYYY',
     },
     list: {
+      level1: {
+        bulletStyle: 'disc',
+        customBullet: undefined,
+        color: '#2563eb',
+        indent: '20px',
+      },
+      level2: {
+        bulletStyle: 'circle',
+        customBullet: undefined,
+        color: '#64748b',
+        indent: '40px',
+      },
+      level3: {
+        bulletStyle: 'square',
+        customBullet: undefined,
+        color: '#94a3b8',
+        indent: '60px',
+      },
+      // Legacy support
       bulletStyle: 'disc',
       customBullet: undefined,
       indent: '20px',
