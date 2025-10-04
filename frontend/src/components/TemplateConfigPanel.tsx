@@ -630,7 +630,8 @@ export const TemplateConfigPanel: React.FC<TemplateConfigPanelProps> = ({
                 value={{
                   fontSize: config.components.name?.fontSize || '32px',
                   fontWeight: config.components.name?.fontWeight || config.typography.fontWeight.heading,
-                  color: config.components.name?.color || config.colors.text.primary,
+                  colorKey: config.components.name?.colorKey || 'text-primary',
+                  colorOpacity: config.components.name?.colorOpacity ?? 1.0,
                   letterSpacing: config.components.name?.letterSpacing || '0px',
                   textTransform: config.components.name?.textTransform || 'none',
                 }}
@@ -656,7 +657,8 @@ export const TemplateConfigPanel: React.FC<TemplateConfigPanelProps> = ({
                 value={{
                   fontSize: config.components.sectionHeader?.fontSize || '20px',
                   fontWeight: config.components.sectionHeader?.fontWeight || config.typography.fontWeight.heading,
-                  color: config.components.sectionHeader?.color || config.colors.text.primary,
+                  colorKey: config.components.sectionHeader?.colorKey || 'primary',
+                  colorOpacity: config.components.sectionHeader?.colorOpacity ?? 1.0,
                   letterSpacing: config.components.sectionHeader?.letterSpacing || '0px',
                   textTransform: config.components.sectionHeader?.textTransform || 'none',
                 }}

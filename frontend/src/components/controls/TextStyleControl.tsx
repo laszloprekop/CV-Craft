@@ -5,15 +5,19 @@
  */
 
 import React from 'react';
-import { ColorControl } from './ColorControl';
+import { SemanticColorControl } from './SemanticColorControl';
 import { SelectControl } from './SelectControl';
 import { SpacingControl } from './SpacingControl';
 import { NumberControl } from './NumberControl';
 
+type SemanticColorKey = 'primary' | 'secondary' | 'tertiary' | 'muted' | 'text-primary' | 'text-secondary' | 'text-muted';
+
 interface TextStyleConfig {
   fontSize?: string;
   fontWeight?: number;
-  color?: string;
+  colorKey?: SemanticColorKey;
+  colorOpacity?: number;
+  color?: string; // Legacy support
   letterSpacing?: string;
   textTransform?: 'none' | 'uppercase' | 'lowercase' | 'capitalize';
   alignment?: 'left' | 'center' | 'right';
@@ -75,11 +79,14 @@ export const TextStyleControl: React.FC<TextStyleControlProps> = ({
       </div>
 
       {/* Color */}
-      <ColorControl
+      <SemanticColorControl
         label="Color"
-        value={value.color || '#000000'}
-        onChange={(val) => update({ color: val })}
-        onChangeComplete={(val) => commit({ color: val })}
+        colorKey={value.colorKey || 'text-primary'}
+        opacity={value.colorOpacity ?? 1.0}
+        onColorChange={(val) => update({ colorKey: val })}
+        onOpacityChange={(val) => update({ colorOpacity: val })}
+        onChangeComplete={() => commit({ colorKey: value.colorKey, colorOpacity: value.colorOpacity })}
+        showOpacity={true}
       />
 
       {/* Text Transform */}
