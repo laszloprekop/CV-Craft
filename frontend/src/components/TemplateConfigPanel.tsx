@@ -14,6 +14,7 @@ import {
   LayoutPicker,
   MultiLevelBulletPicker,
   ColorPairControl,
+  CollapsibleSection,
 } from './controls';
 
 interface TemplateConfigPanelProps {
@@ -621,152 +622,411 @@ export const TemplateConfigPanel: React.FC<TemplateConfigPanelProps> = ({
 
         {activeTab === 'components' && (
           <div>
-            <h4 className="text-xs font-semibold text-text-primary mb-1.5">Header</h4>
-            <SelectControl
-              label="Alignment"
-              value={config.components.header.alignment}
-              onChange={(value) =>
-                updateConfig('components', {
-                  header: { ...config.components.header, alignment: value as any },
-                })
-              }
-              options={[
-                { value: 'left', label: 'Left' },
-                { value: 'center', label: 'Center' },
-                { value: 'right', label: 'Right' },
-              ]}
-            />
-
-            <h4 className="text-xs font-semibold text-text-primary mb-1.5 mt-3">Tags</h4>
-            <ColorPairControl
-              label="Tag Colors"
-              colorPair={config.components.tags.colorPair || 'tertiary'}
-              backgroundOpacity={config.components.tags.backgroundOpacity ?? 0.2}
-              textOpacity={config.components.tags.textOpacity ?? 1.0}
-              onColorPairChange={(value) =>
-                updateConfig('components', {
-                  tags: { ...config.components.tags, colorPair: value },
-                })
-              }
-              onBackgroundOpacityChange={(value) =>
-                updateConfig('components', {
-                  tags: { ...config.components.tags, backgroundOpacity: value },
-                })
-              }
-              onTextOpacityChange={(value) =>
-                updateConfig('components', {
-                  tags: { ...config.components.tags, textOpacity: value },
-                })
-              }
-              onChangeComplete={() =>
-                commitConfig('components', {
-                  tags: {
-                    ...config.components.tags,
-                    colorPair: config.components.tags.colorPair || 'tertiary',
-                    backgroundOpacity: config.components.tags.backgroundOpacity ?? 0.2,
-                    textOpacity: config.components.tags.textOpacity ?? 1.0,
-                  },
-                })
-              }
-            />
-            <SpacingControl
-              label="Border Radius"
-              value={config.components.tags.borderRadius}
-              onChange={(value) =>
-                updateConfig('components', {
-                  tags: { ...config.components.tags, borderRadius: value },
-                })
-              }
-            />
-            <SelectControl
-              label="Tag Style"
-              value={config.components.tags.style || 'pill'}
-              onChange={(value) =>
-                updateConfig('components', {
-                  tags: { ...config.components.tags, style: value as 'pill' | 'inline' },
-                })
-              }
-              options={[
-                { value: 'pill', label: 'Pill (rounded tags)' },
-                { value: 'inline', label: 'Inline (separated text)' }
-              ]}
-              description="Choose between pill-style tags or inline separated text"
-            />
-            {config.components.tags.style === 'inline' && (
+            {/* Name (H1) */}
+            <CollapsibleSection id="components-name" label="Name (H1)" defaultOpen={true}>
+              <TextStyleControl
+                label="Name Styling"
+                fontFamily={config.components.name?.fontFamily || config.typography.fontFamily.heading}
+                fontSize={config.components.name?.fontSize || '32px'}
+                fontWeight={config.components.name?.fontWeight || config.typography.fontWeight.heading}
+                color={config.components.name?.color || config.colors.text.primary}
+                letterSpacing={config.components.name?.letterSpacing || '0px'}
+                onFontFamilyChange={(value) =>
+                  updateConfig('components', {
+                    name: { ...config.components.name, fontFamily: value },
+                  })
+                }
+                onFontSizeChange={(value) =>
+                  updateConfig('components', {
+                    name: { ...config.components.name, fontSize: value },
+                  })
+                }
+                onFontWeightChange={(value) =>
+                  updateConfig('components', {
+                    name: { ...config.components.name, fontWeight: value },
+                  })
+                }
+                onColorChange={(value) =>
+                  updateConfig('components', {
+                    name: { ...config.components.name, color: value },
+                  })
+                }
+                onLetterSpacingChange={(value) =>
+                  updateConfig('components', {
+                    name: { ...config.components.name, letterSpacing: value },
+                  })
+                }
+                onColorChangeComplete={(value) =>
+                  commitConfig('components', {
+                    name: { ...config.components.name, color: value },
+                  })
+                }
+              />
               <SelectControl
-                label="Separator Character"
-                value={config.components.tags.separator || '·'}
+                label="Text Transform"
+                value={config.components.name?.textTransform || 'none'}
                 onChange={(value) =>
                   updateConfig('components', {
-                    tags: { ...config.components.tags, separator: value as '·' | '|' | '•' | ',' | 'none' },
+                    name: { ...config.components.name, textTransform: value as any },
                   })
                 }
                 options={[
-                  { value: '·', label: '· (middle dot)' },
-                  { value: '|', label: '| (vertical bar)' },
-                  { value: '•', label: '• (bullet)' },
-                  { value: ',', label: ', (comma)' },
-                  { value: 'none', label: 'None (space only)' }
+                  { value: 'none', label: 'None' },
+                  { value: 'uppercase', label: 'Uppercase' },
+                  { value: 'lowercase', label: 'Lowercase' },
+                  { value: 'capitalize', label: 'Capitalize' },
                 ]}
-                description="Character used to separate skills in inline mode"
               />
-            )}
+              <SelectControl
+                label="Alignment"
+                value={config.components.name?.alignment || 'left'}
+                onChange={(value) =>
+                  updateConfig('components', {
+                    name: { ...config.components.name, alignment: value as any },
+                  })
+                }
+                options={[
+                  { value: 'left', label: 'Left' },
+                  { value: 'center', label: 'Center' },
+                  { value: 'right', label: 'Right' },
+                ]}
+              />
+            </CollapsibleSection>
 
-            <h4 className="text-xs font-semibold text-text-primary mb-1.5 mt-3">Date Line</h4>
-            <ColorControl
-              label="Color"
-              value={config.components.dateLine.color}
-              onChange={(value) =>
-                updateConfig('components', {
-                  dateLine: { ...config.components.dateLine, color: value },
-                })
-              }
-              onChangeComplete={(value) =>
-                commitConfig('components', {
-                  dateLine: { ...config.components.dateLine, color: value },
-                })
-              }
-            />
-            <SelectControl
-              label="Font Style"
-              value={config.components.dateLine.fontStyle}
-              onChange={(value) =>
-                updateConfig('components', {
-                  dateLine: { ...config.components.dateLine, fontStyle: value as any },
-                })
-              }
-              options={[
-                { value: 'normal', label: 'Normal' },
-                { value: 'italic', label: 'Italic' },
-              ]}
-            />
-            <SelectControl
-              label="Alignment"
-              value={config.components.dateLine.alignment}
-              onChange={(value) =>
-                updateConfig('components', {
-                  dateLine: { ...config.components.dateLine, alignment: value as any },
-                })
-              }
-              options={[
-                { value: 'left', label: 'Left' },
-                { value: 'right', label: 'Right' },
-              ]}
-            />
+            {/* Section Headers (H2) */}
+            <CollapsibleSection id="components-section-headers" label="Section Headers (H2)" defaultOpen={true}>
+              <TextStyleControl
+                label="Section Header Styling"
+                fontFamily={config.components.sectionHeader?.fontFamily || config.typography.fontFamily.heading}
+                fontSize={config.components.sectionHeader?.fontSize || '20px'}
+                fontWeight={config.components.sectionHeader?.fontWeight || config.typography.fontWeight.heading}
+                color={config.components.sectionHeader?.color || config.colors.text.primary}
+                letterSpacing={config.components.sectionHeader?.letterSpacing || '0px'}
+                onFontFamilyChange={(value) =>
+                  updateConfig('components', {
+                    sectionHeader: { ...config.components.sectionHeader, fontFamily: value },
+                  })
+                }
+                onFontSizeChange={(value) =>
+                  updateConfig('components', {
+                    sectionHeader: { ...config.components.sectionHeader, fontSize: value },
+                  })
+                }
+                onFontWeightChange={(value) =>
+                  updateConfig('components', {
+                    sectionHeader: { ...config.components.sectionHeader, fontWeight: value },
+                  })
+                }
+                onColorChange={(value) =>
+                  updateConfig('components', {
+                    sectionHeader: { ...config.components.sectionHeader, color: value },
+                  })
+                }
+                onLetterSpacingChange={(value) =>
+                  updateConfig('components', {
+                    sectionHeader: { ...config.components.sectionHeader, letterSpacing: value },
+                  })
+                }
+                onColorChangeComplete={(value) =>
+                  commitConfig('components', {
+                    sectionHeader: { ...config.components.sectionHeader, color: value },
+                  })
+                }
+              />
+              <SelectControl
+                label="Text Transform"
+                value={config.components.sectionHeader?.textTransform || 'none'}
+                onChange={(value) =>
+                  updateConfig('components', {
+                    sectionHeader: { ...config.components.sectionHeader, textTransform: value as any },
+                  })
+                }
+                options={[
+                  { value: 'none', label: 'None' },
+                  { value: 'uppercase', label: 'Uppercase' },
+                  { value: 'lowercase', label: 'Lowercase' },
+                  { value: 'capitalize', label: 'Capitalize' },
+                ]}
+              />
+              <SelectControl
+                label="Divider Style"
+                value={config.components.sectionHeader?.dividerStyle || 'underline'}
+                onChange={(value) =>
+                  updateConfig('components', {
+                    sectionHeader: { ...config.components.sectionHeader, dividerStyle: value as any },
+                  })
+                }
+                options={[
+                  { value: 'none', label: 'None' },
+                  { value: 'underline', label: 'Underline' },
+                  { value: 'full-width', label: 'Full Width' },
+                  { value: 'accent-bar', label: 'Accent Bar' },
+                ]}
+              />
+              {config.components.sectionHeader?.dividerStyle && config.components.sectionHeader.dividerStyle !== 'none' && (
+                <>
+                  <ColorControl
+                    label="Divider Color"
+                    value={config.components.sectionHeader?.dividerColor || config.colors.primary}
+                    onChange={(value) =>
+                      updateConfig('components', {
+                        sectionHeader: { ...config.components.sectionHeader, dividerColor: value },
+                      })
+                    }
+                    onChangeComplete={(value) =>
+                      commitConfig('components', {
+                        sectionHeader: { ...config.components.sectionHeader, dividerColor: value },
+                      })
+                    }
+                  />
+                  <SpacingControl
+                    label="Divider Width"
+                    value={config.components.sectionHeader?.dividerWidth || '2px'}
+                    onChange={(value) =>
+                      updateConfig('components', {
+                        sectionHeader: { ...config.components.sectionHeader, dividerWidth: value },
+                      })
+                    }
+                    units={['px', 'pt']}
+                  />
+                </>
+              )}
+              <SpacingControl
+                label="Margin Top"
+                value={config.components.sectionHeader?.marginTop || '16px'}
+                onChange={(value) =>
+                  updateConfig('components', {
+                    sectionHeader: { ...config.components.sectionHeader, marginTop: value },
+                  })
+                }
+                units={['px', 'rem', 'em']}
+              />
+              <SpacingControl
+                label="Margin Bottom"
+                value={config.components.sectionHeader?.marginBottom || '8px'}
+                onChange={(value) =>
+                  updateConfig('components', {
+                    sectionHeader: { ...config.components.sectionHeader, marginBottom: value },
+                  })
+                }
+                units={['px', 'rem', 'em']}
+              />
+            </CollapsibleSection>
 
-            <h4 className="text-xs font-semibold text-text-primary mb-1.5 mt-3">Links</h4>
-            <ToggleControl
-              label="Underline Links"
-              value={config.components.links.underline}
-              onChange={(value) =>
-                updateConfig('components', {
-                  links: { ...config.components.links, underline: value },
-                })
-              }
-            />
+            {/* Header Section Alignment */}
+            <CollapsibleSection id="components-header" label="Header Section" defaultOpen={false}>
+              <SelectControl
+                label="Alignment"
+                value={config.components.header.alignment}
+                onChange={(value) =>
+                  updateConfig('components', {
+                    header: { ...config.components.header, alignment: value as any },
+                  })
+                }
+                options={[
+                  { value: 'left', label: 'Left' },
+                  { value: 'center', label: 'Center' },
+                  { value: 'right', label: 'Right' },
+                ]}
+              />
+            </CollapsibleSection>
 
-            {/* Multi-Level Bullet Picker */}
-            <div className="mt-4">
+            {/* Tags/Skills */}
+            <CollapsibleSection id="components-tags" label="Tags/Skills" defaultOpen={false}>
+              <ColorPairControl
+                label="Tag Colors"
+                colorPair={config.components.tags.colorPair || 'tertiary'}
+                backgroundOpacity={config.components.tags.backgroundOpacity ?? 0.2}
+                textOpacity={config.components.tags.textOpacity ?? 1.0}
+                onColorPairChange={(value) =>
+                  updateConfig('components', {
+                    tags: { ...config.components.tags, colorPair: value },
+                  })
+                }
+                onBackgroundOpacityChange={(value) =>
+                  updateConfig('components', {
+                    tags: { ...config.components.tags, backgroundOpacity: value },
+                  })
+                }
+                onTextOpacityChange={(value) =>
+                  updateConfig('components', {
+                    tags: { ...config.components.tags, textOpacity: value },
+                  })
+                }
+                onChangeComplete={() =>
+                  commitConfig('components', {
+                    tags: {
+                      ...config.components.tags,
+                      colorPair: config.components.tags.colorPair || 'tertiary',
+                      backgroundOpacity: config.components.tags.backgroundOpacity ?? 0.2,
+                      textOpacity: config.components.tags.textOpacity ?? 1.0,
+                    },
+                  })
+                }
+              />
+              <SpacingControl
+                label="Border Radius"
+                value={config.components.tags.borderRadius}
+                onChange={(value) =>
+                  updateConfig('components', {
+                    tags: { ...config.components.tags, borderRadius: value },
+                  })
+                }
+                units={['px', 'rem', '%']}
+              />
+              <SelectControl
+                label="Tag Style"
+                value={config.components.tags.style || 'pill'}
+                onChange={(value) =>
+                  updateConfig('components', {
+                    tags: { ...config.components.tags, style: value as 'pill' | 'inline' },
+                  })
+                }
+                options={[
+                  { value: 'pill', label: 'Pill (rounded tags)' },
+                  { value: 'inline', label: 'Inline (separated text)' }
+                ]}
+                description="Choose between pill-style tags or inline separated text"
+              />
+              {config.components.tags.style === 'inline' && (
+                <SelectControl
+                  label="Separator Character"
+                  value={config.components.tags.separator || '·'}
+                  onChange={(value) =>
+                    updateConfig('components', {
+                      tags: { ...config.components.tags, separator: value as '·' | '|' | '•' | ',' | 'none' },
+                    })
+                  }
+                  options={[
+                    { value: '·', label: '· (middle dot)' },
+                    { value: '|', label: '| (vertical bar)' },
+                    { value: '•', label: '• (bullet)' },
+                    { value: ',', label: ', (comma)' },
+                    { value: 'none', label: 'None (space only)' }
+                  ]}
+                  description="Character used to separate skills in inline mode"
+                />
+              )}
+            </CollapsibleSection>
+
+            {/* Dates */}
+            <CollapsibleSection id="components-dates" label="Dates" defaultOpen={false}>
+              <ColorControl
+                label="Color"
+                value={config.components.dateLine.color}
+                onChange={(value) =>
+                  updateConfig('components', {
+                    dateLine: { ...config.components.dateLine, color: value },
+                  })
+                }
+                onChangeComplete={(value) =>
+                  commitConfig('components', {
+                    dateLine: { ...config.components.dateLine, color: value },
+                  })
+                }
+              />
+              <SelectControl
+                label="Font Style"
+                value={config.components.dateLine.fontStyle}
+                onChange={(value) =>
+                  updateConfig('components', {
+                    dateLine: { ...config.components.dateLine, fontStyle: value as any },
+                  })
+                }
+                options={[
+                  { value: 'normal', label: 'Normal' },
+                  { value: 'italic', label: 'Italic' },
+                ]}
+              />
+              <SelectControl
+                label="Alignment"
+                value={config.components.dateLine.alignment}
+                onChange={(value) =>
+                  updateConfig('components', {
+                    dateLine: { ...config.components.dateLine, alignment: value as any },
+                  })
+                }
+                options={[
+                  { value: 'left', label: 'Left' },
+                  { value: 'right', label: 'Right' },
+                ]}
+              />
+              <SelectControl
+                label="Format"
+                value={config.components.dateLine.format || 'short'}
+                onChange={(value) =>
+                  updateConfig('components', {
+                    dateLine: { ...config.components.dateLine, format: value as any },
+                  })
+                }
+                options={[
+                  { value: 'full', label: 'Full (Month Year)' },
+                  { value: 'short', label: 'Short (MM/YY)' },
+                  { value: 'year-only', label: 'Year Only' },
+                ]}
+              />
+            </CollapsibleSection>
+
+            {/* Links */}
+            <CollapsibleSection id="components-links" label="Links" defaultOpen={false}>
+              <ColorControl
+                label="Link Color"
+                value={config.components.links.color || config.colors.links.default}
+                onChange={(value) =>
+                  updateConfig('components', {
+                    links: { ...config.components.links, color: value },
+                  })
+                }
+                onChangeComplete={(value) =>
+                  commitConfig('components', {
+                    links: { ...config.components.links, color: value },
+                  })
+                }
+              />
+              <ColorControl
+                label="Hover Color"
+                value={config.components.links.hoverColor || config.colors.links.hover}
+                onChange={(value) =>
+                  updateConfig('components', {
+                    links: { ...config.components.links, hoverColor: value },
+                  })
+                }
+                onChangeComplete={(value) =>
+                  commitConfig('components', {
+                    links: { ...config.components.links, hoverColor: value },
+                  })
+                }
+              />
+              <SelectControl
+                label="Underline Style"
+                value={config.components.links.underlineStyle || (config.components.links.underline ? 'always' : 'none')}
+                onChange={(value) =>
+                  updateConfig('components', {
+                    links: { ...config.components.links, underlineStyle: value as any },
+                  })
+                }
+                options={[
+                  { value: 'none', label: 'None' },
+                  { value: 'always', label: 'Always' },
+                  { value: 'hover', label: 'On Hover' },
+                ]}
+              />
+              <NumberControl
+                label="Font Weight"
+                value={config.components.links.fontWeight || config.typography.fontWeight.body}
+                onChange={(value) =>
+                  updateConfig('components', {
+                    links: { ...config.components.links, fontWeight: value },
+                  })
+                }
+                min={100}
+                max={900}
+                step={100}
+              />
+            </CollapsibleSection>
+
+            {/* Lists */}
+            <CollapsibleSection id="components-lists" label="Lists" defaultOpen={false}>
               <MultiLevelBulletPicker
                 level1={config.components.list.level1}
                 level2={config.components.list.level2}
@@ -782,7 +1042,7 @@ export const TemplateConfigPanel: React.FC<TemplateConfigPanelProps> = ({
                   })
                 }
               />
-            </div>
+            </CollapsibleSection>
           </div>
         )}
 
