@@ -244,9 +244,32 @@ Current missing controls to add:
 ## Progress Tracking
 
 - [x] Plan documented
-- [ ] Phase 1: Core Infrastructure (Milestone 1)
-- [ ] Phase 3: Type Definitions (Milestone 2)
-- [ ] Phase 4: UI Implementation (Milestone 3)
-- [ ] Phase 5: Backend Sync (Milestone 4)
+- [x] Phase 1: Core Infrastructure (Milestone 1) - v1.6.1 ✅
+- [x] Phase 3: Type Definitions (Milestone 2) - v1.6.2 ✅
+- [x] Phase 4: UI Implementation (Milestone 3) - v1.7.0 ✅
+- [ ] Phase 5: Backend Sync (Milestone 4) - NEXT
 - [ ] Phase 6: Frontend Preview (Milestone 5)
 - [ ] Phase 7: Testing & Polish
+
+## Completed Milestones
+
+### Milestone 1 (v1.6.1) - Core Infrastructure ✅
+- Created CollapsibleSection component with smooth animations
+- Implemented localStorage-based persistent state
+- Added Figma-inspired UI with chevron icon rotation
+- Exported component in controls/index.ts
+
+### Milestone 2 (v1.6.2) - Type Definitions ✅
+- Extended TemplateConfig types for all component fields
+- Added fontFamily overrides for Name, Section Headers, Job Titles
+- Added divider style controls for section headers
+- Added separator, format, and other missing fields
+- Updated all defaults in defaultTemplateConfig.ts
+
+### Milestone 3 (v1.7.0) - UI Implementation ✅
+- Redesigned Components tab with 9 collapsible sections
+- Name and Section Headers default to open
+- All controls properly wired with updateConfig/commitConfig
+- Preserved existing functionality (TextStyleControl, ColorPairControl, etc.)
+- Clean visual hierarchy with persistent state
+- No TypeScript errors, dev server running successfully
