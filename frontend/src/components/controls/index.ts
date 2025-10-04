@@ -10,3 +10,4 @@ export { TextStyleControl } from './TextStyleControl';
 export { LayoutPicker } from './LayoutPicker';
 export { BulletStylePicker, MultiLevelBulletPicker } from './BulletStylePicker';
 export { ColorPairControl } from './ColorPairControl';
+export { CollapsibleSection } from './CollapsibleSection';
