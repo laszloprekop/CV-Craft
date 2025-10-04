@@ -116,6 +116,7 @@ export const DEFAULT_TEMPLATE_CONFIG: TemplateConfig = {
   components: {
     // Main name (H1)
     name: {
+      fontFamily: undefined, // Uses heading font by default
       fontSize: '32px',
       fontWeight: 700,
       color: '#0f172a',
@@ -129,10 +130,12 @@ export const DEFAULT_TEMPLATE_CONFIG: TemplateConfig = {
       layout: 'inline',
       iconSize: '16px',
       iconColor: '#64748b',
+      textColor: '#475569',
       spacing: '12px',
       fontSize: '14px',
       showIcons: true,
       iconPosition: 'left',
+      separator: '·', // Default separator between items
     },
     // Profile photo
     profilePhoto: {
@@ -152,11 +155,15 @@ export const DEFAULT_TEMPLATE_CONFIG: TemplateConfig = {
     },
     // Section headers (H2)
     sectionHeader: {
+      fontFamily: undefined, // Uses heading font by default
       fontSize: '20px',
       fontWeight: 700,
       color: '#0f172a',
       textTransform: 'uppercase',
-      borderBottom: '2px solid #2563eb',
+      dividerStyle: 'underline', // Visual divider style
+      dividerColor: '#2563eb',
+      dividerWidth: '2px',
+      borderBottom: '2px solid #2563eb', // Legacy support
       borderColor: '#2563eb',
       borderWidth: '2px',
       padding: '0 0 4px 0',
@@ -174,9 +181,11 @@ export const DEFAULT_TEMPLATE_CONFIG: TemplateConfig = {
     },
     // Job/education titles (H3)
     jobTitle: {
+      fontFamily: undefined, // Uses heading font by default
       fontSize: '18px',
       fontWeight: 600,
       color: '#0f172a',
+      fontStyle: 'normal',
       marginBottom: '4px',
       textTransform: 'none',
     },
@@ -222,7 +231,7 @@ export const DEFAULT_TEMPLATE_CONFIG: TemplateConfig = {
       fontSize: '14px',
       fontWeight: 400,
       alignment: 'right',
-      format: 'MMM YYYY',
+      format: 'short', // Use 'short' format by default (MMM YYYY)
     },
     list: {
       level1: {
@@ -251,9 +260,12 @@ export const DEFAULT_TEMPLATE_CONFIG: TemplateConfig = {
       markerColor: '#2563eb',
     },
     links: {
-      underline: true,
+      color: '#2563eb', // Primary blue for links
+      hoverColor: '#1d4ed8', // Darker blue on hover
+      underline: true, // Legacy support
+      underlineStyle: 'always', // Show underline always
       fontWeight: 500,
-      decoration: 'underline',
+      decoration: 'underline', // Legacy support
     },
     divider: {
       style: 'solid',

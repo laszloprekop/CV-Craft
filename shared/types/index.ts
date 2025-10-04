@@ -198,6 +198,7 @@ export interface TemplateConfig {
   components: {
     // Main name (H1)
     name: {
+      fontFamily?: string; // Can override heading font
       fontSize?: string;
       fontWeight?: number;
       color?: string;
@@ -211,10 +212,12 @@ export interface TemplateConfig {
       layout?: 'inline' | 'stacked' | 'grid';
       iconSize?: string;
       iconColor?: string;
+      textColor?: string;
       spacing?: string;
       fontSize?: string;
       showIcons?: boolean;
       iconPosition?: 'left' | 'right';
+      separator?: '·' | '|' | '•' | 'none'; // Separator between contact items
     };
     // Profile photo
     profilePhoto: {
@@ -234,11 +237,15 @@ export interface TemplateConfig {
     };
     // Section headers (H2)
     sectionHeader: {
+      fontFamily?: string; // Can override heading font
       fontSize?: string;
       fontWeight?: number;
       color?: string;
       textTransform?: 'none' | 'uppercase' | 'lowercase' | 'capitalize';
-      borderBottom?: string;
+      dividerStyle?: 'none' | 'underline' | 'full-width' | 'accent-bar'; // Visual divider style
+      dividerColor?: string; // Color for the divider
+      dividerWidth?: string; // Thickness of divider
+      borderBottom?: string; // Legacy support
       borderColor?: string;
       borderWidth?: string;
       padding?: string;
@@ -256,9 +263,11 @@ export interface TemplateConfig {
     };
     // Job/education titles (H3)
     jobTitle: {
+      fontFamily?: string; // Can override heading font
       fontSize?: string;
       fontWeight?: number;
       color?: string;
+      fontStyle?: 'normal' | 'italic';
       marginBottom?: string;
       textTransform?: 'none' | 'uppercase' | 'lowercase' | 'capitalize';
     };
@@ -304,7 +313,7 @@ export interface TemplateConfig {
       fontSize: string;
       fontWeight?: number;
       alignment: 'left' | 'right';
-      format?: string; // date format string
+      format?: 'full' | 'short' | 'year-only'; // date format preset
     };
     list: {
       level1?: {
@@ -333,9 +342,12 @@ export interface TemplateConfig {
       markerColor?: string;
     };
     links: {
-      underline: boolean;
+      color?: string; // Link color
+      hoverColor?: string; // Hover state color
+      underline: boolean; // Legacy support
+      underlineStyle?: 'none' | 'always' | 'hover'; // When to show underline
       fontWeight?: number;
-      decoration?: 'none' | 'underline' | 'dotted' | 'dashed';
+      decoration?: 'none' | 'underline' | 'dotted' | 'dashed'; // Legacy support
     };
     divider: {
       style: 'solid' | 'dotted' | 'dashed' | 'double' | 'none';
