@@ -11,3 +11,4 @@ export { LayoutPicker } from './LayoutPicker';
 export { BulletStylePicker, MultiLevelBulletPicker } from './BulletStylePicker';
 export { ColorPairControl } from './ColorPairControl';
 export { CollapsibleSection } from './CollapsibleSection';
+export { SemanticColorControl } from './SemanticColorControl';

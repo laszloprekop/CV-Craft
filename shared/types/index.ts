@@ -201,7 +201,9 @@ export interface TemplateConfig {
       fontFamily?: string; // Can override heading font
       fontSize?: string;
       fontWeight?: number;
-      color?: string;
+      colorKey?: 'primary' | 'secondary' | 'tertiary' | 'muted' | 'text-primary' | 'text-secondary' | 'text-muted';
+      colorOpacity?: number; // 0-1
+      color?: string; // Legacy support
       letterSpacing?: string;
       textTransform?: 'none' | 'uppercase' | 'lowercase' | 'capitalize';
       alignment?: 'left' | 'center' | 'right';
@@ -211,8 +213,12 @@ export interface TemplateConfig {
     contactInfo: {
       layout?: 'inline' | 'stacked' | 'grid';
       iconSize?: string;
-      iconColor?: string;
-      textColor?: string;
+      iconColorKey?: 'primary' | 'secondary' | 'tertiary' | 'muted' | 'text-primary' | 'text-secondary' | 'text-muted';
+      iconColorOpacity?: number;
+      textColorKey?: 'primary' | 'secondary' | 'tertiary' | 'muted' | 'text-primary' | 'text-secondary' | 'text-muted';
+      textColorOpacity?: number;
+      iconColor?: string; // Legacy support
+      textColor?: string; // Legacy support
       spacing?: string;
       fontSize?: string;
       showIcons?: boolean;
@@ -240,11 +246,18 @@ export interface TemplateConfig {
       fontFamily?: string; // Can override heading font
       fontSize?: string;
       fontWeight?: number;
-      color?: string;
+      colorKey?: 'primary' | 'secondary' | 'tertiary' | 'muted' | 'text-primary' | 'text-secondary' | 'text-muted';
+      colorOpacity?: number;
+      color?: string; // Legacy support
       textTransform?: 'none' | 'uppercase' | 'lowercase' | 'capitalize';
       dividerStyle?: 'none' | 'underline' | 'full-width' | 'accent-bar'; // Visual divider style
-      dividerColor?: string; // Color for the divider
+      dividerColorKey?: 'primary' | 'secondary' | 'tertiary' | 'muted' | 'text-primary' | 'text-secondary' | 'text-muted';
+      dividerColorOpacity?: number;
+      dividerColor?: string; // Legacy support - Color for the divider
       dividerWidth?: string; // Thickness of divider
+      backgroundColorKey?: 'primary' | 'secondary' | 'tertiary' | 'muted' | 'text-primary' | 'text-secondary' | 'text-muted';
+      backgroundColorOpacity?: number;
+      backgroundColor?: string; // Legacy support
       borderBottom?: string; // Legacy support
       borderColor?: string;
       borderWidth?: string;
@@ -252,7 +265,6 @@ export interface TemplateConfig {
       marginTop?: string;
       marginBottom?: string;
       letterSpacing?: string;
-      backgroundColor?: string;
     };
     section: {
       marginBottom: string;
@@ -266,7 +278,9 @@ export interface TemplateConfig {
       fontFamily?: string; // Can override heading font
       fontSize?: string;
       fontWeight?: number;
-      color?: string;
+      colorKey?: 'primary' | 'secondary' | 'tertiary' | 'muted' | 'text-primary' | 'text-secondary' | 'text-muted';
+      colorOpacity?: number;
+      color?: string; // Legacy support
       fontStyle?: 'normal' | 'italic';
       marginBottom?: string;
       textTransform?: 'none' | 'uppercase' | 'lowercase' | 'capitalize';
@@ -308,7 +322,9 @@ export interface TemplateConfig {
       separator?: '·' | '|' | '•' | ',' | 'none'; // separator for inline style
     };
     dateLine: {
-      color: string;
+      colorKey?: 'primary' | 'secondary' | 'tertiary' | 'muted' | 'text-primary' | 'text-secondary' | 'text-muted';
+      colorOpacity?: number;
+      color?: string; // Legacy support
       fontStyle: 'normal' | 'italic';
       fontSize: string;
       fontWeight?: number;
@@ -342,8 +358,12 @@ export interface TemplateConfig {
       markerColor?: string;
     };
     links: {
-      color?: string; // Link color
-      hoverColor?: string; // Hover state color
+      colorKey?: 'primary' | 'secondary' | 'tertiary' | 'muted' | 'text-primary' | 'text-secondary' | 'text-muted';
+      colorOpacity?: number;
+      hoverColorKey?: 'primary' | 'secondary' | 'tertiary' | 'muted' | 'text-primary' | 'text-secondary' | 'text-muted';
+      hoverColorOpacity?: number;
+      color?: string; // Legacy support - Link color
+      hoverColor?: string; // Legacy support - Hover state color
       underline: boolean; // Legacy support
       underlineStyle?: 'none' | 'always' | 'hover'; // When to show underline
       fontWeight?: number;

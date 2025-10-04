@@ -9,6 +9,7 @@ import { Phone, Envelope, LinkedinLogo, GithubLogo, MapPin, Globe } from '@phosp
 import type { CVInstance, Template, TemplateSettings, TemplateConfig, Asset } from '../../../shared/types'
 import { assetApi } from '../services/api'
 import { loadFonts } from '../services/GoogleFontsService'
+import { resolveSemanticColor } from '../utils/colorResolver'
 
 interface CVPreviewProps {
   cv: CVInstance | null
@@ -423,8 +424,20 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
 
       // Border & Link colors
       '--border-color': activeConfig?.colors.borders || '#e2e8f0',
-      '--link-color': activeConfig?.colors.links.default || '#2563eb',
-      '--link-hover-color': activeConfig?.colors.links.hover || '#1d4ed8',
+      '--link-color': activeConfig
+        ? resolveSemanticColor(
+            activeConfig.components.links?.colorKey,
+            activeConfig,
+            activeConfig.components.links?.colorOpacity
+          ) || activeConfig.components.links?.color || activeConfig.colors.links.default
+        : '#2563eb',
+      '--link-hover-color': activeConfig
+        ? resolveSemanticColor(
+            activeConfig.components.links?.hoverColorKey,
+            activeConfig,
+            activeConfig.components.links?.hoverColorOpacity
+          ) || activeConfig.components.links?.hoverColor || activeConfig.colors.links.hover
+        : '#1d4ed8',
 
       // Typography - from config only
       '--font-family': activeConfig?.typography.fontFamily.body || 'Inter',
@@ -514,13 +527,25 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
         return `rgba(${r}, ${g}, ${b}, ${opacity})`;
       })(),
       '--tag-border-radius': activeConfig?.components.tags.borderRadius || '4px',
-      '--date-line-color': activeConfig?.colors.text.secondary || '#64748b',
+      '--date-line-color': activeConfig
+        ? resolveSemanticColor(
+            activeConfig.components.dateLine.colorKey,
+            activeConfig,
+            activeConfig.components.dateLine.colorOpacity
+          )
+        : '#64748b',
 
       // New component-specific styles
       // Name (H1)
       '--name-font-size': activeConfig?.components.name?.fontSize || calculateFontSize(fontScale.h1, baseFontSize),
       '--name-font-weight': activeConfig?.components.name?.fontWeight || 700,
-      '--name-color': activeConfig?.components.name?.color || activeConfig?.colors.primary || '#0f172a',
+      '--name-color': activeConfig
+        ? resolveSemanticColor(
+            activeConfig.components.name?.colorKey,
+            activeConfig,
+            activeConfig.components.name?.colorOpacity
+          ) || activeConfig.components.name?.color || activeConfig.colors.primary
+        : '#0f172a',
       '--name-letter-spacing': activeConfig?.components.name?.letterSpacing || '-0.02em',
       '--name-text-transform': activeConfig?.components.name?.textTransform || 'uppercase',
       '--name-alignment': activeConfig?.components.name?.alignment || 'left',
@@ -529,17 +554,35 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
       // Contact Info
       '--contact-layout': activeConfig?.components.contactInfo?.layout || 'inline',
       '--contact-icon-size': activeConfig?.components.contactInfo?.iconSize || '16px',
-      '--contact-icon-color': activeConfig?.components.contactInfo?.iconColor || activeConfig?.colors.text.secondary,
+      '--contact-icon-color': activeConfig
+        ? resolveSemanticColor(
+            activeConfig.components.contactInfo?.iconColorKey,
+            activeConfig,
+            activeConfig.components.contactInfo?.iconColorOpacity
+          ) || activeConfig.components.contactInfo?.iconColor || activeConfig.colors.text.secondary
+        : activeConfig?.colors.text.secondary || '#64748b',
       '--contact-spacing': activeConfig?.components.contactInfo?.spacing || '12px',
       '--contact-font-size': activeConfig?.components.contactInfo?.fontSize || calculateFontSize(fontScale.small, baseFontSize),
 
       // Section Headers (H2)
       '--section-header-font-size': activeConfig?.components.sectionHeader?.fontSize || calculateFontSize(fontScale.h2, baseFontSize),
       '--section-header-font-weight': activeConfig?.components.sectionHeader?.fontWeight || 700,
-      '--section-header-color': activeConfig?.components.sectionHeader?.color || activeConfig?.colors.primary,
+      '--section-header-color': activeConfig
+        ? resolveSemanticColor(
+            activeConfig.components.sectionHeader?.colorKey,
+            activeConfig,
+            activeConfig.components.sectionHeader?.colorOpacity
+          ) || activeConfig.components.sectionHeader?.color || activeConfig.colors.primary
+        : '#2563eb',
       '--section-header-text-transform': activeConfig?.components.sectionHeader?.textTransform || 'uppercase',
       '--section-header-border-bottom': activeConfig?.components.sectionHeader?.borderBottom || '2px solid',
-      '--section-header-border-color': activeConfig?.components.sectionHeader?.borderColor || activeConfig?.colors.primary,
+      '--section-header-border-color': activeConfig
+        ? resolveSemanticColor(
+            activeConfig.components.sectionHeader?.dividerColorKey,
+            activeConfig,
+            activeConfig.components.sectionHeader?.dividerColorOpacity
+          ) || activeConfig.components.sectionHeader?.dividerColor || activeConfig.components.sectionHeader?.borderColor || activeConfig.colors.primary
+        : '#2563eb',
       '--section-header-padding': activeConfig?.components.sectionHeader?.padding || '0 0 4px 0',
       '--section-header-margin-top': activeConfig?.components.sectionHeader?.marginTop || '24px',
       '--section-header-margin-bottom': activeConfig?.components.sectionHeader?.marginBottom || '12px',
@@ -548,7 +591,13 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
       // Job Titles (H3)
       '--job-title-font-size': activeConfig?.components.jobTitle?.fontSize || calculateFontSize(fontScale.h3, baseFontSize),
       '--job-title-font-weight': activeConfig?.components.jobTitle?.fontWeight || 600,
-      '--job-title-color': activeConfig?.components.jobTitle?.color || activeConfig?.colors.text.primary,
+      '--job-title-color': activeConfig
+        ? resolveSemanticColor(
+            activeConfig.components.jobTitle?.colorKey,
+            activeConfig,
+            activeConfig.components.jobTitle?.colorOpacity
+          ) || activeConfig.components.jobTitle?.color || activeConfig.colors.text.primary
+        : '#1f2937',
       '--job-title-margin-bottom': activeConfig?.components.jobTitle?.marginBottom || '4px',
 
       // Organization Names

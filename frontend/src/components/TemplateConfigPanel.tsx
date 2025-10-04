@@ -15,6 +15,7 @@ import {
   MultiLevelBulletPicker,
   ColorPairControl,
   CollapsibleSection,
+  SemanticColorControl,
 } from './controls';
 
 interface TemplateConfigPanelProps {
@@ -688,19 +689,30 @@ export const TemplateConfigPanel: React.FC<TemplateConfigPanelProps> = ({
               />
               {config.components.sectionHeader?.dividerStyle && config.components.sectionHeader.dividerStyle !== 'none' && (
                 <>
-                  <ColorControl
+                  <SemanticColorControl
                     label="Divider Color"
-                    value={config.components.sectionHeader?.dividerColor || config.colors.primary}
-                    onChange={(value) =>
+                    colorKey={config.components.sectionHeader?.dividerColorKey || 'primary'}
+                    opacity={config.components.sectionHeader?.dividerColorOpacity ?? 1.0}
+                    onColorChange={(value) =>
                       updateConfig('components', {
-                        sectionHeader: { ...config.components.sectionHeader, dividerColor: value },
+                        sectionHeader: { ...config.components.sectionHeader, dividerColorKey: value },
                       })
                     }
-                    onChangeComplete={(value) =>
+                    onOpacityChange={(value) =>
+                      updateConfig('components', {
+                        sectionHeader: { ...config.components.sectionHeader, dividerColorOpacity: value },
+                      })
+                    }
+                    onChangeComplete={() =>
                       commitConfig('components', {
-                        sectionHeader: { ...config.components.sectionHeader, dividerColor: value },
+                        sectionHeader: {
+                          ...config.components.sectionHeader,
+                          dividerColorKey: config.components.sectionHeader?.dividerColorKey || 'primary',
+                          dividerColorOpacity: config.components.sectionHeader?.dividerColorOpacity ?? 1.0,
+                        },
                       })
                     }
+                    showOpacity={true}
                   />
                   <SpacingControl
                     label="Divider Width"
@@ -834,19 +846,30 @@ export const TemplateConfigPanel: React.FC<TemplateConfigPanelProps> = ({
 
             {/* Dates */}
             <CollapsibleSection id="components-dates" label="Dates" defaultOpen={false}>
-              <ColorControl
+              <SemanticColorControl
                 label="Color"
-                value={config.components.dateLine.color}
-                onChange={(value) =>
+                colorKey={config.components.dateLine.colorKey || 'text-secondary'}
+                opacity={config.components.dateLine.colorOpacity ?? 1.0}
+                onColorChange={(value) =>
                   updateConfig('components', {
-                    dateLine: { ...config.components.dateLine, color: value },
+                    dateLine: { ...config.components.dateLine, colorKey: value },
                   })
                 }
-                onChangeComplete={(value) =>
+                onOpacityChange={(value) =>
+                  updateConfig('components', {
+                    dateLine: { ...config.components.dateLine, colorOpacity: value },
+                  })
+                }
+                onChangeComplete={() =>
                   commitConfig('components', {
-                    dateLine: { ...config.components.dateLine, color: value },
+                    dateLine: {
+                      ...config.components.dateLine,
+                      colorKey: config.components.dateLine.colorKey || 'text-secondary',
+                      colorOpacity: config.components.dateLine.colorOpacity ?? 1.0,
+                    },
                   })
                 }
+                showOpacity={true}
               />
               <SelectControl
                 label="Font Style"
@@ -892,33 +915,55 @@ export const TemplateConfigPanel: React.FC<TemplateConfigPanelProps> = ({
 
             {/* Links */}
             <CollapsibleSection id="components-links" label="Links" defaultOpen={false}>
-              <ColorControl
+              <SemanticColorControl
                 label="Link Color"
-                value={config.components.links.color || config.colors.links.default}
-                onChange={(value) =>
+                colorKey={config.components.links.colorKey || 'primary'}
+                opacity={config.components.links.colorOpacity ?? 1.0}
+                onColorChange={(value) =>
                   updateConfig('components', {
-                    links: { ...config.components.links, color: value },
+                    links: { ...config.components.links, colorKey: value },
                   })
                 }
-                onChangeComplete={(value) =>
+                onOpacityChange={(value) =>
+                  updateConfig('components', {
+                    links: { ...config.components.links, colorOpacity: value },
+                  })
+                }
+                onChangeComplete={() =>
                   commitConfig('components', {
-                    links: { ...config.components.links, color: value },
+                    links: {
+                      ...config.components.links,
+                      colorKey: config.components.links.colorKey || 'primary',
+                      colorOpacity: config.components.links.colorOpacity ?? 1.0,
+                    },
                   })
                 }
+                showOpacity={true}
               />
-              <ColorControl
+              <SemanticColorControl
                 label="Hover Color"
-                value={config.components.links.hoverColor || config.colors.links.hover}
-                onChange={(value) =>
+                colorKey={config.components.links.hoverColorKey || 'secondary'}
+                opacity={config.components.links.hoverColorOpacity ?? 1.0}
+                onColorChange={(value) =>
                   updateConfig('components', {
-                    links: { ...config.components.links, hoverColor: value },
+                    links: { ...config.components.links, hoverColorKey: value },
                   })
                 }
-                onChangeComplete={(value) =>
+                onOpacityChange={(value) =>
+                  updateConfig('components', {
+                    links: { ...config.components.links, hoverColorOpacity: value },
+                  })
+                }
+                onChangeComplete={() =>
                   commitConfig('components', {
-                    links: { ...config.components.links, hoverColor: value },
+                    links: {
+                      ...config.components.links,
+                      hoverColorKey: config.components.links.hoverColorKey || 'secondary',
+                      hoverColorOpacity: config.components.links.hoverColorOpacity ?? 1.0,
+                    },
                   })
                 }
+                showOpacity={true}
               />
               <SelectControl
                 label="Underline Style"
