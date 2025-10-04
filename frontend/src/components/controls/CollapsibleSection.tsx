@@ -57,7 +57,7 @@ export const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
   const contentRef = useRef<HTMLDivElement>(null);
   const [height, setHeight] = useState<number | undefined>(undefined);
 
-  // Calculate content height for smooth animation
+  // Calculate content height for smooth animation - only when opening/closing
   useEffect(() => {
     if (isOpen && contentRef.current) {
       const contentHeight = contentRef.current.scrollHeight;
@@ -74,7 +74,7 @@ export const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
     } else {
       setHeight(0);
     }
-  }, [isOpen, children]);
+  }, [isOpen]); // Removed 'children' dependency to prevent unnecessary recalculations
 
   return (
     <div className="border border-border/50 overflow-hidden bg-surface/30">
