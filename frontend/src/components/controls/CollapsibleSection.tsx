@@ -60,7 +60,17 @@ export const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
   // Calculate content height for smooth animation
   useEffect(() => {
     if (isOpen && contentRef.current) {
-      setHeight(contentRef.current.scrollHeight);
+      const contentHeight = contentRef.current.scrollHeight;
+      setHeight(contentHeight);
+
+      // After animation completes, switch to auto height for better content wrapping
+      const timer = setTimeout(() => {
+        if (isOpen) {
+          setHeight(undefined);
+        }
+      }, 150); // Match animation duration
+
+      return () => clearTimeout(timer);
     } else {
       setHeight(0);
     }
