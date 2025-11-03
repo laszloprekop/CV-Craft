@@ -6,6 +6,7 @@
 
 import puppeteer, { Browser, Page, PDFOptions } from 'puppeteer'
 import type { CVInstance, Template, TemplateConfig } from '../../../../shared/types'
+import { generateCSSVariables, generateGoogleFontsURL } from '../../../../shared/utils/cssVariableGenerator'
 import path from 'path'
 import fs from 'fs/promises'
 
@@ -137,8 +138,13 @@ export class PDFGenerator {
 
     const { frontmatter, sections } = parsedContent
 
-    // Generate CSS variables from config
-    const cssVariables = this.generateCSSVariables(config)
+    // Generate CSS variables from config using shared utility
+    const cssVariables = generateCSSVariables(config)
+
+    // Generate Google Fonts URL if custom fonts are configured
+    const fontsURL = config.typography.availableFonts
+      ? generateGoogleFontsURL(config.typography.availableFonts)
+      : '';
 
     // Determine template layout type
     const useMinimalLayout = template.name.includes('Minimal') || template.name.includes('Clean')
@@ -151,6 +157,9 @@ export class PDFGenerator {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${frontmatter.name || 'CV'}</title>
+  ${fontsURL ? `<link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="${fontsURL}" rel="stylesheet">` : ''}
   <style>
     ${this.generateCSS(cssVariables, useMinimalLayout)}
   </style>
@@ -160,192 +169,6 @@ export class PDFGenerator {
 </body>
 </html>
     `
-  }
-
-  /**
-   * Generate CSS variables from template config
-   */
-  private generateCSSVariables(config: TemplateConfig): Record<string, string> {
-    const calculateFontSize = (scale: number, baseFontSize: string): string => {
-      const baseValue = parseFloat(baseFontSize)
-      const unit = baseFontSize.replace(/[0-9.]/g, '')
-      return `${(baseValue * scale).toFixed(1)}${unit}`
-    }
-
-    const hexToRgba = (hex: string, opacity: number): string => {
-      const r = parseInt(hex.slice(1, 3), 16)
-      const g = parseInt(hex.slice(3, 5), 16)
-      const b = parseInt(hex.slice(5, 7), 16)
-      return `rgba(${r}, ${g}, ${b}, ${opacity})`
-    }
-
-    const baseFontSize = config.typography.baseFontSize || '10pt'
-    const fontScale = config.typography.fontScale || {
-      h1: 3.2,
-      h2: 2.4,
-      h3: 2.0,
-      body: 1.6,
-      small: 1.4,
-      tiny: 1.2
-    }
-
-    return {
-      // Main Color Pairs
-      '--primary-color': config.colors.primary,
-      '--on-primary-color': config.colors.onPrimary,
-      '--secondary-color': config.colors.secondary,
-      '--on-secondary-color': config.colors.onSecondary,
-      '--tertiary-color': config.colors.tertiary || config.colors.accent || '#f59e0b',
-      '--on-tertiary-color': config.colors.onTertiary || '#ffffff',
-      '--muted-color': config.colors.muted || '#f1f5f9',
-      '--on-muted-color': config.colors.onMuted || '#334155',
-      '--background-color': config.colors.background,
-      '--on-background-color': config.colors.text.primary,
-
-      // Legacy color variables for backward compatibility
-      '--accent-color': config.colors.tertiary || config.colors.accent || '#f59e0b',
-      '--surface-color': config.colors.secondary,
-      '--text-color': config.colors.text.primary,
-      '--text-secondary': config.colors.text.secondary,
-      '--text-muted': config.colors.text.muted,
-      '--border-color': config.colors.borders,
-      '--link-color': config.colors.links.default,
-      '--link-hover-color': config.colors.links.hover,
-
-      // Typography
-      '--font-family': config.typography.fontFamily.body,
-      '--heading-font-family': config.typography.fontFamily.heading,
-      '--base-font-size': baseFontSize,
-      '--title-font-size': calculateFontSize(fontScale.h1, baseFontSize),
-      '--h2-font-size': calculateFontSize(fontScale.h2, baseFontSize),
-      '--h3-font-size': calculateFontSize(fontScale.h3, baseFontSize),
-      '--body-font-size': calculateFontSize(fontScale.body, baseFontSize),
-      '--small-font-size': calculateFontSize(fontScale.small, baseFontSize),
-      '--tiny-font-size': calculateFontSize(fontScale.tiny, baseFontSize),
-
-      // Layout
-      '--page-width': config.layout.pageWidth,
-      '--page-margin-top': config.layout.pageMargin.top,
-      '--page-margin-right': config.layout.pageMargin.right,
-      '--page-margin-bottom': config.layout.pageMargin.bottom,
-      '--page-margin-left': config.layout.pageMargin.left,
-      '--section-spacing': config.layout.sectionSpacing,
-      '--paragraph-spacing': config.layout.paragraphSpacing,
-
-      // Tags - use semantic color pairs with transparency
-      '--tag-bg-color': (() => {
-        const colorPair = config.components.tags?.colorPair || 'tertiary'
-        const opacity = config.components.tags?.backgroundOpacity ?? 0.2
-        let baseColor = ''
-
-        switch (colorPair) {
-          case 'primary':
-            baseColor = config.colors.primary
-            break
-          case 'secondary':
-            baseColor = config.colors.secondary
-            break
-          case 'tertiary':
-            baseColor = config.colors.tertiary || config.colors.accent || '#f59e0b'
-            break
-          case 'muted':
-            baseColor = config.colors.muted || '#f1f5f9'
-            break
-        }
-
-        return hexToRgba(baseColor, opacity)
-      })(),
-      '--tag-text-color': (() => {
-        const colorPair = config.components.tags?.colorPair || 'tertiary'
-        const opacity = config.components.tags?.textOpacity ?? 1.0
-        let baseColor = ''
-
-        switch (colorPair) {
-          case 'primary':
-            baseColor = config.colors.onPrimary
-            break
-          case 'secondary':
-            baseColor = config.colors.onSecondary
-            break
-          case 'tertiary':
-            baseColor = config.colors.onTertiary || '#ffffff'
-            break
-          case 'muted':
-            baseColor = config.colors.onMuted || '#334155'
-            break
-        }
-
-        return hexToRgba(baseColor, opacity)
-      })(),
-      '--tag-border-radius': config.components.tags.borderRadius,
-
-      // Component-specific styles
-      // Name (H1)
-      '--name-font-size': config.components.name?.fontSize || calculateFontSize(fontScale.h1, baseFontSize),
-      '--name-font-weight': String(config.components.name?.fontWeight || 700),
-      '--name-color': config.components.name?.color || config.colors.primary || '#0f172a',
-      '--name-letter-spacing': config.components.name?.letterSpacing || '-0.02em',
-      '--name-text-transform': config.components.name?.textTransform || 'uppercase',
-      '--name-alignment': config.components.name?.alignment || 'left',
-      '--name-margin-bottom': config.components.name?.marginBottom || '8px',
-
-      // Contact Info
-      '--contact-layout': config.components.contactInfo?.layout || 'inline',
-      '--contact-icon-size': config.components.contactInfo?.iconSize || '16px',
-      '--contact-icon-color': config.components.contactInfo?.iconColor || config.colors.text.secondary,
-      '--contact-spacing': config.components.contactInfo?.spacing || '12px',
-      '--contact-font-size': config.components.contactInfo?.fontSize || calculateFontSize(fontScale.small, baseFontSize),
-
-      // Profile Photo
-      '--profile-photo-size': config.components.profilePhoto?.size || '200px',
-      '--profile-photo-border-radius': config.components.profilePhoto?.borderRadius || '50%',
-      '--profile-photo-border': config.components.profilePhoto?.border || '3px solid #e2e8f0',
-      '--profile-photo-border-color': config.components.profilePhoto?.borderColor || '#e2e8f0',
-
-      // Section Headers (H2)
-      '--section-header-font-size': config.components.sectionHeader?.fontSize || calculateFontSize(fontScale.h2, baseFontSize),
-      '--section-header-font-weight': String(config.components.sectionHeader?.fontWeight || 700),
-      '--section-header-color': config.components.sectionHeader?.color || config.colors.primary,
-      '--section-header-text-transform': config.components.sectionHeader?.textTransform || 'uppercase',
-      '--section-header-border-bottom': config.components.sectionHeader?.borderBottom || '2px solid',
-      '--section-header-border-color': config.components.sectionHeader?.borderColor || config.colors.primary,
-      '--section-header-padding': config.components.sectionHeader?.padding || '0 0 4px 0',
-      '--section-header-margin-top': config.components.sectionHeader?.marginTop || '24px',
-      '--section-header-margin-bottom': config.components.sectionHeader?.marginBottom || '12px',
-      '--section-header-letter-spacing': config.components.sectionHeader?.letterSpacing || '0.05em',
-
-      // Job Titles (H3)
-      '--job-title-font-size': config.components.jobTitle?.fontSize || calculateFontSize(fontScale.h3, baseFontSize),
-      '--job-title-font-weight': String(config.components.jobTitle?.fontWeight || 600),
-      '--job-title-color': config.components.jobTitle?.color || config.colors.text.primary,
-      '--job-title-margin-bottom': config.components.jobTitle?.marginBottom || '4px',
-
-      // Organization Names
-      '--org-name-font-size': config.components.organizationName?.fontSize || calculateFontSize(fontScale.body, baseFontSize),
-      '--org-name-font-weight': String(config.components.organizationName?.fontWeight || 500),
-      '--org-name-color': config.components.organizationName?.color || config.colors.text.secondary,
-      '--org-name-font-style': config.components.organizationName?.fontStyle || 'normal',
-
-      // Key-Value Pairs
-      '--key-value-label-color': config.components.keyValue?.labelColor || config.colors.text.primary,
-      '--key-value-label-weight': String(config.components.keyValue?.labelWeight || 600),
-      '--key-value-value-color': config.components.keyValue?.valueColor || config.colors.text.secondary,
-      '--key-value-value-weight': String(config.components.keyValue?.valueWeight || 400),
-      '--key-value-separator': config.components.keyValue?.separator || ':',
-      '--key-value-spacing': config.components.keyValue?.spacing || '4px',
-
-      // Emphasis
-      '--emphasis-font-weight': String(config.components.emphasis?.fontWeight || 600),
-      '--emphasis-color': config.components.emphasis?.color || config.colors.text.primary,
-
-      // Bullet Lists (Multi-level)
-      '--bullet-level1-color': config.components.list?.level1?.color || config.colors.primary,
-      '--bullet-level2-color': config.components.list?.level2?.color || config.colors.text.secondary,
-      '--bullet-level3-color': config.components.list?.level3?.color || config.colors.text.muted,
-      '--bullet-level1-indent': config.components.list?.level1?.indent || '20px',
-      '--bullet-level2-indent': config.components.list?.level2?.indent || '40px',
-      '--bullet-level3-indent': config.components.list?.level3?.indent || '60px'
-    }
   }
 
   /**

@@ -4,7 +4,7 @@
     "module": "commonjs",
     "lib": ["ES2022"],
     "outDir": "./dist",
-    "rootDir": "./src",
+    "rootDir": "..",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
@@ -16,19 +16,20 @@
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "moduleResolution": "node",
-    "baseUrl": "./src",
+    "baseUrl": ".",
     "paths": {
-      "@/*": ["./*"],
-      "@/models/*": ["./models/*"],
-      "@/services/*": ["./services/*"],
-      "@/lib/*": ["./lib/*"],
-      "@/api/*": ["./api/*"],
-      "@/database/*": ["./database/*"],
-      "@/middleware/*": ["./middleware/*"]
+      "@/*": ["./src/*"],
+      "@/models/*": ["./src/models/*"],
+      "@/services/*": ["./src/services/*"],
+      "@/lib/*": ["./src/lib/*"],
+      "@/api/*": ["./src/api/*"],
+      "@/database/*": ["./src/database/*"],
+      "@/middleware/*": ["./src/middleware/*"]
     }
   },
   "include": [
-    "src/**/*"
+    "src/**/*",
+    "../shared/**/*"
   ],
   "exclude": [
     "node_modules",
