@@ -7,6 +7,7 @@
 import puppeteer, { Browser, Page, PDFOptions } from 'puppeteer'
 import type { CVInstance, Template, TemplateConfig } from '../../../../shared/types'
 import { generateCSSVariables, generateGoogleFontsURL } from '../../../../shared/utils/cssVariableGenerator'
+import { renderSections, renderHeader } from '../../../../shared/utils/sectionRenderer'
 import path from 'path'
 import fs from 'fs/promises'
 
@@ -71,6 +72,7 @@ export class PDFGenerator {
     }
 
     const page = await this.browser.newPage()
+    let pageClosed = false
 
     try {
       // Set viewport to A4 dimensions
@@ -84,12 +86,18 @@ export class PDFGenerator {
       const html = this.generateHTML(cv, template, config)
 
       // Set content and wait for it to load
-      await page.setContent(html, {
-        waitUntil: ['domcontentloaded', 'networkidle0']
-      })
+      try {
+        await page.setContent(html, {
+          waitUntil: ['domcontentloaded', 'networkidle0'],
+          timeout: 30000 // 30 second timeout
+        })
+      } catch (error) {
+        console.error('Failed to set page content:', error);
+        throw new Error(`Failed to load HTML content: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      }
 
       // Wait a bit for fonts and images to load
-      await page.waitForTimeout(500)
+      await new Promise(resolve => setTimeout(resolve, 500))
 
       // Generate PDF with A4 settings
       const pdfOptions: PDFOptions = {
@@ -121,14 +129,26 @@ export class PDFGenerator {
         size: stats.size,
         pages: estimatedPages
       }
+    } catch (error) {
+      console.error('PDF generation error:', error);
+      throw error;
     } finally {
-      await page.close()
+      // Only close page if it's not already closed
+      try {
+        if (!pageClosed) {
+          await page.close()
+          pageClosed = true
+        }
+      } catch (closeError) {
+        // Ignore errors when closing - page might already be closed
+        console.warn('Error closing page (likely already closed):', closeError instanceof Error ? closeError.message : 'Unknown error');
+      }
     }
   }
 
   /**
    * Generate HTML content for PDF rendering
-   * This should match the frontend CVPreview component's output
+   * Uses shared section renderer for consistent web/PDF rendering
    */
   private generateHTML(cv: CVInstance, template: Template, config: TemplateConfig): string {
     const parsedContent = cv.parsed_content
@@ -136,7 +156,12 @@ export class PDFGenerator {
       throw new Error('CV content not parsed')
     }
 
+    // Use shared renderer for consistent HTML structure
     const { frontmatter, sections } = parsedContent
+
+    // Generate HTML using shared renderer with pagination classes
+    const headerHTML = renderHeader(frontmatter)
+    const contentHTML = renderSections(sections, { pagination: true })
 
     // Generate CSS variables from config using shared utility
     const cssVariables = generateCSSVariables(config)
@@ -148,6 +173,11 @@ export class PDFGenerator {
 
     // Determine template layout type
     const useMinimalLayout = template.name.includes('Minimal') || template.name.includes('Clean')
+
+    // Wrap shared HTML in layout container
+    const bodyHTML = useMinimalLayout
+      ? `<div class="cv-page single-column-layout">${headerHTML}\n${contentHTML}</div>`
+      : this.generateTwoColumnLayoutHTML(frontmatter, sections)
 
     // Generate HTML
     return `
@@ -165,7 +195,309 @@ export class PDFGenerator {
   </style>
 </head>
 <body>
-  ${this.generateBody(parsedContent, useMinimalLayout)}
+  ${bodyHTML}
+</body>
+</html>
+    `
+  }
+
+  /**
+   * Generate two-column layout HTML using shared renderer
+   */
+  private generateTwoColumnLayoutHTML(frontmatter: any, sections: any[]): string {
+    // Split sections into sidebar and main
+    const sidebarSections = sections.filter((s: any) =>
+      ['skills', 'languages', 'interests', 'tools', 'certifications'].some(type =>
+        s.title?.toLowerCase().includes(type) || s.type === type
+      )
+    )
+
+    const mainSections = sections.filter((s: any) =>
+      !['skills', 'languages', 'interests', 'tools', 'certifications'].some(type =>
+        s.title?.toLowerCase().includes(type) || s.type === type
+      )
+    )
+
+    // Render sections using shared renderer
+    const sidebarHTML = renderSections(sidebarSections, { pagination: true })
+    const mainHTML = renderSections(mainSections, { pagination: true })
+
+    // Build contact info
+    const contactParts: string[] = []
+    if (frontmatter.phone) contactParts.push(frontmatter.phone)
+    if (frontmatter.email) contactParts.push(frontmatter.email)
+    if (frontmatter.location) contactParts.push(frontmatter.location)
+
+    return `
+    <div class="cv-page">
+      <div class="two-column-layout">
+        <div class="sidebar">
+          ${frontmatter.photo ? `<img src="${frontmatter.photo}" class="profile-photo" alt="Profile" />` : ''}
+          ${contactParts.length > 0 ? `
+          <div class="contact-info">
+            ${contactParts.map(item => `<div class="contact-item"><span>${item}</span></div>`).join('\n            ')}
+          </div>` : ''}
+          ${sidebarHTML}
+        </div>
+        <div class="main-content">
+          <h1>${frontmatter.name || 'Your Name'}</h1>
+          ${frontmatter.title ? `<p>${frontmatter.title}</p>` : ''}
+          ${mainHTML}
+        </div>
+      </div>
+    </div>
+    `.trim()
+  }
+
+  /**
+   * Generate HTML using Unified/Rehype parser output
+   * This ensures 100% parity between web preview and PDF export
+   */
+  private generateHTMLFromParser(parsedContent: any, config: TemplateConfig): string {
+    const { frontmatter, html, cssVariables } = parsedContent
+
+    // Use parser-generated CSS variables or generate from config
+    const finalCSSVariables = cssVariables || generateCSSVariables(config)
+
+    // Skip Google Fonts for PDF to avoid network issues
+    // Fonts will fall back to system fonts
+    const fontsURL = '';  // Disabled for PDF generation
+
+    // Convert CSS variables object to CSS string
+    const cssVars = Object.entries(finalCSSVariables)
+      .map(([key, value]) => `${key}: ${value};`)
+      .join('\n    ')
+
+    return `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${frontmatter?.name || 'CV'}</title>
+  <!-- Google Fonts disabled for PDF - using system fonts -->
+  <style>
+    /* Reset */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    /* CSS Variables from Template Config */
+    :root {
+      ${cssVars}
+    }
+
+    /* Base Styles */
+    body {
+      font-family: var(--font-family), -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: var(--body-font-size);
+      line-height: var(--body-line-height);
+      font-weight: var(--body-weight);
+      color: var(--text-color);
+      background-color: var(--background-color);
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+
+    /* Page Layout */
+    .cv-page {
+      width: var(--page-width);
+      min-height: 297mm;
+      padding: var(--page-margin-top) var(--page-margin-right) var(--page-margin-bottom) var(--page-margin-left);
+      background-color: var(--background-color);
+    }
+
+    @page {
+      size: A4;
+      margin: 0;
+    }
+
+    /* Typography - All styles applied by parser in HTML */
+    h1, h2, h3, h4, h5, h6 {
+      font-family: var(--heading-font-family);
+      line-height: var(--heading-line-height);
+      font-weight: var(--heading-weight);
+      page-break-after: avoid;
+      break-after: avoid;
+    }
+
+    h1 {
+      font-size: var(--name-font-size);
+      font-weight: var(--name-font-weight);
+      color: var(--name-color);
+      letter-spacing: var(--name-letter-spacing);
+      text-transform: var(--name-text-transform);
+      margin-bottom: var(--name-margin-bottom);
+    }
+
+    h2 {
+      font-size: var(--section-header-font-size);
+      font-weight: var(--section-header-font-weight);
+      color: var(--section-header-color);
+      letter-spacing: var(--section-header-letter-spacing);
+      text-transform: var(--section-header-text-transform);
+      margin-top: var(--section-spacing);
+      margin-bottom: var(--section-header-margin-bottom);
+      padding-bottom: var(--section-header-padding-bottom);
+      border-bottom: var(--section-header-border-width) var(--section-header-border-style) var(--section-header-border-color);
+    }
+
+    h3 {
+      font-size: var(--h3-font-size);
+      font-weight: var(--h3-font-weight);
+      color: var(--h3-color);
+      margin-bottom: var(--h3-margin-bottom);
+    }
+
+    /* Paragraphs */
+    p {
+      font-size: var(--body-font-size);
+      line-height: var(--body-line-height);
+      font-weight: var(--body-weight);
+      color: var(--text-color);
+      margin-bottom: var(--paragraph-spacing);
+    }
+
+    /* Text Formatting */
+    strong, b {
+      font-weight: var(--bold-weight);
+      color: var(--emphasis-color);
+    }
+
+    em, i {
+      font-style: italic;
+      color: var(--emphasis-color);
+    }
+
+    /* Links */
+    a {
+      color: var(--link-color);
+      text-decoration: var(--link-text-decoration);
+      font-weight: var(--link-font-weight);
+    }
+
+    a:hover {
+      color: var(--link-hover-color);
+    }
+
+    /* Lists */
+    ul, ol {
+      margin-left: var(--bullet-level1-indent);
+      margin-bottom: var(--paragraph-spacing);
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+
+    ul {
+      list-style-type: var(--bullet-level1-style);
+      color: var(--bullet-level1-color);
+    }
+
+    ul ul {
+      margin-left: var(--bullet-level2-indent);
+      list-style-type: var(--bullet-level2-style);
+      color: var(--bullet-level2-color);
+    }
+
+    ul ul ul {
+      margin-left: var(--bullet-level3-indent);
+      list-style-type: var(--bullet-level3-style);
+      color: var(--bullet-level3-color);
+    }
+
+    li {
+      margin-bottom: 0.25em;
+      color: var(--text-color);
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+
+    /* Code */
+    code {
+      font-family: var(--code-font-family);
+      font-size: var(--inline-code-font-size);
+      background-color: var(--muted-color);
+      padding: var(--inline-code-padding);
+      border-radius: var(--inline-code-border-radius);
+      font-weight: var(--inline-code-font-weight);
+      color: var(--text-color);
+    }
+
+    pre {
+      background-color: var(--muted-color);
+      padding: 1em;
+      border-radius: 4px;
+      overflow-x: auto;
+      margin-bottom: var(--paragraph-spacing);
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+
+    pre code {
+      background-color: transparent;
+      padding: 0;
+    }
+
+    /* Blockquotes */
+    blockquote {
+      border-left: var(--blockquote-border-width) solid var(--blockquote-border-color);
+      padding-left: var(--blockquote-padding-left);
+      margin-left: 0;
+      margin-bottom: var(--paragraph-spacing);
+      color: var(--text-secondary);
+      font-style: italic;
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+
+    /* Horizontal Rules */
+    hr {
+      border: none;
+      border-top: 1px solid var(--border-color);
+      margin: var(--section-spacing) 0;
+    }
+
+    /* Tables */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: var(--paragraph-spacing);
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+
+    th, td {
+      padding: 8px;
+      border: 1px solid var(--border-color);
+      text-align: left;
+    }
+
+    th {
+      background-color: var(--surface-color);
+      font-weight: var(--bold-weight);
+    }
+
+    /* Keep sections together */
+    section {
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+
+    /* Print optimizations */
+    @media print {
+      body {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="cv-page">
+    ${html}
+  </div>
 </body>
 </html>
     `
@@ -458,6 +790,13 @@ export class PDFGenerator {
             ${item.company ? `<p>${item.company}</p>` : ''}
             ${item.date ? `<p><em>${item.date}</em></p>` : ''}
             ${item.description ? `<p>${item.description}</p>` : ''}
+            ${item.bullets && item.bullets.length > 0 ? `
+              <ul>
+                ${item.bullets.map((bullet: any) =>
+                  `<li>${typeof bullet === 'string' ? bullet : bullet.text || ''}</li>`
+                ).join('')}
+              </ul>
+            ` : ''}
           </div>
           `
         }

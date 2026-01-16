@@ -469,6 +469,45 @@ export const TemplateConfigPanel: React.FC<TemplateConfigPanelProps> = ({
                   step={0.1}
                   description={`${(parseFloat(config.typography.baseFontSize) * config.typography.fontScale.tiny).toFixed(1)}${config.typography.baseFontSize.replace(/[0-9.]/g, '')}`}
                 />
+                <NumberControl
+                  label="Tag Scale"
+                  value={config.typography.fontScale.tag || 1.3}
+                  onChange={(value) =>
+                    updateConfig('typography', {
+                      fontScale: { ...config.typography.fontScale, tag: value },
+                    })
+                  }
+                  min={0.5}
+                  max={2}
+                  step={0.1}
+                  description={`${(parseFloat(config.typography.baseFontSize) * (config.typography.fontScale.tag || 1.3)).toFixed(1)}${config.typography.baseFontSize.replace(/[0-9.]/g, '')} (skill tags)`}
+                />
+                <NumberControl
+                  label="Date Line Scale"
+                  value={config.typography.fontScale.dateLine || 1.3}
+                  onChange={(value) =>
+                    updateConfig('typography', {
+                      fontScale: { ...config.typography.fontScale, dateLine: value },
+                    })
+                  }
+                  min={0.5}
+                  max={2}
+                  step={0.1}
+                  description={`${(parseFloat(config.typography.baseFontSize) * (config.typography.fontScale.dateLine || 1.3)).toFixed(1)}${config.typography.baseFontSize.replace(/[0-9.]/g, '')} (date ranges)`}
+                />
+                <NumberControl
+                  label="Inline Code Scale"
+                  value={config.typography.fontScale.inlineCode || 1.2}
+                  onChange={(value) =>
+                    updateConfig('typography', {
+                      fontScale: { ...config.typography.fontScale, inlineCode: value },
+                    })
+                  }
+                  min={0.5}
+                  max={1.5}
+                  step={0.1}
+                  description={`${(parseFloat(config.typography.baseFontSize) * (config.typography.fontScale.inlineCode || 1.2)).toFixed(1)}${config.typography.baseFontSize.replace(/[0-9.]/g, '')} (code snippets)`}
+                />
               </>
             )}
 

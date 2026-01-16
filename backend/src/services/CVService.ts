@@ -59,10 +59,19 @@ export class CVService {
       );
     }
 
-    // Parse Markdown content
+    // Get template to access its config
+    const template = this.templateModel.findById(data.template_id);
+    if (!template) {
+      throw new CVServiceError(`Template not found: ${data.template_id}`, 'TEMPLATE_NOT_FOUND');
+    }
+
+    // Merge template config with user config
+    const finalConfig = data.config || template.default_config;
+
+    // Parse Markdown content with config for HTML generation
     let parsedContent: ParsedCVContent;
     try {
-      parsedContent = await parseCV(data.content);
+      parsedContent = await parseCV(data.content, {}, finalConfig);
     } catch (error) {
       throw new CVServiceError(
         `Failed to parse CV content: ${error instanceof Error ? error.message : 'Unknown error'}`,
@@ -111,6 +120,12 @@ export class CVService {
    * Update CV with optional content re-parsing
    */
   async update(id: string, data: UpdateCVServiceData): Promise<CVInstance> {
+    // Get existing CV to access template and config
+    const existingCV = this.cvModel.findById(id);
+    if (!existingCV) {
+      throw new CVServiceError(`CV not found: ${id}`, 'NOT_FOUND');
+    }
+
     const updateData: UpdateCVInstanceData = {
       name: data.name,
       template_id: data.template_id,
@@ -130,10 +145,20 @@ export class CVService {
         );
       }
 
-      // Parse new content
+      // Get template for config
+      const template_id = data.template_id || existingCV.template_id;
+      const template = this.templateModel.findById(template_id);
+      if (!template) {
+        throw new CVServiceError(`Template not found: ${template_id}`, 'TEMPLATE_NOT_FOUND');
+      }
+
+      // Use provided config or existing config or template default
+      const finalConfig = data.config || existingCV.config || template.default_config;
+
+      // Parse new content with config for HTML generation
       let parsedContent: ParsedCVContent;
       try {
-        parsedContent = await parseCV(data.content);
+        parsedContent = await parseCV(data.content, {}, finalConfig);
       } catch (error) {
         throw new CVServiceError(
           `Failed to parse CV content: ${error instanceof Error ? error.message : 'Unknown error'}`,
@@ -143,9 +168,8 @@ export class CVService {
 
       updateData.content = data.content;
       updateData.parsed_content = parsedContent;
-      
+
       // Update metadata
-      const existingCV = await this.getById(id);
       updateData.metadata = {
         ...existingCV.metadata,
         parsed_at: new Date().toISOString(),
@@ -250,9 +274,18 @@ export class CVService {
    */
   async reparse(id: string): Promise<CVInstance> {
     const cv = await this.getById(id);
-    
+
+    // Get template for config
+    const template = this.templateModel.findById(cv.template_id);
+    if (!template) {
+      throw new CVServiceError(`Template not found: ${cv.template_id}`, 'TEMPLATE_NOT_FOUND');
+    }
+
+    // Use existing config or template default
+    const finalConfig = cv.config || template.default_config;
+
     try {
-      const parsedContent = await parseCV(cv.content);
+      const parsedContent = await parseCV(cv.content, {}, finalConfig);
       
       return this.cvModel.update(id, {
         parsed_content: parsedContent,

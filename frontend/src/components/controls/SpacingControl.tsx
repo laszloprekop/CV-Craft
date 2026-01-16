@@ -48,7 +48,7 @@ export const SpacingControl: React.FC<SpacingControlProps> = ({
       {description && (
         <p className="text-[10px] text-text-muted mb-1">{description}</p>
       )}
-      <div className="flex items-center gap-1.5">
+      <div className="flex items-center _gap-1.5">
         <input
           type="number"
           value={num}
@@ -56,12 +56,12 @@ export const SpacingControl: React.FC<SpacingControlProps> = ({
           min={min}
           max={max}
           step="0.5"
-          className="flex-1 px-2.5 py-1.5 text-[11px] border border-border/50 rounded bg-surface text-text-primary focus:outline-none focus:border-primary transition-colors"
+          className="flex-shrink-0 px-2.5 py-1.5 text-[11px] border border-border/50 rounded-l border-r-surface _rounded-r-none bg-surface text-text-primary focus:outline-none focus:border-primary transition-colors"
         />
         <select
           value={unit}
           onChange={(e) => handleUnitChange(e.target.value)}
-          className="px-2.5 py-1.5 text-[11px] border border-border/50 rounded bg-surface text-text-primary focus:outline-none focus:border-primary transition-colors"
+          className="pr-0 py-1.5 text-[11px] text-right border border-l-surface border-border/50 rounded-r bg-surface text-text-primary focus:outline-none focus:border-primary transition-colors"
         >
           {units.map((u) => (
             <option key={u} value={u}>

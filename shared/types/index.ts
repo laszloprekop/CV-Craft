@@ -20,7 +20,9 @@ export interface CVInstance {
 
 export interface ParsedCVContent {
   frontmatter: CVFrontmatter;
-  sections: CVSection[];
+  sections: CVSection[]; // Legacy - kept for backward compatibility
+  html?: string; // NEW: Unified/Rehype generated HTML with embedded styles
+  cssVariables?: Record<string, string>; // CSS variables for the template
 }
 
 export interface CVFrontmatter {
@@ -35,9 +37,9 @@ export interface CVFrontmatter {
 }
 
 export interface CVSection {
-  type: 'heading' | 'paragraph' | 'list' | 'experience' | 'education' | 'skills' | 'projects';
+  type: 'heading' | 'paragraph' | 'list' | 'experience' | 'education' | 'skills' | 'projects' | 'languages' | 'certifications' | 'interests' | 'references' | 'summary';
   title?: string;
-  content: string | CVListItem[] | CVExperienceItem[] | CVEducationItem[] | string[];
+  content: string | CVListItem[] | CVExperienceItem[] | CVEducationItem[] | string[] | any[];
   level?: number; // for headings (1-6)
 }
 
@@ -139,12 +141,15 @@ export interface TemplateConfig {
 
     // Font scale - multipliers relative to baseFontSize
     fontScale: {
-      h1: number;      // e.g., 3.2 means 3.2 × baseFontSize
-      h2: number;      // e.g., 2.4 means 2.4 × baseFontSize
-      h3: number;      // e.g., 2.0 means 2.0 × baseFontSize
-      body: number;    // e.g., 1.6 means 1.6 × baseFontSize
-      small: number;   // e.g., 1.4 means 1.4 × baseFontSize
-      tiny: number;    // e.g., 1.2 means 1.2 × baseFontSize
+      h1: number;         // e.g., 3.2 means 3.2 × baseFontSize (main name/title)
+      h2: number;         // e.g., 2.4 means 2.4 × baseFontSize (section headers)
+      h3: number;         // e.g., 2.0 means 2.0 × baseFontSize (job titles)
+      body: number;       // e.g., 1.6 means 1.6 × baseFontSize (paragraphs)
+      small: number;      // e.g., 1.4 means 1.4 × baseFontSize (metadata, contact)
+      tiny: number;       // e.g., 1.2 means 1.2 × baseFontSize (dates, locations)
+      tag?: number;       // e.g., 1.3 means 1.3 × baseFontSize (skill tags)
+      dateLine?: number;  // e.g., 1.3 means 1.3 × baseFontSize (date ranges)
+      inlineCode?: number;// e.g., 1.2 means 1.2 × baseFontSize (inline code)
     };
 
     // Legacy absolute sizes - kept for backward compatibility, will be migrated
@@ -314,7 +319,7 @@ export interface TemplateConfig {
       textColor?: string; // Legacy: direct color (will be deprecated)
       borderRadius: string;
       padding: string;
-      fontSize: string;
+      fontSize?: string; // Optional - falls back to calculated tag × baseFontSize
       gap: string;
       border?: string;
       fontWeight?: number;
@@ -326,7 +331,7 @@ export interface TemplateConfig {
       colorOpacity?: number;
       color?: string; // Legacy support
       fontStyle: 'normal' | 'italic';
-      fontSize: string;
+      fontSize?: string; // Optional - falls back to calculated dateLine × baseFontSize
       fontWeight?: number;
       alignment: 'left' | 'right';
       format?: 'full' | 'short' | 'year-only'; // date format preset

@@ -1,22 +1,29 @@
 /**
  * CV Parser Library
- * 
+ *
  * Parses structured Markdown files into CV data using Remark ecosystem.
  * Extracts frontmatter and converts content sections into structured format.
+ * Enhanced with Unified/Rehype for HTML generation with embedded styles.
  */
 
 import { remark } from 'remark';
 import remarkFrontmatter from 'remark-frontmatter';
 import remarkParse from 'remark-parse';
+import remarkGfm from 'remark-gfm';
+import remarkRehype from 'remark-rehype';
+import rehypeStringify from 'rehype-stringify';
+import { visit } from 'unist-util-visit';
 import matter from 'gray-matter';
-import type { 
-  ParsedCVContent, 
-  CVFrontmatter, 
-  CVSection, 
+import type {
+  ParsedCVContent,
+  CVFrontmatter,
+  CVSection,
   CVExperienceItem,
   CVEducationItem,
-  CVListItem 
+  CVListItem,
+  TemplateConfig
 } from '../../../../shared/types';
+import { generateCSSVariables } from '../../../../shared/utils/cssVariableGenerator';
 
 export interface CVParserOptions {
   strictFrontmatter?: boolean;
@@ -35,33 +42,260 @@ export class CVParser {
 
   /**
    * Parse CV Markdown content into structured data
+   * Enhanced to generate HTML with embedded styles using Unified/Rehype
    */
-  async parse(content: string): Promise<ParsedCVContent> {
+  async parse(content: string, config?: TemplateConfig): Promise<ParsedCVContent> {
     try {
       // Extract frontmatter using gray-matter
       const { data: frontmatter, content: markdownContent } = matter(content);
-      
+
       // Validate frontmatter
       let validatedFrontmatter = this.validateFrontmatter(frontmatter);
-      
+
       // Parse markdown content into AST
       const tree = this.processor.parse(markdownContent);
-      
-      // Extract sections from AST
+
+      // Extract sections from AST (legacy support)
       const sections = this.extractSections(tree);
-      
+
       // If no frontmatter provided, try to extract contact info from content
       if (Object.keys(validatedFrontmatter).length === 0) {
         validatedFrontmatter = this.extractContactFromContent(tree, validatedFrontmatter);
       }
-      
+
+      // Generate HTML with embedded styles (if config provided)
+      let html: string | undefined;
+      let cssVariables: Record<string, string> | undefined;
+
+      if (config) {
+        const htmlResult = await this.generateHTML(markdownContent, config);
+        html = htmlResult.html;
+        cssVariables = htmlResult.cssVariables;
+      }
+
       return {
         frontmatter: validatedFrontmatter,
-        sections
+        sections, // Legacy support
+        html,
+        cssVariables
       };
     } catch (error) {
       throw new CVParserError(`Failed to parse CV content: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
+  }
+
+  /**
+   * Generate HTML from markdown with embedded template styles
+   * Uses Unified/Rehype pipeline for consistent rendering
+   */
+  private async generateHTML(
+    markdownContent: string,
+    config: TemplateConfig
+  ): Promise<{ html: string; cssVariables: Record<string, string> }> {
+    const cssVariables = generateCSSVariables(config);
+
+    // Create HTML processor with Unified/Rehype
+    const htmlProcessor = remark()
+      .use(remarkParse)
+      .use(remarkGfm) // GitHub Flavored Markdown (tables, strikethrough, etc.)
+      .use(remarkRehype, { allowDangerousHtml: true })
+      .use(() => (tree) => {
+        // Apply template styles to HTML elements
+        visit(tree, 'element', (node: any) => {
+          this.applyTemplateStyles(node, config);
+        });
+      })
+      .use(rehypeStringify, { allowDangerousHtml: true });
+
+    const file = await htmlProcessor.process(markdownContent);
+
+    return {
+      html: String(file),
+      cssVariables
+    };
+  }
+
+  /**
+   * Apply template styles to HTML elements based on config
+   * Injects CSS variables for consistent styling
+   */
+  private applyTemplateStyles(node: any, config: TemplateConfig): void {
+    if (!node.tagName) return;
+
+    const existingStyle = node.properties?.style || '';
+
+    const styleMap: Record<string, string> = {
+      h1: `
+        font-family: var(--heading-font-family);
+        font-size: var(--name-font-size);
+        font-weight: var(--name-font-weight);
+        color: var(--name-color);
+        line-height: var(--heading-line-height);
+        letter-spacing: var(--name-letter-spacing);
+        text-transform: var(--name-text-transform);
+        margin-bottom: var(--name-margin-bottom);
+      `,
+      h2: `
+        font-family: var(--heading-font-family);
+        font-size: var(--section-header-font-size);
+        font-weight: var(--section-header-font-weight);
+        color: var(--section-header-color);
+        line-height: var(--heading-line-height);
+        letter-spacing: var(--section-header-letter-spacing);
+        text-transform: var(--section-header-text-transform);
+        border-bottom: var(--section-header-border-bottom);
+        border-color: var(--section-header-border-color);
+        padding: var(--section-header-padding);
+        margin-top: var(--section-header-margin-top);
+        margin-bottom: var(--section-header-margin-bottom);
+      `,
+      h3: `
+        font-family: var(--heading-font-family);
+        font-size: var(--job-title-font-size);
+        font-weight: var(--job-title-font-weight);
+        color: var(--job-title-color);
+        line-height: var(--heading-line-height);
+        margin-bottom: var(--job-title-margin-bottom);
+      `,
+      h4: `
+        font-family: var(--heading-font-family);
+        font-size: var(--h3-font-size);
+        font-weight: var(--subheading-weight);
+        color: var(--text-color);
+        line-height: var(--heading-line-height);
+        margin-bottom: 0.5em;
+      `,
+      h5: `
+        font-family: var(--heading-font-family);
+        font-size: var(--body-font-size);
+        font-weight: var(--subheading-weight);
+        color: var(--text-color);
+        line-height: var(--heading-line-height);
+        margin-bottom: 0.5em;
+      `,
+      h6: `
+        font-family: var(--heading-font-family);
+        font-size: var(--small-font-size);
+        font-weight: var(--subheading-weight);
+        color: var(--text-secondary);
+        line-height: var(--heading-line-height);
+        margin-bottom: 0.5em;
+      `,
+      p: `
+        font-size: var(--body-font-size);
+        font-weight: var(--body-weight);
+        line-height: var(--body-line-height);
+        color: var(--on-background-color);
+        margin-bottom: var(--paragraph-spacing);
+      `,
+      strong: `
+        font-weight: var(--bold-weight);
+        color: var(--emphasis-color);
+      `,
+      em: `
+        font-style: italic;
+        color: var(--emphasis-color);
+      `,
+      a: `
+        color: var(--link-color);
+        text-decoration: underline;
+      `,
+      code: `
+        font-size: var(--inline-code-font-size);
+        font-family: monospace;
+        background-color: var(--muted-color);
+        padding: 0.125rem 0.25rem;
+        border-radius: 0.25rem;
+      `,
+      pre: `
+        background-color: var(--muted-color);
+        padding: 1rem;
+        border-radius: 0.25rem;
+        overflow-x: auto;
+        margin-bottom: var(--paragraph-spacing);
+      `,
+      ul: `
+        margin-left: var(--bullet-level1-indent);
+        margin-bottom: var(--paragraph-spacing);
+        list-style-type: disc;
+        color: var(--bullet-level1-color);
+      `,
+      ol: `
+        margin-left: var(--bullet-level1-indent);
+        margin-bottom: var(--paragraph-spacing);
+        list-style-type: decimal;
+      `,
+      li: `
+        line-height: var(--body-line-height);
+        margin-bottom: calc(var(--paragraph-spacing) / 2);
+        font-size: var(--body-font-size);
+      `,
+      blockquote: `
+        border-left: 4px solid var(--primary-color);
+        padding-left: 1rem;
+        margin-left: 0;
+        margin-bottom: var(--paragraph-spacing);
+        font-style: italic;
+        color: var(--text-secondary);
+      `,
+      table: `
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: var(--paragraph-spacing);
+        font-size: var(--body-font-size);
+      `,
+      th: `
+        background-color: var(--surface-color);
+        padding: 0.5rem;
+        text-align: left;
+        font-weight: var(--bold-weight);
+        border-bottom: 2px solid var(--border-color);
+      `,
+      td: `
+        padding: 0.5rem;
+        border-bottom: 1px solid var(--border-color);
+      `,
+      hr: `
+        border: none;
+        border-top: 1px solid var(--border-color);
+        margin: var(--section-spacing) 0;
+      `
+    };
+
+    if (styleMap[node.tagName]) {
+      // Merge existing style with new style
+      const newStyle = styleMap[node.tagName].trim().replace(/\s+/g, ' ');
+      node.properties = {
+        ...node.properties,
+        style: existingStyle ? `${existingStyle}; ${newStyle}` : newStyle
+      };
+    }
+
+    // Handle nested lists (levels 2-3)
+    if ((node.tagName === 'ul' || node.tagName === 'ol')) {
+      // Check if this is a nested list by looking at parent
+      const depth = this.getListDepth(node);
+      if (depth === 2) {
+        node.properties.style += '; margin-left: var(--bullet-level2-indent); color: var(--bullet-level2-color);';
+      } else if (depth >= 3) {
+        node.properties.style += '; margin-left: var(--bullet-level3-indent); color: var(--bullet-level3-color);';
+      }
+    }
+  }
+
+  /**
+   * Helper to determine list nesting depth
+   */
+  private getListDepth(node: any): number {
+    let depth = 1;
+    let parent = node.parent;
+    while (parent) {
+      if (parent.tagName === 'ul' || parent.tagName === 'ol' || parent.tagName === 'li') {
+        depth++;
+      }
+      parent = parent.parent;
+    }
+    return Math.min(depth, 3); // Cap at level 3
   }
 
   /**
@@ -196,93 +430,242 @@ export class CVParser {
   }
 
   /**
-   * Extract structured sections from Markdown AST
+   * Extract structured sections from Markdown AST with rich entry parsing
    */
   private extractSections(tree: any): CVSection[] {
     const sections: CVSection[] = [];
-    let currentSection: Partial<CVSection> | null = null;
-    
+    let currentSection: any = null;
+    let currentEntry: any = null;
+
     // Walk through AST nodes
     this.walkTree(tree, (node: any) => {
       switch (node.type) {
         case 'heading':
-          // Start new section
-          if (currentSection) {
-            sections.push(currentSection as CVSection);
+          if (node.depth === 2) {
+            // H2 - Start new section
+            if (currentSection) {
+              // Finalize previous entry if exists
+              if (currentEntry && currentSection.type in { experience: 1, education: 1, projects: 1 }) {
+                if (!Array.isArray(currentSection.content)) {
+                  currentSection.content = [];
+                }
+                currentSection.content.push(currentEntry);
+              }
+              sections.push(currentSection);
+              currentEntry = null;
+            }
+
+            const title = this.extractTextFromNode(node);
+            currentSection = {
+              type: this.inferSectionTypeFromTitle(title),
+              title: title,
+              level: node.depth,
+              content: []
+            };
+          } else if (node.depth === 3 && currentSection) {
+            // H3 - Start new entry within section (job, education, project)
+            if (currentEntry && currentSection.type in { experience: 1, education: 1, projects: 1 }) {
+              if (!Array.isArray(currentSection.content)) {
+                currentSection.content = [];
+              }
+              // Convert description array to string before pushing
+              if (Array.isArray(currentEntry.description)) {
+                currentEntry.description = currentEntry.description.join('\n\n');
+              }
+              currentSection.content.push(currentEntry);
+            }
+
+            const titleText = this.extractTextFromNode(node);
+            currentEntry = this.parseEntryTitle(titleText);
           }
-          
-          currentSection = {
-            type: this.inferSectionType(node),
-            title: this.extractTextFromNode(node),
-            level: node.depth,
-            content: []
-          };
           break;
-          
+
         case 'paragraph':
           if (currentSection) {
             const text = this.extractTextFromNode(node);
             if (text.trim()) {
-              if (typeof currentSection.content === 'string') {
-                currentSection.content += '\n' + text;
-              } else if (Array.isArray(currentSection.content)) {
-                // Always convert to string array and append
-                const stringArray = currentSection.content.map(item => String(item));
-                stringArray.push(text);
-                currentSection.content = stringArray;
+              // Check if it's a date line (often in bold or italic)
+              const dateMatch = text.match(/^[\*_]*(.*?[\d]{4}.*?)[\*_]*$/);
+
+              if (currentEntry) {
+                // We're inside a structured entry - add to description
+                if (!currentEntry.description) {
+                  currentEntry.description = [];
+                }
+                if (dateMatch && !currentEntry.date) {
+                  currentEntry.date = dateMatch[1].trim();
+                } else {
+                  currentEntry.description.push(text);
+                }
               } else {
-                currentSection.content = text;
+                // Plain paragraph in section
+                if (!Array.isArray(currentSection.content)) {
+                  currentSection.content = [];
+                }
+                currentSection.content.push(text);
               }
             }
           }
           break;
-          
+
         case 'list':
           if (currentSection) {
             const listItems = this.extractListItems(node);
+
             if (currentSection.type === 'skills') {
-              // Skills section - extract skills as flat array
-              currentSection.content = this.flattenSkills(listItems);
+              // Parse skills with categories
+              currentSection.content = this.parseSkillsList(listItems);
+            } else if (currentEntry) {
+              // Bullet points belong to current entry
+              if (!currentEntry.bullets) {
+                currentEntry.bullets = [];
+              }
+              currentEntry.bullets.push(...listItems);
             } else {
-              currentSection.content = listItems;
+              // Standalone list in section
+              if (!Array.isArray(currentSection.content)) {
+                currentSection.content = [];
+              }
+              currentSection.content.push(...listItems);
             }
           }
           break;
       }
     });
-    
-    // Add final section
-    if (currentSection) {
-      sections.push(currentSection as CVSection);
+
+    // Finalize last entry and section
+    if (currentEntry && currentSection && currentSection.type in { experience: 1, education: 1, projects: 1 }) {
+      if (!Array.isArray(currentSection.content)) {
+        currentSection.content = [];
+      }
+      // Convert description array to string before pushing
+      if (Array.isArray(currentEntry.description)) {
+        currentEntry.description = currentEntry.description.join('\n\n');
+      }
+      currentSection.content.push(currentEntry);
     }
-    
-    return sections.filter(section => section.content && 
-      (typeof section.content === 'string' ? section.content.trim() : 
-       Array.isArray(section.content) ? section.content.length > 0 : true)
+    if (currentSection) {
+      sections.push(currentSection);
+    }
+
+    // FINAL PASS: Ensure ALL entry descriptions are strings (safety net)
+    sections.forEach(section => {
+      if (section.type in { experience: 1, education: 1, projects: 1 } && Array.isArray(section.content)) {
+        section.content = section.content.map((entry: any) => {
+          if (entry && typeof entry === 'object' && Array.isArray(entry.description)) {
+            return {
+              ...entry,
+              description: entry.description.join('\n\n')
+            };
+          }
+          return entry;
+        });
+      }
+    });
+
+    return sections.filter(section =>
+      section.content && (
+        typeof section.content === 'string' ? section.content.trim() :
+        Array.isArray(section.content) ? section.content.length > 0 : true
+      )
     );
   }
 
   /**
-   * Infer section type from heading content
+   * Parse entry title to extract job title, company, etc.
    */
-  private inferSectionType(headingNode: any): CVSection['type'] {
-    const title = this.extractTextFromNode(headingNode).toLowerCase();
-    
-    if (title.includes('experience') || title.includes('work') || title.includes('employment')) {
+  private parseEntryTitle(titleText: string): any {
+    const entry: any = {
+      title: titleText,
+      company: '',
+      date: '',
+      location: '',
+      description: [],
+      bullets: []
+    };
+
+    // Try various formats:
+    // "Job Title | Company Name"
+    if (titleText.includes('|')) {
+      const parts = titleText.split('|').map(p => p.trim());
+      entry.title = parts[0];
+      entry.company = parts[1] || '';
+    }
+    // "Job Title at Company Name"
+    else if (titleText.match(/\s+at\s+/i)) {
+      const match = titleText.match(/^(.+?)\s+at\s+(.+)$/i);
+      if (match) {
+        entry.title = match[1].trim();
+        entry.company = match[2].trim();
+      }
+    }
+
+    return entry;
+  }
+
+  /**
+   * Parse skills list with categories
+   */
+  private parseSkillsList(items: any[]): any[] {
+    const skills: any[] = [];
+
+    for (const item of items) {
+      // Extract text from CVListItem if needed
+      const text = typeof item === 'string' ? item : (item.text || String(item));
+
+      // Check if it's a category line (contains colon)
+      const categoryMatch = text.match(/^\*\*([^:]+):\*\*\s*(.+)$/);
+      if (categoryMatch) {
+        skills.push({
+          category: categoryMatch[1].trim(),
+          skills: categoryMatch[2].split(',').map((s: string) => s.trim())
+        });
+      } else {
+        // Plain skill item
+        skills.push(text);
+      }
+    }
+
+    return skills.length > 0 ? skills : items;
+  }
+
+  /**
+   * Infer section type from title
+   */
+  private inferSectionTypeFromTitle(title: string): CVSection['type'] {
+    const lower = title.toLowerCase();
+
+    if (lower.includes('experience') || lower.includes('work') || lower.includes('employment')) {
       return 'experience';
     }
-    if (title.includes('education') || title.includes('academic')) {
+    if (lower.includes('education') || lower.includes('academic')) {
       return 'education';
     }
-    if (title.includes('skill') || title.includes('technolog') || title.includes('competenc')) {
+    if (lower.includes('skill') || lower.includes('technolog') || lower.includes('competenc')) {
       return 'skills';
     }
-    if (title.includes('project')) {
+    if (lower.includes('project')) {
       return 'projects';
     }
-    
-    return 'paragraph'; // Default type
+    if (lower.includes('language')) {
+      return 'languages';
+    }
+    if (lower.includes('certification') || lower.includes('award')) {
+      return 'certifications';
+    }
+    if (lower.includes('interest') || lower.includes('hobbi')) {
+      return 'interests';
+    }
+    if (lower.includes('reference')) {
+      return 'references';
+    }
+    if (lower.includes('summary') || lower.includes('profile') || lower.includes('about')) {
+      return 'summary';
+    }
+
+    return 'paragraph';
   }
+
 
   /**
    * Extract text content from AST node
@@ -422,9 +805,13 @@ export class CVParserError extends Error {
 /**
  * Convenience function for parsing CV content
  */
-export async function parseCV(content: string, options?: CVParserOptions): Promise<ParsedCVContent> {
+export async function parseCV(
+  content: string,
+  options?: CVParserOptions,
+  config?: TemplateConfig
+): Promise<ParsedCVContent> {
   const parser = new CVParser(options);
-  return parser.parse(content);
+  return parser.parse(content, config);
 }
 
 /**

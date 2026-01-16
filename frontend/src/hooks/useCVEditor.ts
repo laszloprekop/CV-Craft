@@ -14,7 +14,7 @@ export type SaveStatus = 'idle' | 'saving' | 'saved' | 'error'
 export interface UseCVEditorReturn {
   cv: CVInstance | null
   content: string
-  settings: TemplateSettings
+  settings: Partial<TemplateSettings>
   config: TemplateConfig | undefined
   loading: boolean
   error: string | null
@@ -83,7 +83,7 @@ Brief description of another project and your contributions.
 export function useCVEditor(cvId?: string): UseCVEditorReturn {
   const [cv, setCv] = useState<CVInstance | null>(null)
   const [content, setContent] = useState('')
-  const [settings, setSettings] = useState<TemplateSettings>({})
+  const [settings, setSettings] = useState<Partial<TemplateSettings>>({})
   const [config, setConfig] = useState<TemplateConfig | undefined>(undefined)
   const [loading, setLoading] = useState(!!cvId)
   const [error, setError] = useState<string | null>(null)
@@ -238,7 +238,7 @@ export function useCVEditor(cvId?: string): UseCVEditorReturn {
         // Update existing CV
         const response = await cvApi.update(cv.id, {
           content,
-          settings,
+          settings: settings as TemplateSettings,
           config
         })
         setCv(response.data)

@@ -2,6 +2,62 @@
 
 All notable changes to CV-Craft will be documented in this file.
 
+## [1.8.0] - 2026-01-16
+
+### Added
+- **Unified Web/PDF Rendering Pipeline** - Both preview modes now use shared rendering utilities
+  - Created `shared/utils/sectionRenderer.ts` for consistent HTML generation
+  - PDF generator uses same rendering functions as web preview
+  - CSS variables serve as styling contract between frontend and backend
+
+- **Semantic Color System** - Theme-aware color controls with dropdown selections
+  - Extended `TemplateConfig` types with comprehensive component settings
+  - Added `SemanticColorControl` for theme-aware color selection
+  - Figma-style collapsible sections in TemplateConfigPanel UI
+
+- **Enhanced CV Parser with Rehype Pipeline** - Backend now generates styled HTML directly
+  - Added Unified/Rehype plugins for HTML generation (`remark-gfm`, `remark-rehype`, `rehype-stringify`, `rehype-rewrite`)
+  - Parser generates HTML with embedded CSS variables
+  - Improved section type detection (languages, certifications, interests, references, summary)
+  - Better entry parsing for experience/education with title/company extraction
+  - Skills parsing supports categorized format (`**Category:** skill1, skill2`)
+
+- **Development Workflow Scripts** - Improved developer experience
+  - Added `start-dev.sh`, `stop-dev.sh`, `view-logs.sh` for server management
+  - Created `/snapshot` command for standardized commit workflow
+  - Documentation reorganized with core docs in `docs/` directory
+
+### Changed
+- **Documentation Structure** - Cleaner project root
+  - Moved implementation notes and old changelogs to `docs/archive/`
+  - Rewritten `CLAUDE.md` with clearer structure and key file references
+  - Core documentation now in dedicated `docs/` folder
+
+- **TypeScript Improvements** - Better type safety across codebase
+  - Extended CSSProperties to support CSS custom properties
+  - Fixed implicit any types in callbacks and function parameters
+  - Proper type guards for section content and frontmatter parsing
+
+### Fixed
+- **Build System** - Resolved TypeScript and Vite build issues
+  - Added `vite-env.d.ts` for ImportMeta.env types
+  - Extended styled-components DefaultTheme
+  - Fixed SaveStatus naming conflict in EditorStyles
+  - Removed outdated compiled JS files from shared types
+
+### Technical Insights
+- **CSS Variables Pattern**: Using CSS custom properties as the styling contract between React components and generated HTML ensures consistent rendering across web preview and PDF export
+- **Type Safety for CSS**: When using CSS custom properties extensively, extend React.CSSProperties via module augmentation rather than casting everywhere
+- **Shared Code Location**: Utilities needed by both frontend (CVPreview) and backend (pdf-generator) belong in `shared/` directory
+- **Module Resolution**: Vite prefers TypeScript sources over compiled JS - keep shared types as .ts files without pre-compilation
+
+## [1.7.2] - 2025-11-04 (Previous Unreleased)
+
+### Fixed
+- Unified web and PDF rendering with shared utilities
+- TextStyleControl updated to use SemanticColorControl
+- Layout stability improvements for CollapsibleSection
+
 ## [1.4.2] - 2025-10-01
 
 ### Fixed

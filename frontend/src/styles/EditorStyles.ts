@@ -5,7 +5,7 @@
  */
 
 import styled from 'styled-components'
-import type { SaveStatus } from '../hooks/useCVEditor'
+import type { SaveStatus as SaveStatusType } from '../hooks/useCVEditor'
 
 export const EditorContainer = styled.div`
   display: flex;
@@ -25,7 +25,7 @@ export const EditorHeader = styled.header`
   min-height: 60px;
   flex-shrink: 0;
 
-  @media (max-width: ${props => props.theme.breakpoints.tablet}) {
+  @media (max-width: 768px) {
     flex-direction: column;
     gap: var(--spacing-md);
     padding: var(--spacing-md);
@@ -44,7 +44,7 @@ export const ToolbarContainer = styled.div`
   align-items: center;
   gap: var(--spacing-md);
 
-  @media (max-width: ${props => props.theme.breakpoints.tablet}) {
+  @media (max-width: 768px) {
     flex-wrap: wrap;
     justify-content: center;
   }
@@ -86,7 +86,7 @@ export const HeaderButton = styled.button`
   }
 `
 
-export const SaveStatus = styled.div<{ status: SaveStatus }>`
+export const SaveStatus = styled.div<{ status: SaveStatusType }>`
   display: flex;
   align-items: center;
   gap: var(--spacing-xs);

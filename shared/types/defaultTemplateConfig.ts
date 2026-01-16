@@ -61,12 +61,15 @@ export const DEFAULT_TEMPLATE_CONFIG: TemplateConfig = {
 
     // Font scale relative to baseFontSize
     fontScale: {
-      h1: 3.2,
-      h2: 2.4,
-      h3: 2.0,
-      body: 1.6,
-      small: 1.4,
-      tiny: 1.2,
+      h1: 3.2,        // Main name/title
+      h2: 2.4,        // Section headers
+      h3: 2.0,        // Job titles
+      body: 1.6,      // Paragraphs, descriptions
+      small: 1.4,     // Metadata, contact info
+      tiny: 1.2,      // Dates, locations, page numbers
+      tag: 1.3,       // Skill tags
+      dateLine: 1.3,  // Date ranges in experience/education
+      inlineCode: 1.2,// Inline code snippets
     },
 
     fontSize: {
@@ -117,7 +120,7 @@ export const DEFAULT_TEMPLATE_CONFIG: TemplateConfig = {
     // Main name (H1)
     name: {
       fontFamily: undefined, // Uses heading font by default
-      fontSize: '32px',
+      fontSize: undefined,   // Uses h1 × baseFontSize (calculated)
       fontWeight: 700,
       color: '#0f172a',
       letterSpacing: '-0.02em',
@@ -132,7 +135,7 @@ export const DEFAULT_TEMPLATE_CONFIG: TemplateConfig = {
       iconColor: '#64748b',
       textColor: '#475569',
       spacing: '12px',
-      fontSize: '14px',
+      fontSize: undefined, // Uses small × baseFontSize (calculated)
       showIcons: true,
       iconPosition: 'left',
       separator: '·', // Default separator between items
@@ -156,7 +159,7 @@ export const DEFAULT_TEMPLATE_CONFIG: TemplateConfig = {
     // Section headers (H2)
     sectionHeader: {
       fontFamily: undefined, // Uses heading font by default
-      fontSize: '20px',
+      fontSize: undefined,   // Uses h2 × baseFontSize (calculated)
       fontWeight: 700,
       color: '#0f172a',
       textTransform: 'uppercase',
@@ -182,7 +185,7 @@ export const DEFAULT_TEMPLATE_CONFIG: TemplateConfig = {
     // Job/education titles (H3)
     jobTitle: {
       fontFamily: undefined, // Uses heading font by default
-      fontSize: '18px',
+      fontSize: undefined,   // Uses h3 × baseFontSize (calculated)
       fontWeight: 600,
       color: '#0f172a',
       fontStyle: 'normal',
@@ -191,7 +194,7 @@ export const DEFAULT_TEMPLATE_CONFIG: TemplateConfig = {
     },
     // Organization/company names
     organizationName: {
-      fontSize: '16px',
+      fontSize: undefined, // Uses body × baseFontSize (calculated)
       fontWeight: 500,
       color: '#475569',
       fontStyle: 'normal',
@@ -218,7 +221,7 @@ export const DEFAULT_TEMPLATE_CONFIG: TemplateConfig = {
       textColor: '#3730a3',       // Legacy fallback: Indigo-800
       borderRadius: '4px',
       padding: '4px 8px',
-      fontSize: '14px',
+      fontSize: undefined,        // Uses tag × baseFontSize (calculated)
       gap: '8px',
       border: undefined,
       fontWeight: 500,
@@ -228,7 +231,7 @@ export const DEFAULT_TEMPLATE_CONFIG: TemplateConfig = {
     dateLine: {
       color: '#64748b',
       fontStyle: 'italic',
-      fontSize: '14px',
+      fontSize: undefined, // Uses dateLine × baseFontSize (calculated)
       fontWeight: 400,
       alignment: 'right',
       format: 'short', // Use 'short' format by default (MMM YYYY)

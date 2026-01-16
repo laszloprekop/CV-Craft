@@ -31,7 +31,10 @@ export function generateCSSVariables(config: TemplateConfig): Record<string, str
     h3: 2.0,
     body: 1.6,
     small: 1.4,
-    tiny: 1.2
+    tiny: 1.2,
+    tag: 1.3,
+    dateLine: 1.3,
+    inlineCode: 1.2
   };
 
   // Tags - use semantic color pairs with transparency
@@ -85,6 +88,9 @@ export function generateCSSVariables(config: TemplateConfig): Record<string, str
     '--body-font-size': calculateFontSize(fontScale.body, baseFontSize),
     '--small-font-size': calculateFontSize(fontScale.small, baseFontSize),
     '--tiny-font-size': calculateFontSize(fontScale.tiny, baseFontSize),
+    '--tag-font-size': calculateFontSize(fontScale.tag || 1.3, baseFontSize),
+    '--date-line-font-size': calculateFontSize(fontScale.dateLine || 1.3, baseFontSize),
+    '--inline-code-font-size': calculateFontSize(fontScale.inlineCode || 1.2, baseFontSize),
 
     // Font weights
     '--heading-weight': String(config.typography.fontWeight.heading || 700),
@@ -110,6 +116,7 @@ export function generateCSSVariables(config: TemplateConfig): Record<string, str
     '--tag-bg-color': hexToRgba(tagBaseColor, tagBgOpacity),
     '--tag-text-color': hexToRgba(tagOnColor, tagTextOpacity),
     '--tag-border-radius': config.components.tags.borderRadius,
+    '--tag-font-size-custom': config.components.tags?.fontSize || calculateFontSize(fontScale.tag || 1.3, baseFontSize),
 
     // Date Line
     '--date-line-color': resolveSemanticColor(
@@ -117,6 +124,7 @@ export function generateCSSVariables(config: TemplateConfig): Record<string, str
       config,
       config.components.dateLine.colorOpacity
     ),
+    '--date-line-font-size-custom': config.components.dateLine?.fontSize || calculateFontSize(fontScale.dateLine || 1.3, baseFontSize),
 
     // Name (H1)
     '--name-font-size': config.components.name?.fontSize || calculateFontSize(fontScale.h1, baseFontSize),

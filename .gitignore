@@ -22,3 +22,22 @@ out/
 
 # Uploads
 public/uploads/
+
+# Development logs
+backend.log
+frontend.log
+log/
+backend/*.log
+
+# Test output files
+backend/generated-html.html
+backend/minimal-output.pdf
+backend/test-*.ts
+
+# Duplicate database at root
+cv-craft.db
+
+# Personal reference files
+_references/*.pdf
+_references/*.afdesign
+_references/laszlo_*.md

@@ -14,6 +14,7 @@ interface FontSelectorProps {
   onChange: (value: string) => void;
   description?: string;
   fontType?: 'heading' | 'body' | 'monospace';
+  availableFonts?: string[];
 }
 
 // Comprehensive font list with popular Google Fonts for CVs

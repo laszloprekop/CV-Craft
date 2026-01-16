@@ -31,7 +31,7 @@ export const CVManagerPage: React.FC = () => {
       setError(null)
       
       const [cvsResponse, templatesResponse] = await Promise.all([
-        cvApi.list({ orderBy: 'updated_at', orderDirection: 'DESC' }),
+        cvApi.list(), // Results are sorted by updated_at DESC by default on backend
         templateApi.list({ active_only: true })
       ])
       
@@ -114,7 +114,7 @@ export const CVManagerPage: React.FC = () => {
       </div>
 
       {error && (
-        <ErrorMessage message={error} onDismiss={() => setError(null)} />
+        <ErrorMessage title="Error" message={error} onRetry={() => setError(null)} />
       )}
 
       <div className="flex gap-3 justify-center mb-8 flex-wrap">
@@ -180,7 +180,7 @@ export const CVManagerPage: React.FC = () => {
                     </div>
                     <div>
                       <div className="text-lg font-semibold text-emerald-600">
-                        {cv.status === 'draft' ? '📝' : cv.status === 'published' ? '✅' : '⚡'}
+                        {cv.status === 'active' ? '✅' : cv.status === 'archived' ? '📦' : '🗑️'}
                       </div>
                       <div className="text-xs text-gray-500 capitalize">{cv.status}</div>
                     </div>

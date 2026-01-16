@@ -2,20 +2,53 @@
  * CV Preview Component
  *
  * Renders the live preview of the CV with template styling matching design proposal
+ *
+ * Note: This file uses CSS custom properties (CSS variables) extensively for theming.
+ * TypeScript's strict CSS type checking is relaxed for style objects that contain CSS variables.
  */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import React, { useMemo, useState, useEffect } from 'react'
 import { Phone, Envelope, LinkedinLogo, GithubLogo, MapPin, Globe } from '@phosphor-icons/react'
-import type { CVInstance, Template, TemplateSettings, TemplateConfig, Asset } from '../../../shared/types'
+import type { CVInstance, Template, TemplateSettings, TemplateConfig, Asset, CVFrontmatter, CVSection, ParsedCVContent } from '../../../shared/types'
 import { assetApi } from '../services/api'
 import { loadFonts } from '../services/GoogleFontsService'
 import { resolveSemanticColor } from '../utils/colorResolver'
 import { generateCSSVariables } from '../../../shared/utils/cssVariableGenerator'
 
+// Type for CSS properties including custom properties (CSS variables)
+// Using Record<string, any> to allow CSS variable access without strict type checking
+// This is a standard pattern for CSS-in-JS libraries that use CSS variables
+type CSSCustomProperties = Record<string, any>
+
+// Type for skill category
+interface SkillCategory {
+  category: string
+  skills: (string | { name?: string; text?: string })[]
+}
+
+// Type for structured entry (job, education, project)
+interface StructuredEntry {
+  title: string
+  company?: string
+  date?: string
+  location?: string
+  description?: string
+  bullets?: (string | { text: string })[]
+}
+
+// Type for PDF page data
+interface PDFPageData {
+  frontmatter: CVFrontmatter | null
+  sections: CVSection[]
+  pageNumber: number
+  isFirstPage: boolean
+}
+
 interface CVPreviewProps {
   cv: CVInstance | null
   template: Template | null
-  settings: TemplateSettings
+  settings: Partial<TemplateSettings>
   config?: TemplateConfig // Add config support
   isPending: boolean
   liveContent?: string // Live content from editor for real-time preview
@@ -96,10 +129,10 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
   }, [cv?.photo_asset_id])
 
   // Simple client-side markdown parser for live preview
-  const parseMarkdownContent = (content: string) => {
+  const parseMarkdownContent = (content: string): ParsedCVContent => {
     // Extract frontmatter
     const frontmatterMatch = content.match(/^---\n([\s\S]*?)\n---/)
-    let frontmatter = {}
+    let frontmatter: CVFrontmatter = { name: '', email: '' }
     let markdownContent = content
 
     if (frontmatterMatch) {
@@ -107,7 +140,7 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
       const yamlContent = frontmatterMatch[1]
       markdownContent = content.slice(frontmatterMatch[0].length)
 
-      yamlContent.split('\n').forEach(line => {
+      yamlContent.split('\n').forEach((line: string) => {
         const [key, ...valueParts] = line.split(':')
         if (key && valueParts.length > 0) {
           const value = valueParts.join(':').trim()
@@ -135,27 +168,27 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
     }
 
     // Parse sections with better structure parsing
-    const sections = []
+    const sections: CVSection[] = []
     const sectionMatches = markdownContent.split(/^##\s+/m).slice(1)
 
-    sectionMatches.forEach(sectionText => {
+    sectionMatches.forEach((sectionText: string) => {
       const lines = sectionText.split('\n')
       const title = lines[0].trim()
       const content = lines.slice(1).join('\n').trim()
 
       if (title && content) {
         const sectionType = inferSectionType(title)
-        let parsedContent
+        let parsedContent: CVSection['content']
 
         if (sectionType === 'experience' || sectionType === 'education' || sectionType === 'projects') {
           // Parse structured entries (job experiences, education, projects)
           parsedContent = parseStructuredEntries(content)
         } else if (sectionType === 'skills') {
           // Parse skills with categories
-          parsedContent = parseSkills(content)
+          parsedContent = parseSkills(content) as CVSection['content']
         } else {
           // Default parsing - split into paragraphs
-          parsedContent = content.split('\n\n').filter(p => p.trim())
+          parsedContent = content.split('\n\n').filter((p: string) => p.trim())
         }
 
         sections.push({
@@ -187,17 +220,17 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
     formatted = formatted.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" style="color: var(--link-color); text-decoration: underline;">$1</a>')
 
     // Handle inline code `code`
-    formatted = formatted.replace(/`([^`]+)`/g, '<code style="background-color: var(--muted-color); padding: 0 0.25rem; border-radius: 0.125rem; font-size: 0.75rem;">$1</code>')
+    formatted = formatted.replace(/`([^`]+)`/g, '<code style="background-color: var(--muted-color); padding: 0 0.25rem; border-radius: 0.125rem; font-size: var(--inline-code-font-size);">$1</code>')
 
     return <span dangerouslySetInnerHTML={{ __html: formatted }} />
   }
 
   // Parse structured entries (experience, education, projects)
-  const parseStructuredEntries = (content: string) => {
-    const entries = []
+  const parseStructuredEntries = (content: string): StructuredEntry[] => {
+    const entries: StructuredEntry[] = []
     const entryBlocks = content.split(/^###\s+/m).slice(1)
 
-    entryBlocks.forEach(block => {
+    entryBlocks.forEach((block: string) => {
       const lines = block.split('\n').filter(line => line.trim())
       if (lines.length === 0) return
 
@@ -256,9 +289,9 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
   }
 
   // Parse skills with better categorization
-  const parseSkills = (content: string) => {
-    const skillCategories = []
-    const lines = content.split('\n').filter(line => line.trim())
+  const parseSkills = (content: string): SkillCategory[] => {
+    const skillCategories: SkillCategory[] = []
+    const lines = content.split('\n').filter((line: string) => line.trim())
 
     let i = 0
     while (i < lines.length) {
@@ -302,29 +335,24 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
   }
 
   // Infer section type from title (simplified version)
-  const inferSectionType = (title: string) => {
+  const inferSectionType = (title: string): CVSection['type'] => {
     const lower = title.toLowerCase()
     if (lower.includes('experience') || lower.includes('work')) return 'experience'
     if (lower.includes('education')) return 'education'
     if (lower.includes('skill')) return 'skills'
     if (lower.includes('project')) return 'projects'
+    if (lower.includes('language')) return 'languages'
+    if (lower.includes('certification')) return 'certifications'
+    if (lower.includes('interest') || lower.includes('hobbies')) return 'interests'
+    if (lower.includes('reference')) return 'references'
+    if (lower.includes('summary') || lower.includes('about')) return 'summary'
     return 'paragraph'
   }
 
-  // Parse CV content for preview - prioritize live content for real-time updates
+  // Parse CV content for preview - use backend sections for consistency
   const parsedContent = useMemo(() => {
-    // If we have live content from editor, parse it for real-time preview
-    if (liveContent) {
-      try {
-        return parseMarkdownContent(liveContent)
-      } catch (error) {
-        console.error('Failed to parse live content:', error)
-        // Fall back to saved parsed content if live parsing fails
-        return cv?.parsed_content || null
-      }
-    }
-
-    // Fall back to saved parsed content from server
+    // ALWAYS use backend parsed_content for consistent rendering
+    // Backend now provides rich structured sections (jobs, education, skills, etc.)
     if (cv?.parsed_content) {
       try {
         return cv.parsed_content
@@ -334,8 +362,19 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
       }
     }
 
+    // FALLBACK ONLY: If we have live content but no backend data (edge case)
+    // This maintains basic functionality during live editing
+    if (liveContent) {
+      try {
+        return parseMarkdownContent(liveContent)
+      } catch (error) {
+        console.error('Failed to parse live content:', error)
+        return null
+      }
+    }
+
     return null
-  }, [liveContent, cv?.parsed_content])
+  }, [cv?.parsed_content, liveContent])
 
   // Measure actual section heights in PDF mode
   useEffect(() => {
@@ -370,7 +409,7 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
   }, [previewMode, parsedContent])
 
   // Apply template-based styling - memoized to prevent infinite re-renders
-  const templateStyles = useMemo(() => {
+  const templateStyles = useMemo((): CSSCustomProperties => {
     if (!template) return {}
 
     // Prefer config over settings (config is newer, more comprehensive)
@@ -384,13 +423,13 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
     // Use shared CSS variable generator for consistency with PDF export
     const cssVariables = generateCSSVariables(activeConfig)
 
-    return cssVariables as React.CSSProperties
+    return cssVariables as CSSCustomProperties
   }, [template, config])
 
   // Calculate content height and split into pages for PDF mode - memoized to prevent infinite re-renders
-  const pdfPagesData = useMemo(() => {
+  const pdfPagesData = useMemo((): { pages: PDFPageData[]; warnings: string[] } => {
     if (!parsedContent || previewMode !== 'pdf') {
-      return { pages: [parsedContent], warnings: [] }
+      return { pages: parsedContent ? [{ frontmatter: parsedContent.frontmatter, sections: parsedContent.sections, pageNumber: 1, isFirstPage: true }] : [], warnings: [] }
     }
 
     // A4 dimensions: 210mm × 297mm
@@ -400,7 +439,7 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
     const mmToPx = 3.779528 // precise mm to px conversion at 96 DPI
     const pageHeightPx = pageContentHeight * mmToPx // ~971px
 
-    const pages = []
+    const pages: PDFPageData[] = []
     const { frontmatter, sections } = parsedContent
     const warnings: string[] = []
 
@@ -413,7 +452,7 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
       warnings.push(`Header is very large (${Math.round(headerHeight)}px). Consider shortening your name or title.`)
     }
 
-    let currentPage = {
+    let currentPage: PDFPageData = {
       frontmatter,
       sections: [],
       pageNumber: 1,
@@ -421,7 +460,7 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
     }
     let currentHeight = headerHeight
 
-    sections.forEach((section, index) => {
+    sections.forEach((section: CVSection, index: number) => {
       // Use measured height if available, otherwise estimate
       const measuredKey = `section-${index}`
       let sectionHeight: number
@@ -434,12 +473,12 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
         sectionHeight = 80 // base height for section header
 
         if (Array.isArray(section.content)) {
-          section.content.forEach((item) => {
+          (section.content as unknown[]).forEach((item: unknown) => {
             if (typeof item === 'string') {
               // Estimate paragraph height based on character count
               const lines = Math.ceil(item.length / 80) // ~80 chars per line
               sectionHeight += lines * 20 + 10 // line height + spacing
-            } else if (typeof item === 'object' && item.title) {
+            } else if (typeof item === 'object' && item !== null && 'title' in item) {
               // Job/education entry with title, company, description
               sectionHeight += 120 // fixed height for structured entry
             }
@@ -501,21 +540,21 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
   }, [previewMode, pdfPagesData.warnings])
 
   // Render individual PDF page
-  const renderPDFPage = (pageData: any, pageIndex: number) => {
+  const renderPDFPage = (pageData: PDFPageData, pageIndex: number) => {
     const { frontmatter, sections, pageNumber, isFirstPage } = pageData
     const styles = templateStyles
     const useMinimalLayout = template?.name.includes('Minimal') || template?.name.includes('Clean')
 
     // Separate sections for two-column layout
-    const sidebarSections = sections.filter(s =>
-      ['skills', 'languages', 'interests', 'tools'].some(type =>
-        s.title.toLowerCase().includes(type) || s.type === type
+    const sidebarSections = sections.filter((s: CVSection) =>
+      ['skills', 'languages', 'interests', 'tools'].some((type: string) =>
+        (s.title?.toLowerCase() || '').includes(type) || s.type === type
       )
     )
 
-    const mainSections = sections.filter(s =>
-      !['skills', 'languages', 'interests', 'tools'].some(type =>
-        s.title.toLowerCase().includes(type) || s.type === type
+    const mainSections = sections.filter((s: CVSection) =>
+      !['skills', 'languages', 'interests', 'tools'].some((type: string) =>
+        (s.title?.toLowerCase() || '').includes(type) || s.type === type
       )
     )
 
@@ -841,13 +880,13 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
   }
 
   // Helper function to render skills with configurable tag/separator style
-  const renderSkills = (skillCategories: any[], isSidebar: boolean = false) => {
+  const renderSkills = (skillCategories: SkillCategory[], isSidebar: boolean = false) => {
     const activeConfig = config || template?.default_config
     const tagStyle = activeConfig?.components?.tags?.style || 'pill'
     const separator = activeConfig?.components?.tags?.separator || '·'
     const styles = templateStyles
 
-    return skillCategories.map((category, categoryIndex) => (
+    return skillCategories.map((category: SkillCategory, categoryIndex: number) => (
       <div key={categoryIndex} className="mb-4">
         <h4 className="text-xs font-semibold mb-2" style={{
             fontFamily: templateStyles['--heading-font-family'],
@@ -857,7 +896,7 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
         {tagStyle === 'pill' ? (
           // Pill style: rounded background tags
           <div className="flex flex-wrap gap-1">
-            {category.skills.map((skill: any, skillIndex: number) => {
+            {category.skills.map((skill: string | { name?: string; text?: string }, skillIndex: number) => {
               const skillText = typeof skill === 'string' ? skill : (skill.name || skill.text || String(skill))
               return (
                 <span
@@ -868,7 +907,7 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
                     color: templateStyles['--tag-text-color'] as string,
                     borderRadius: templateStyles['--tag-border-radius'] as string,
                     fontFamily: templateStyles['--heading-font-family'],
-                    fontSize: activeConfig?.components?.tags?.fontSize || '9px',
+                    fontSize: templateStyles['--tag-font-size-custom'] as string || templateStyles['--tag-font-size'] as string,
                     fontWeight: activeConfig?.components?.tags?.fontWeight || 500
                   }}
                 >
@@ -881,9 +920,9 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
           // Inline style: separated text
           <div className="text-sm" style={{
             color: isSidebar ? '#4a3d2a' : templateStyles['--text-color'] as string || '#2d2d2d',
-            fontSize: activeConfig?.components?.tags?.fontSize || '14px'
+            fontSize: templateStyles['--tag-font-size-custom'] as string || templateStyles['--tag-font-size'] as string
           }}>
-            {category.skills.map((skill: any, skillIndex: number) => {
+            {category.skills.map((skill: string | { name?: string; text?: string }, skillIndex: number) => {
               const skillText = typeof skill === 'string' ? skill : (skill.name || skill.text || String(skill))
               return (
                 <span key={skillIndex}>
@@ -899,7 +938,7 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
   }
 
   // Helper function to render section content consistently
-  const renderSectionContent = (section: any, isSidebar: boolean = false) => {
+  const renderSectionContent = (section: CVSection, isSidebar: boolean = false) => {
     // Special handling for skills - check both type and title
     const isSkillsSection = section.type === 'skills' ||
                            section.title?.toLowerCase().includes('skill') ||
@@ -931,8 +970,9 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
     )
 
     if (isSimpleList && Array.isArray(section.content)) {
-      return section.content.map((item, itemIndex) => {
-        const itemText = typeof item === 'string' ? item : (item.name || item.text || String(item))
+      return (section.content as unknown[]).map((item: unknown, itemIndex: number) => {
+        const itemObj = item as { name?: string; text?: string }
+        const itemText = typeof item === 'string' ? item : (itemObj.name || itemObj.text || String(item))
         return (
           <div key={itemIndex} className="mb-2">
             <p
@@ -950,7 +990,7 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
     }
 
     return Array.isArray(section.content) ? (
-      section.content.map((item, itemIndex) => (
+      (section.content as unknown[]).map((item: unknown, itemIndex: number) => (
         <div key={itemIndex}>
           {typeof item === 'string' ? (
             <p
@@ -962,45 +1002,50 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
             >
               {renderMarkdown(item)}
             </p>
-          ) : typeof item === 'object' && item.title ? (
-            <div className="mb-3">
-              <div className="flex justify-between items-start mb-1">
-                <div>
-                  <h3
-                    className="font-semibold"
-                    style={{
-                      fontSize: isSidebar ? 'var(--small-font-size)' : templateStyles['--job-title-font-size'],
-                      fontWeight: isSidebar ? 600 : templateStyles['--job-title-font-weight'],
-                      color: isSidebar ? '#4a3d2a' : templateStyles['--job-title-color'],
-                      marginBottom: isSidebar ? '2px' : templateStyles['--job-title-margin-bottom']
-                    }}
-                  >
-                    {item.title}
-                  </h3>
-                  {item.company && (
-                    <p
-                      style={{
-                        fontSize: isSidebar ? 'var(--tiny-font-size)' : templateStyles['--org-name-font-size'],
-                        fontWeight: isSidebar ? 400 : templateStyles['--org-name-font-weight'],
-                        color: isSidebar ? '#6b5b47' : templateStyles['--org-name-color'],
-                        fontStyle: isSidebar ? 'normal' : templateStyles['--org-name-font-style'] as any
-                      }}
-                    >
-                      {item.company}
+          ) : typeof item === 'object' && item !== null && 'title' in item ? (
+            (() => {
+              const entry = item as StructuredEntry
+              return (
+                <div className="mb-3">
+                  <div className="flex justify-between items-start mb-1">
+                    <div>
+                      <h3
+                        className="font-semibold"
+                        style={{
+                          fontSize: isSidebar ? 'var(--small-font-size)' : templateStyles['--job-title-font-size'],
+                          fontWeight: isSidebar ? 600 : templateStyles['--job-title-font-weight'],
+                          color: isSidebar ? '#4a3d2a' : templateStyles['--job-title-color'],
+                          marginBottom: isSidebar ? '2px' : templateStyles['--job-title-margin-bottom']
+                        }}
+                      >
+                        {entry.title}
+                      </h3>
+                      {entry.company && (
+                        <p
+                          style={{
+                            fontSize: isSidebar ? 'var(--tiny-font-size)' : templateStyles['--org-name-font-size'],
+                            fontWeight: isSidebar ? 400 : templateStyles['--org-name-font-weight'],
+                            color: isSidebar ? '#6b5b47' : templateStyles['--org-name-color'],
+                            fontStyle: isSidebar ? 'normal' : templateStyles['--org-name-font-style'] as React.CSSProperties['fontStyle']
+                          }}
+                        >
+                          {entry.company}
+                        </p>
+                      )}
+                    </div>
+                    <div className="text-right text-sm" style={{ color: 'var(--text-secondary)' }}>
+                      {entry.location && <p style={{ fontSize: 'var(--tiny-font-size)' }}>{entry.location}</p>}
+                      {entry.date && <p style={{ fontSize: 'var(--tiny-font-size)' }}>{entry.date}</p>}
+                    </div>
+                  </div>
+                  {entry.description && (
+                    <p className="leading-relaxed" style={{ fontSize: 'var(--small-font-size)', color: 'var(--on-background-color)' }}>
+                      {renderMarkdown(entry.description)}
                     </p>
                   )}
                 </div>
-                <div className="text-right text-sm" style={{ color: 'var(--text-secondary)' }}>
-                  {item.location && <p style={{ fontSize: 'var(--tiny-font-size)' }}>{item.location}</p>}
-                  {item.date && <p style={{ fontSize: 'var(--tiny-font-size)' }}>{item.date}</p>}
-                </div>
-              </div>
-              {item.description && (
-                <p className="leading-relaxed" style={{ fontSize: 'var(--small-font-size)', color: 'var(--on-background-color)' }}>
-                  {renderMarkdown(item.description)}
-                </p>
-              )}
-            </div>
+              )
+            })()
           ) : (
             <p className="leading-relaxed" style={{ fontSize: 'var(--small-font-size)', color: 'var(--on-background-color)' }}>
               {renderMarkdown(String(item))}
@@ -1037,15 +1082,15 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
 
     // For web mode, use existing layouts
     // Separate sections into sidebar and main content
-    const sidebarSections = sections.filter(s =>
-      ['skills', 'languages', 'interests', 'tools'].some(type =>
-        s.title.toLowerCase().includes(type) || s.type === type
+    const sidebarSections = sections.filter((s: CVSection) =>
+      ['skills', 'languages', 'interests', 'tools'].some((type: string) =>
+        (s.title?.toLowerCase() || '').includes(type) || s.type === type
       )
     )
 
-    const mainSections = sections.filter(s =>
-      !['skills', 'languages', 'interests', 'tools'].some(type =>
-        s.title.toLowerCase().includes(type) || s.type === type
+    const mainSections = sections.filter((s: CVSection) =>
+      !['skills', 'languages', 'interests', 'tools'].some((type: string) =>
+        (s.title?.toLowerCase() || '').includes(type) || s.type === type
       )
     )
 
@@ -1398,15 +1443,21 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
                               </div>
                             </div>
                             {typeof item === 'object' && item.description && (
-                              <div className="text-sm leading-relaxed" style={{ color: 'var(--on-background-color)' }}>
-                                {/* Parse bullet points from description */}
-                                {item.description.split(/[•\-]\s+/).filter(point => point.trim()).map((bulletPoint, bulletIndex) => (
-                                  <div key={bulletIndex} className="flex items-start mb-1">
-                                    <span className="mr-2 mt-1" style={{ color: 'var(--text-muted)' }}>•</span>
-                                    <span className="flex-1">{bulletPoint.trim()}</span>
-                                  </div>
+                              <p className="leading-relaxed" style={{ fontSize: 'var(--small-font-size)', color: 'var(--on-background-color)' }}>
+                                {item.description.split('\n\n').map((para: string, idx: number) => (
+                                  <span key={idx}>
+                                    {para}
+                                    {idx < item.description.split('\n\n').length - 1 && <><br /><br /></>}
+                                  </span>
                                 ))}
-                              </div>
+                              </p>
+                            )}
+                            {typeof item === 'object' && item.bullets && item.bullets.length > 0 && (
+                              <ul className="list-disc ml-6 space-y-1" style={{ fontSize: 'var(--small-font-size)', color: 'var(--on-background-color)' }}>
+                                {item.bullets.map((bullet: any, bulletIdx: number) => (
+                                  <li key={bulletIdx}>{typeof bullet === 'string' ? bullet : bullet.text}</li>
+                                ))}
+                              </ul>
                             )}
                           </div>
                         )}
@@ -1437,8 +1488,8 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
     )
   }
 
-  // Calculate zoom transform based on zoom level and percentage
-  const getZoomTransform = () => {
+  // Calculate zoom styles based on zoom level and percentage
+  const getZoomStyles = () => {
     const scale = zoomPercentage / 100
     return {
       transform: `scale(${scale})`,
@@ -1446,6 +1497,11 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
     }
   }
 
+  // NOTE: We DON'T use parsedContent.html because it's too simple (flat HTML)
+  // We need the structured sections for sophisticated layout (two-column, tags, pagination)
+  // The html field is only used for PDF export backend
+
+  // FALLBACK: Use legacy section-based rendering (for PDF mode or old CVs)
   return (
     <div className="h-full bg-surface overflow-auto">
       {/* Loading Overlay */}
@@ -1542,7 +1598,7 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
       <div className={`p-6 transition-opacity duration-200 ${isPending ? 'opacity-70' : 'opacity-100'}`}>
         <div
           className="transition-transform duration-200 ease-in-out"
-          style={getZoomTransform()}
+          style={getZoomStyles()}
         >
           {renderCV()}
         </div>
