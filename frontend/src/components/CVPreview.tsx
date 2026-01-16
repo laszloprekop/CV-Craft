@@ -15,6 +15,7 @@ import { assetApi } from '../services/api'
 import { loadFonts } from '../services/GoogleFontsService'
 import { resolveSemanticColor } from '../utils/colorResolver'
 import { generateCSSVariables } from '../../../shared/utils/cssVariableGenerator'
+import { renderSections } from '../../../shared/utils/sectionRenderer'
 
 // Type for CSS properties including custom properties (CSS variables)
 // Using Record<string, any> to allow CSS variable access without strict type checking
@@ -334,6 +335,44 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
     return skillCategories.length > 0 ? skillCategories : [{ category: 'Skills', skills: lines }]
   }
 
+  /**
+   * Render section content using the shared renderer
+   * Used to ensure consistency between web preview and PDF export
+   *
+   * @param section - The CV section to render
+   * @param forPDF - Whether this is for PDF mode (adds pagination classes)
+   * @returns HTML string of the section content (inner content only, without section wrapper)
+   */
+  const renderSectionContentHTML = (section: CVSection, forPDF: boolean = false): string => {
+    const html = renderSections([section], { pagination: forPDF, classPrefix: '' })
+    return extractSectionInnerContent(html)
+  }
+
+  /**
+   * Extract the inner content from rendered section HTML
+   * Strips the section wrapper and header, returning just the section-content div's innerHTML
+   */
+  const extractSectionInnerContent = (html: string): string => {
+    // Match the section-content div and extract its inner HTML
+    const match = html.match(/<div class="[^"]*section-content[^"]*">([\s\S]*?)<\/div>\s*<\/section>/i)
+    if (match) {
+      return match[1].trim()
+    }
+    // Fallback: return the whole HTML if pattern doesn't match
+    return html
+  }
+
+  /**
+   * Check if a section should use special skills rendering (with pill/inline styles)
+   * Skills sections need JSX-based rendering to support configurable tag styles
+   */
+  const isSpecialSkillsSection = (section: CVSection): boolean => {
+    const titleLower = section.title?.toLowerCase() || ''
+    return section.type === 'skills' ||
+           titleLower.includes('skill') ||
+           titleLower.includes('technical')
+  }
+
   // Infer section type from title (simplified version)
   const inferSectionType = (title: string): CVSection['type'] => {
     const lower = title.toLowerCase()
@@ -648,7 +687,8 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
                     {section.title}
                   </h2>
                   <div className="space-y-3">
-                    {renderSectionContent(section)}
+                    {/* Use shared renderer with PDF pagination */}
+                    {renderSectionContent(section, false, true)}
                   </div>
                 </section>
               ))}
@@ -790,8 +830,9 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
                     >
                       {section.title}
                     </h3>
-                    <div className="space-y-2">
-                      {renderSectionContent(section, true)}
+                    <div className="space-y-2 sidebar">
+                      {/* Use shared renderer with PDF pagination, sidebar styling */}
+                      {renderSectionContent(section, true, true)}
                     </div>
                   </div>
                 ))}
@@ -859,7 +900,8 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
                       {section.title}
                     </h2>
                     <div className="space-y-3">
-                      {renderSectionContent(section, false)}
+                      {/* Use shared renderer with PDF pagination */}
+                      {renderSectionContent(section, false, true)}
                     </div>
                   </section>
                 ))}
@@ -938,13 +980,10 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
   }
 
   // Helper function to render section content consistently
-  const renderSectionContent = (section: CVSection, isSidebar: boolean = false) => {
-    // Special handling for skills - check both type and title
-    const isSkillsSection = section.type === 'skills' ||
-                           section.title?.toLowerCase().includes('skill') ||
-                           section.title?.toLowerCase().includes('technical')
-
-    if (isSkillsSection) {
+  // Uses shared renderer for non-skills sections to ensure consistency with PDF export
+  const renderSectionContent = (section: CVSection, isSidebar: boolean = false, forPDF: boolean = false) => {
+    // Special handling for skills - use JSX rendering for pill/inline styles
+    if (isSpecialSkillsSection(section)) {
       // Parse skills if content is a string or array of strings
       let skillCategories
       if (Array.isArray(section.content)) {
@@ -964,99 +1003,15 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
       return renderSkills(skillCategories, isSidebar)
     }
 
-    // Special handling for simple list items (languages, interests, etc.)
-    const isSimpleList = ['languages', 'interests', 'tools', 'hobbies'].some(type =>
-      section.title?.toLowerCase().includes(type) || section.type === type
-    )
+    // For all other sections, use the shared renderer for consistency with PDF export
+    const contentHTML = renderSectionContentHTML(section, forPDF)
 
-    if (isSimpleList && Array.isArray(section.content)) {
-      return (section.content as unknown[]).map((item: unknown, itemIndex: number) => {
-        const itemObj = item as { name?: string; text?: string }
-        const itemText = typeof item === 'string' ? item : (itemObj.name || itemObj.text || String(item))
-        return (
-          <div key={itemIndex} className="mb-2">
-            <p
-              className="leading-relaxed"
-              style={{
-                fontSize: `var(--${isSidebar ? 'small' : 'body'}-font-size)`,
-                color: isSidebar ? '#4a3d2a' : '#2d2d2d'
-              }}
-            >
-              {renderMarkdown(itemText)}
-            </p>
-          </div>
-        )
-      })
-    }
-
-    return Array.isArray(section.content) ? (
-      (section.content as unknown[]).map((item: unknown, itemIndex: number) => (
-        <div key={itemIndex}>
-          {typeof item === 'string' ? (
-            <p
-              className="leading-relaxed"
-              style={{
-                fontSize: `var(--${isSidebar ? 'small' : 'body'}-font-size)`,
-                color: isSidebar ? '#4a3d2a' : '#2d2d2d'
-              }}
-            >
-              {renderMarkdown(item)}
-            </p>
-          ) : typeof item === 'object' && item !== null && 'title' in item ? (
-            (() => {
-              const entry = item as StructuredEntry
-              return (
-                <div className="mb-3">
-                  <div className="flex justify-between items-start mb-1">
-                    <div>
-                      <h3
-                        className="font-semibold"
-                        style={{
-                          fontSize: isSidebar ? 'var(--small-font-size)' : templateStyles['--job-title-font-size'],
-                          fontWeight: isSidebar ? 600 : templateStyles['--job-title-font-weight'],
-                          color: isSidebar ? '#4a3d2a' : templateStyles['--job-title-color'],
-                          marginBottom: isSidebar ? '2px' : templateStyles['--job-title-margin-bottom']
-                        }}
-                      >
-                        {entry.title}
-                      </h3>
-                      {entry.company && (
-                        <p
-                          style={{
-                            fontSize: isSidebar ? 'var(--tiny-font-size)' : templateStyles['--org-name-font-size'],
-                            fontWeight: isSidebar ? 400 : templateStyles['--org-name-font-weight'],
-                            color: isSidebar ? '#6b5b47' : templateStyles['--org-name-color'],
-                            fontStyle: isSidebar ? 'normal' : templateStyles['--org-name-font-style'] as React.CSSProperties['fontStyle']
-                          }}
-                        >
-                          {entry.company}
-                        </p>
-                      )}
-                    </div>
-                    <div className="text-right text-sm" style={{ color: 'var(--text-secondary)' }}>
-                      {entry.location && <p style={{ fontSize: 'var(--tiny-font-size)' }}>{entry.location}</p>}
-                      {entry.date && <p style={{ fontSize: 'var(--tiny-font-size)' }}>{entry.date}</p>}
-                    </div>
-                  </div>
-                  {entry.description && (
-                    <p className="leading-relaxed" style={{ fontSize: 'var(--small-font-size)', color: 'var(--on-background-color)' }}>
-                      {renderMarkdown(entry.description)}
-                    </p>
-                  )}
-                </div>
-              )
-            })()
-          ) : (
-            <p className="leading-relaxed" style={{ fontSize: 'var(--small-font-size)', color: 'var(--on-background-color)' }}>
-              {renderMarkdown(String(item))}
-            </p>
-          )}
-        </div>
-      ))
-    ) : (
-      <p className="leading-relaxed" style={{ fontSize: 'var(--small-font-size)', color: 'var(--on-background-color)' }}>
-        {renderMarkdown(String(section.content))}
-      </p>
+    // Wrap in a div with appropriate class for sidebar styling
+    return (
+      <div
+        className={`section-content ${isSidebar ? 'sidebar' : ''}`}
+        dangerouslySetInnerHTML={{ __html: contentHTML }}
+      />
     )
   }
 
@@ -1158,48 +1113,8 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
                   {section.title}
                 </h2>
                 <div className="space-y-3">
-                  {/* Render section content similar to main sections */}
-                  {Array.isArray(section.content) ? (
-                    section.content.map((item, itemIndex) => (
-                      <div key={itemIndex}>
-                        {typeof item === 'string' ? (
-                          <p className="leading-relaxed" style={{ fontSize: 'var(--body-font-size)', color: 'var(--on-background-color)' }}>{renderMarkdown(item)}</p>
-                        ) : typeof item === 'object' && item.title ? (
-                          <div className="mb-4">
-                            <div className="flex justify-between items-start mb-2">
-                              <div>
-                                <h3 className="font-semibold" style={{
-                                  fontSize: templateStyles['--job-title-font-size'],
-                                  fontWeight: templateStyles['--job-title-font-weight'],
-                                  color: templateStyles['--job-title-color'],
-                                  marginBottom: templateStyles['--job-title-margin-bottom']
-                                }}>{item.title}</h3>
-                                {item.company && <p style={{
-                                  fontSize: templateStyles['--org-name-font-size'],
-                                  fontWeight: templateStyles['--org-name-font-weight'],
-                                  color: templateStyles['--org-name-color'],
-                                  fontStyle: templateStyles['--org-name-font-style'] as any
-                                }}>{item.company}</p>}
-                              </div>
-                              <div className="text-right text-sm" style={{ color: 'var(--text-secondary)' }}>
-                                {item.location && <p style={{ fontSize: 'var(--tiny-font-size)' }}>{item.location}</p>}
-                                {item.date && <p style={{ fontSize: 'var(--tiny-font-size)' }}>{item.date}</p>}
-                              </div>
-                            </div>
-                            {item.description && (
-                              <p className="text-sm leading-relaxed" style={{ fontSize: 'var(--small-font-size)', color: 'var(--on-background-color)' }}>
-                                {renderMarkdown(item.description)}
-                              </p>
-                            )}
-                          </div>
-                        ) : (
-                          <p className="leading-relaxed" style={{ fontSize: 'var(--small-font-size)', color: 'var(--on-background-color)' }}>{JSON.stringify(item)}</p>
-                        )}
-                      </div>
-                    ))
-                  ) : (
-                    <p className="leading-relaxed" style={{ fontSize: 'var(--body-font-size)', color: 'var(--on-background-color)' }}>{section.content}</p>
-                  )}
+                  {/* Use shared renderer for consistent web/PDF output */}
+                  {renderSectionContent(section, false, false)}
                 </div>
               </section>
             ))}
@@ -1334,9 +1249,9 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
                   {section.title}
                 </h3>
 
-                {/* Section Content - use unified rendering */}
-                <div className="space-y-3">
-                  {renderSectionContent(section, true)}
+                {/* Section Content - use shared renderer for consistent web/PDF output */}
+                <div className="space-y-3 sidebar">
+                  {renderSectionContent(section, true, false)}
                 </div>
                 </div>
                 ))}
@@ -1399,73 +1314,9 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
                   {section.title}
                 </h2>
 
-                {/* Section Content */}
+                {/* Section Content - Use shared renderer for consistent web/PDF output */}
                 <div className="space-y-4">
-                  {Array.isArray(section.content) ? (
-                    section.content.map((item, itemIndex) => (
-                      <div key={itemIndex}>
-                        {typeof item === 'string' ? (
-                          <p className="leading-relaxed" style={{ color: 'var(--on-background-color)' }}>{item}</p>
-                        ) : (
-                          <div className="mb-6 last:mb-0">
-                            {/* Experience/Job Entry Format */}
-                            <div className="mb-2">
-                              <div className="flex justify-between items-start">
-                                <div className="flex-1">
-                                  {typeof item === 'object' && item.title && (
-                                    <h3 className="font-bold text-lg mb-1" style={{
-                                      fontSize: templateStyles['--job-title-font-size'],
-                                      fontWeight: templateStyles['--job-title-font-weight'],
-                                      color: templateStyles['--job-title-color'],
-                                      marginBottom: templateStyles['--job-title-margin-bottom']
-                                    }}>{item.title}</h3>
-                                  )}
-                                  {typeof item === 'object' && item.company && (
-                                    <p className="font-semibold text-base" style={{
-                                      fontSize: templateStyles['--org-name-font-size'],
-                                      fontWeight: templateStyles['--org-name-font-weight'],
-                                      color: templateStyles['--org-name-color'],
-                                      fontStyle: templateStyles['--org-name-font-style'] as any
-                                    }}>{item.company}</p>
-                                  )}
-                                </div>
-                                <div className="text-right ml-4">
-                                  {typeof item === 'object' && item.location && (
-                                    <p className="flex items-center justify-end mb-1" style={{ fontSize: 'var(--tiny-font-size)', color: 'var(--text-secondary)' }}>
-                                      <MapPin size={10} className="mr-1" />
-                                      {item.location}
-                                    </p>
-                                  )}
-                                  {typeof item === 'object' && item.date && (
-                                    <p className="italic" style={{ fontSize: 'var(--tiny-font-size)', color: 'var(--text-secondary)' }}>{item.date}</p>
-                                  )}
-                                </div>
-                              </div>
-                            </div>
-                            {typeof item === 'object' && item.description && (
-                              <p className="leading-relaxed" style={{ fontSize: 'var(--small-font-size)', color: 'var(--on-background-color)' }}>
-                                {item.description.split('\n\n').map((para: string, idx: number) => (
-                                  <span key={idx}>
-                                    {para}
-                                    {idx < item.description.split('\n\n').length - 1 && <><br /><br /></>}
-                                  </span>
-                                ))}
-                              </p>
-                            )}
-                            {typeof item === 'object' && item.bullets && item.bullets.length > 0 && (
-                              <ul className="list-disc ml-6 space-y-1" style={{ fontSize: 'var(--small-font-size)', color: 'var(--on-background-color)' }}>
-                                {item.bullets.map((bullet: any, bulletIdx: number) => (
-                                  <li key={bulletIdx}>{typeof bullet === 'string' ? bullet : bullet.text}</li>
-                                ))}
-                              </ul>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    ))
-                  ) : (
-                    <p className="leading-relaxed" style={{ color: 'var(--on-background-color)' }}>{section.content}</p>
-                  )}
+                  {renderSectionContent(section, false, false)}
                 </div>
               </section>
             ))}
@@ -1587,7 +1438,8 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
                 {section.title}
               </h3>
               <div className="space-y-3">
-                {renderSectionContent(section, false)}
+                {/* Use shared renderer with PDF pagination for accurate measurement */}
+                {renderSectionContent(section, false, true)}
               </div>
             </section>
           ))}

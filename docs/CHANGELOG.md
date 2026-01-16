@@ -2,6 +2,31 @@
 
 All notable changes to CV-Craft will be documented in this file.
 
+## [1.9.0] - 2026-01-16
+
+### Added
+- **Unified Renderer Integration (Phase 3)** - CVPreview now uses shared renderer for section content
+  - Imported `renderSections` from `shared/utils/sectionRenderer.ts` into frontend
+  - Added helper functions: `renderSectionContentHTML()`, `extractSectionInnerContent()`, `isSpecialSkillsSection()`
+  - Section content now rendered via `dangerouslySetInnerHTML` for web/PDF consistency
+
+- **CSS Semantic Classes** - Added ~180 lines of CSS rules for shared renderer classes
+  - Entry styling: `.entry`, `.entry-header`, `.entry-title`, `.entry-meta`, `.entry-description`, `.entry-bullets`
+  - Skill styling: `.skill-category`, `.skill-category-name`, `.skill-list`
+  - Section styling: `.cv-section`, `.section-header`, `.section-content`
+  - Sidebar overrides for two-column layout
+
+### Changed
+- **renderSectionContent Function** - Now uses shared renderer for non-skills sections
+  - Skills sections still use JSX rendering to support pill/inline tag styles
+  - Added `forPDF` parameter to enable/disable pagination classes
+  - All layouts (minimal, two-column, PDF mode) now use unified content rendering
+
+### Technical Insights
+- **Hybrid Approach**: Keeping JSX for layout structure while using shared renderer for content minimizes risk
+- **Skills Exception**: Skills sections intentionally bypass shared renderer to preserve configurable tag styles
+- **CSS Variables Integration**: Semantic classes from shared renderer respect template CSS variables for theming
+
 ## [1.8.0] - 2026-01-16
 
 ### Added
