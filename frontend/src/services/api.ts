@@ -91,6 +91,17 @@ export const cvApi = {
   async restore(id: string): Promise<ApiResponse<CVInstance>> {
     const response = await api.put(`/cvs/${id}/restore`)
     return response.data
+  },
+
+  /**
+   * Get PDF preview for display in iframe
+   * Returns a blob URL that can be used as iframe src
+   */
+  async getPreviewPdf(cvId: string): Promise<string> {
+    const response = await api.get(`/cvs/${cvId}/preview-pdf`, {
+      responseType: 'blob'
+    })
+    return URL.createObjectURL(response.data)
   }
 }
 

@@ -46,7 +46,6 @@ export const CVEditorPage: React.FC = () => {
   // State
   const [paneWidth, setPaneWidth] = useState(35) // Left pane percentage
   const [isResizing, setIsResizing] = useState(false)
-  const [previewMode, setPreviewMode] = useState<'web' | 'pdf'>('web')
   const [zoomLevel, setZoomLevel] = useState<'fit-width' | 'fit-height' | 'actual-size' | 'custom'>('fit-width')
   const [zoomPercentage, setZoomPercentage] = useState(100)
   const [showSettings, setShowSettings] = useState(false)
@@ -394,14 +393,12 @@ export const CVEditorPage: React.FC = () => {
           <EditorRightHeader
             templateId={activeTemplate?.id}
             templates={templates.map(t => ({ id: t.id, name: t.name }))}
-            previewMode={previewMode}
             zoomLevel={zoomLevel}
             zoomPercentage={zoomPercentage}
             isSaving={saveStatus === 'saving'}
             lastSaved={cv?.updated_at}
             onTemplateChange={handleTemplateChange}
             onSettingsClick={handleSettingsToggle}
-            onPreviewModeChange={setPreviewMode}
             onZoomChange={handleZoomChange}
             onZoomIn={handleZoomIn}
             onZoomOut={handleZoomOut}
@@ -412,7 +409,7 @@ export const CVEditorPage: React.FC = () => {
             showEditor={showEditor}
           />
 
-          <div style={{ height: 'calc(100% - 44px)', overflow: 'auto' }}>
+          <div style={{ height: 'calc(100% - 44px)', overflow: 'hidden' }}>
             <CVPreview
               cv={cv}
               template={activeTemplate}
@@ -422,7 +419,6 @@ export const CVEditorPage: React.FC = () => {
               liveContent={content}
               zoomLevel={zoomLevel}
               zoomPercentage={zoomPercentage}
-              previewMode={previewMode}
               onSettingsChange={handleSettingsChange}
             />
           </div>

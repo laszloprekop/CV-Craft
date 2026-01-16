@@ -25,13 +25,15 @@ export function renderSections(sections: CVSection[], options: RenderOptions = {
 
 /**
  * Render a single section
+ *
+ * Note: Sections themselves don't have keep-together; individual entries handle
+ * pagination with smart groupings (entry-start, entry-bullet-bridge).
  */
 function renderSection(section: CVSection, pagination: boolean, prefix: string): string {
-  const pagClass = pagination ? ' keep-together' : ''
-  const sectionClass = `${prefix}cv-section${pagClass}`.trim()
+  const sectionClass = `${prefix}cv-section`
 
   return `
-<section class="${sectionClass}" data-type="${section.type}"${pagination ? ' style="break-inside: avoid;"' : ''}>
+<section class="${sectionClass}" data-type="${section.type}">
   <h2 class="${prefix}section-header">${escapeHtml(section.title || '')}</h2>
   <div class="${prefix}section-content">
     ${renderSectionContent(section, pagination, prefix)}
@@ -76,17 +78,22 @@ function renderSectionContent(section: CVSection, pagination: boolean, prefix: s
 
 /**
  * Render an entry (job, education, project)
+ *
+ * For pagination mode, creates smart groupings to prevent awkward breaks:
+ * - entry-start: keeps header + first 2 paragraphs together (prevents orphaned headers)
+ * - entry-bullet-bridge: keeps last description paragraph + first bullet together
  */
 function renderEntry(entry: any, pagination: boolean, prefix: string): string {
   if (typeof entry !== 'object') {
     return `<p class="${prefix}content-text">${escapeHtml(String(entry))}</p>`
   }
 
-  const pagClass = pagination ? ' keep-together' : ''
-  const entryClass = `${prefix}entry${pagClass}`.trim()
+  const entryClass = `${prefix}entry`
 
-  return `
-<article class="${entryClass}"${pagination ? ' style="break-inside: avoid;"' : ''}>
+  // For non-pagination mode, use simple structure
+  if (!pagination) {
+    return `
+<article class="${entryClass}">
   ${entry.title ? `
   <div class="${prefix}entry-header">
     <h3 class="${prefix}entry-title">${escapeHtml(entry.title)}</h3>
@@ -103,6 +110,115 @@ function renderEntry(entry: any, pagination: boolean, prefix: string): string {
     ).join('\n    ')}
   </ul>` : ''}
 </article>`.trim()
+  }
+
+  // For pagination mode, create smart groupings
+  return renderEntryWithPagination(entry, prefix)
+}
+
+/**
+ * Render entry with smart pagination groupings
+ *
+ * Structure:
+ * - entry-start: header + first 2 description paragraphs (keep together)
+ * - entry-description-continue: middle paragraphs (can break)
+ * - entry-bullet-bridge: last description paragraph + first bullet (keep together)
+ * - entry-bullets-continue: remaining bullets (can break)
+ */
+function renderEntryWithPagination(entry: any, prefix: string): string {
+  const entryClass = `${prefix}entry`
+
+  // Parse description into paragraphs
+  const descParagraphs = entry.description
+    ? entry.description.split('\n\n').filter((p: string) => p.trim())
+    : []
+
+  // Parse bullets
+  const bullets = entry.bullets || []
+  const hasBullets = bullets.length > 0
+
+  // Determine which paragraphs go where
+  const startParagraphs = descParagraphs.slice(0, 2) // First 2 paragraphs in entry-start
+  const middleParagraphs = descParagraphs.length > 3 ? descParagraphs.slice(2, -1) : [] // Middle paragraphs
+  const lastParagraph = descParagraphs.length > 2 ? descParagraphs[descParagraphs.length - 1] : null // Last paragraph for bridge
+
+  // If only 1-2 paragraphs, they all go in entry-start, no bridge needed for description
+  const needsBridge = hasBullets && (descParagraphs.length > 2 || descParagraphs.length > 0)
+  const bridgeParagraph = needsBridge
+    ? (lastParagraph || (descParagraphs.length <= 2 && descParagraphs.length > 0 ? descParagraphs[descParagraphs.length - 1] : null))
+    : null
+
+  // First bullet goes in bridge (if we have bullets)
+  const firstBullet = hasBullets ? bullets[0] : null
+  const remainingBullets = hasBullets ? bullets.slice(1) : []
+
+  let html = `<article class="${entryClass}">\n`
+
+  // Group 1: Entry Start (header + first 2 paragraphs) - KEEP TOGETHER
+  html += `  <div class="${prefix}entry-start">\n`
+
+  if (entry.title) {
+    html += `    <div class="${prefix}entry-header">
+      <h3 class="${prefix}entry-title">${escapeHtml(entry.title)}</h3>
+      ${renderEntryMeta(entry, prefix)}
+    </div>\n`
+  }
+
+  if (startParagraphs.length > 0) {
+    // If we don't need a bridge (no bullets or description is short), include all desc here
+    const paragraphsForStart = needsBridge && descParagraphs.length > 2
+      ? startParagraphs
+      : (needsBridge ? descParagraphs.slice(0, -1) : descParagraphs) // Leave last for bridge if needed
+
+    if (paragraphsForStart.length > 0) {
+      html += `    <div class="${prefix}entry-description">\n`
+      paragraphsForStart.forEach((p: string) => {
+        html += `      <p>${escapeHtml(p)}</p>\n`
+      })
+      html += `    </div>\n`
+    }
+  }
+
+  html += `  </div>\n` // Close entry-start
+
+  // Middle paragraphs (can break freely)
+  if (middleParagraphs.length > 0) {
+    html += `  <div class="${prefix}entry-description ${prefix}entry-description-continue">\n`
+    middleParagraphs.forEach((p: string) => {
+      html += `    <p>${escapeHtml(p)}</p>\n`
+    })
+    html += `  </div>\n`
+  }
+
+  // Group 2: Bullet Bridge (last paragraph + first bullet) - KEEP TOGETHER
+  if (hasBullets) {
+    html += `  <div class="${prefix}entry-bullet-bridge">\n`
+
+    // Include last paragraph in bridge if we have multiple paragraphs
+    if (bridgeParagraph && descParagraphs.length > 2) {
+      html += `    <p class="${prefix}entry-description-last">${escapeHtml(bridgeParagraph)}</p>\n`
+    }
+
+    // First bullet
+    html += `    <ul class="${prefix}entry-bullets">\n`
+    html += `      <li>${escapeHtml(typeof firstBullet === 'string' ? firstBullet : firstBullet.text || '')}</li>\n`
+    html += `    </ul>\n`
+
+    html += `  </div>\n` // Close entry-bullet-bridge
+  }
+
+  // Remaining bullets (can break freely)
+  if (remainingBullets.length > 0) {
+    html += `  <ul class="${prefix}entry-bullets ${prefix}entry-bullets-continue">\n`
+    remainingBullets.forEach((bullet: any) => {
+      html += `    <li>${escapeHtml(typeof bullet === 'string' ? bullet : bullet.text || '')}</li>\n`
+    })
+    html += `  </ul>\n`
+  }
+
+  html += `</article>`
+
+  return html.trim()
 }
 
 /**

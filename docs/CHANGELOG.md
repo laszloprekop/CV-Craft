@@ -2,6 +2,36 @@
 
 All notable changes to CV-Craft will be documented in this file.
 
+## [1.10.0] - 2026-01-16
+
+### Added
+- **Three Preview Modes** - Replaced broken JS-based pagination with robust preview system
+  - **Web Mode**: Continuous scroll, no page boundaries (quick editing)
+  - **Page Markers Mode**: Visual dashed lines showing approximate page breaks (default)
+  - **Exact PDF Mode**: Backend-rendered PDF displayed in iframe (WYSIWYG)
+  - Mode selection persists in localStorage (`cv-craft-preview-mode`)
+  - Mode selector UI with icons integrated into CVPreview header
+
+- **Preview PDF Endpoint** - `GET /api/cvs/:id/preview-pdf` returns PDF as binary stream
+  - Reuses existing PDF generator for consistent output
+  - Inline Content-Disposition for iframe display
+
+### Changed
+- **CVPreview Component** - Manages preview mode internally (not via props)
+  - Removed ~300 lines of broken pagination code (PDFPageData, measuredHeights, renderPDFPage)
+  - Preview mode no longer passed from CVEditorPage
+  - EditorRightHeader no longer has Web/PDF toggle buttons
+
+- **PDF Generator Reliability** - Fixed Puppeteer launch issues on macOS
+  - Changed `headless: true` to `headless: 'new'` (new Chrome headless mode)
+  - Added system Chrome detection (`/Applications/Google Chrome.app`)
+  - Falls back to bundled Chromium if system Chrome unavailable
+
+### Technical Insights
+- **Mode Persistence Pattern**: Use localStorage for UI preferences that should survive page reloads
+- **PDF Preview Strategy**: Instead of simulating pagination in JS, leverage the actual PDF generator and display result in iframe - guarantees WYSIWYG
+- **Puppeteer macOS Fix**: System Chrome is more reliable than bundled Chromium on macOS; detect and use it when available
+
 ## [1.9.0] - 2026-01-16
 
 ### Added

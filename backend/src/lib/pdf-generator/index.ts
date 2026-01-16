@@ -36,13 +36,35 @@ export class PDFGenerator {
    */
   async initialize(): Promise<void> {
     if (!this.browser) {
+      // Try system Chrome first (more reliable on macOS), fallback to bundled
+      const possiblePaths = [
+        '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+        '/Applications/Chromium.app/Contents/MacOS/Chromium'
+      ]
+
+      let executablePath: string | undefined
+      for (const p of possiblePaths) {
+        try {
+          const fs = await import('fs')
+          if (fs.existsSync(p)) {
+            executablePath = p
+            break
+          }
+        } catch {
+          // Continue to next path
+        }
+      }
+
       this.browser = await puppeteer.launch({
-        headless: true,
+        headless: 'new',
+        executablePath,
         args: [
           '--no-sandbox',
           '--disable-setuid-sandbox',
           '--disable-dev-shm-usage',
-          '--disable-gpu'
+          '--disable-gpu',
+          '--disable-software-rasterizer',
+          '--disable-extensions'
         ]
       })
     }

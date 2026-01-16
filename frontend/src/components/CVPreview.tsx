@@ -8,10 +8,10 @@
  */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import React, { useMemo, useState, useEffect } from 'react'
-import { Phone, Envelope, LinkedinLogo, GithubLogo, MapPin, Globe } from '@phosphor-icons/react'
+import React, { useMemo, useState, useEffect, useCallback } from 'react'
+import { Phone, Envelope, LinkedinLogo, GithubLogo, MapPin, Globe, Monitor, ListDashes, FilePdf } from '@phosphor-icons/react'
 import type { CVInstance, Template, TemplateSettings, TemplateConfig, Asset, CVFrontmatter, CVSection, ParsedCVContent } from '../../../shared/types'
-import { assetApi } from '../services/api'
+import { assetApi, cvApi } from '../services/api'
 import { loadFonts } from '../services/GoogleFontsService'
 import { resolveSemanticColor } from '../utils/colorResolver'
 import { generateCSSVariables } from '../../../shared/utils/cssVariableGenerator'
@@ -38,12 +38,20 @@ interface StructuredEntry {
   bullets?: (string | { text: string })[]
 }
 
-// Type for PDF page data
-interface PDFPageData {
-  frontmatter: CVFrontmatter | null
-  sections: CVSection[]
-  pageNumber: number
-  isFirstPage: boolean
+// Preview mode types - three distinct modes for different use cases
+type PreviewMode = 'web' | 'page-markers' | 'exact-pdf'
+
+// localStorage key for mode persistence
+const PREVIEW_MODE_KEY = 'cv-craft-preview-mode'
+
+// Load saved mode or default to 'page-markers'
+const getInitialPreviewMode = (): PreviewMode => {
+  if (typeof window === 'undefined') return 'page-markers'
+  const saved = localStorage.getItem(PREVIEW_MODE_KEY)
+  if (saved === 'web' || saved === 'page-markers' || saved === 'exact-pdf') {
+    return saved
+  }
+  return 'page-markers'
 }
 
 interface CVPreviewProps {
@@ -55,7 +63,6 @@ interface CVPreviewProps {
   liveContent?: string // Live content from editor for real-time preview
   zoomLevel?: 'fit-width' | 'fit-height' | 'actual-size' | 'custom'
   zoomPercentage?: number
-  previewMode?: 'web' | 'pdf'
   onSettingsChange: (settings: Partial<TemplateSettings>) => void
 }
 
@@ -68,26 +75,25 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
   liveContent,
   zoomLevel = 'fit-width',
   zoomPercentage = 100,
-  previewMode = 'web',
   onSettingsChange
 }) => {
   // State for profile photo URL
   const [photoUrl, setPhotoUrl] = useState<string | null>(null)
 
-  // Ref for measuring actual section heights
-  const measureContainerRef = React.useRef<HTMLDivElement>(null)
-  const [measuredHeights, setMeasuredHeights] = useState<Map<string, number>>(new Map())
+  // Preview mode state with localStorage persistence
+  const [previewMode, setPreviewMode] = useState<PreviewMode>(getInitialPreviewMode)
 
-  // Create stable key from measured heights for dependency tracking
-  const measuredHeightsKey = useMemo(() => {
-    return Array.from(measuredHeights.entries())
-      .sort(([a], [b]) => a.localeCompare(b))
-      .map(([key, value]) => `${key}:${value.toFixed(2)}`)
-      .join('|')
-  }, [measuredHeights])
+  // Exact PDF mode state
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null)
+  const [pdfLoading, setPdfLoading] = useState(false)
+  const [pdfError, setPdfError] = useState<string | null>(null)
+  const [pdfVersion, setPdfVersion] = useState(0) // Used to track when PDF needs refresh
 
-  // Track overflow issues for PDF mode
-  const [overflowWarnings, setOverflowWarnings] = useState<string[]>([])
+  // Handle mode change with persistence
+  const handleModeChange = useCallback((mode: PreviewMode) => {
+    setPreviewMode(mode)
+    localStorage.setItem(PREVIEW_MODE_KEY, mode)
+  }, [])
 
   // Load Google Fonts when config changes
   useEffect(() => {
@@ -415,37 +421,48 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
     return null
   }, [cv?.parsed_content, liveContent])
 
-  // Measure actual section heights in PDF mode
+  // Load PDF preview when in exact-pdf mode
   useEffect(() => {
-    if (previewMode !== 'pdf' || !measureContainerRef.current || !parsedContent) {
+    if (previewMode !== 'exact-pdf' || !cv?.id) {
       return
     }
 
-    // Wait for next frame to ensure DOM is rendered
-    requestAnimationFrame(() => {
-      if (!measureContainerRef.current) return
+    let cancelled = false
+    setPdfLoading(true)
+    setPdfError(null)
 
-      const newHeights = new Map<string, number>()
-      const container = measureContainerRef.current
-
-      // Measure header height
-      const header = container.querySelector('[data-measure="header"]')
-      if (header) {
-        newHeights.set('header', header.getBoundingClientRect().height)
-      }
-
-      // Measure each section
-      container.querySelectorAll('[data-measure-section]').forEach((element) => {
-        const sectionIndex = element.getAttribute('data-measure-section')
-        if (sectionIndex) {
-          newHeights.set(`section-${sectionIndex}`, element.getBoundingClientRect().height)
+    cvApi.getPreviewPdf(cv.id)
+      .then(url => {
+        if (!cancelled) {
+          // Revoke old URL to prevent memory leak
+          if (pdfUrl) {
+            URL.revokeObjectURL(pdfUrl)
+          }
+          setPdfUrl(url)
+          setPdfLoading(false)
+        }
+      })
+      .catch(err => {
+        if (!cancelled) {
+          console.error('[CVPreview] Failed to load PDF preview:', err)
+          setPdfError('Failed to generate PDF preview')
+          setPdfLoading(false)
         }
       })
 
-      console.log('[CVPreview] Measured heights:', Object.fromEntries(newHeights))
-      setMeasuredHeights(newHeights)
-    })
-  }, [previewMode, parsedContent])
+    return () => {
+      cancelled = true
+    }
+  }, [previewMode, cv?.id, cv?.updated_at, pdfVersion])
+
+  // Cleanup PDF URL on unmount
+  useEffect(() => {
+    return () => {
+      if (pdfUrl) {
+        URL.revokeObjectURL(pdfUrl)
+      }
+    }
+  }, [pdfUrl])
 
   // Apply template-based styling - memoized to prevent infinite re-renders
   const templateStyles = useMemo((): CSSCustomProperties => {
@@ -465,461 +482,6 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
     return cssVariables as CSSCustomProperties
   }, [template, config])
 
-  // Calculate content height and split into pages for PDF mode - memoized to prevent infinite re-renders
-  const pdfPagesData = useMemo((): { pages: PDFPageData[]; warnings: string[] } => {
-    if (!parsedContent || previewMode !== 'pdf') {
-      return { pages: parsedContent ? [{ frontmatter: parsedContent.frontmatter, sections: parsedContent.sections, pageNumber: 1, isFirstPage: true }] : [], warnings: [] }
-    }
-
-    // A4 dimensions: 210mm × 297mm
-    // With margins: 20mm top/bottom, 15mm left/right
-    // Content area: 180mm × 257mm
-    const pageContentHeight = 257 // mm available for content after margins
-    const mmToPx = 3.779528 // precise mm to px conversion at 96 DPI
-    const pageHeightPx = pageContentHeight * mmToPx // ~971px
-
-    const pages: PDFPageData[] = []
-    const { frontmatter, sections } = parsedContent
-    const warnings: string[] = []
-
-    // Use measured header height or fallback to estimate
-    const headerHeight = measuredHeights.get('header') || 150
-    console.log('[splitContentIntoPages] Using header height:', headerHeight)
-
-    // Check if header alone is too large
-    if (headerHeight > pageHeightPx * 0.4) {
-      warnings.push(`Header is very large (${Math.round(headerHeight)}px). Consider shortening your name or title.`)
-    }
-
-    let currentPage: PDFPageData = {
-      frontmatter,
-      sections: [],
-      pageNumber: 1,
-      isFirstPage: true
-    }
-    let currentHeight = headerHeight
-
-    sections.forEach((section: CVSection, index: number) => {
-      // Use measured height if available, otherwise estimate
-      const measuredKey = `section-${index}`
-      let sectionHeight: number
-
-      if (measuredHeights.has(measuredKey)) {
-        sectionHeight = measuredHeights.get(measuredKey)!
-        console.log(`[splitContentIntoPages] Using measured height for section ${index}:`, sectionHeight)
-      } else {
-        // Fallback estimation if measurements not yet available
-        sectionHeight = 80 // base height for section header
-
-        if (Array.isArray(section.content)) {
-          (section.content as unknown[]).forEach((item: unknown) => {
-            if (typeof item === 'string') {
-              // Estimate paragraph height based on character count
-              const lines = Math.ceil(item.length / 80) // ~80 chars per line
-              sectionHeight += lines * 20 + 10 // line height + spacing
-            } else if (typeof item === 'object' && item !== null && 'title' in item) {
-              // Job/education entry with title, company, description
-              sectionHeight += 120 // fixed height for structured entry
-            }
-          })
-        } else {
-          sectionHeight += 60 // simple text section
-        }
-        console.log(`[splitContentIntoPages] Using estimated height for section ${index}:`, sectionHeight)
-      }
-
-      // Check if single section is too large for one page
-      if (sectionHeight > pageHeightPx) {
-        warnings.push(`Section "${section.title}" is too large (${Math.round(sectionHeight)}px) to fit on one page. Consider breaking it into smaller sections.`)
-      }
-
-      // Check if section fits on current page (with keep-together logic)
-      if (currentHeight + sectionHeight > pageHeightPx && currentPage.sections.length > 0) {
-        // Section doesn't fit, start new page
-        console.log(`[splitContentIntoPages] Section ${index} doesn't fit (${currentHeight + sectionHeight}px > ${pageHeightPx}px), creating new page`)
-
-        // Check if current page is nearly empty (< 20% filled)
-        if (currentHeight < pageHeightPx * 0.2) {
-          warnings.push(`Page ${currentPage.pageNumber} has very little content. Consider adjusting content distribution.`)
-        }
-
-        pages.push(currentPage)
-        currentPage = {
-          frontmatter: null, // No header on continuation pages
-          sections: [section],
-          pageNumber: pages.length + 1,
-          isFirstPage: false
-        }
-        currentHeight = sectionHeight
-      } else {
-        // Section fits, add to current page
-        currentPage.sections.push(section)
-        currentHeight += sectionHeight
-      }
-    })
-
-    // Add final page
-    if (currentPage.sections.length > 0) {
-      pages.push(currentPage)
-    }
-
-    console.log(`[splitContentIntoPages] Created ${pages.length} pages`)
-
-    const finalPages = pages.length > 0 ? pages : [{ frontmatter, sections, pageNumber: 1, isFirstPage: true }]
-    return { pages: finalPages, warnings }
-  }, [parsedContent, previewMode, measuredHeightsKey])
-
-  // Update overflow warnings when PDF pages data changes
-  useEffect(() => {
-    if (previewMode === 'pdf') {
-      setOverflowWarnings(pdfPagesData.warnings)
-    } else {
-      setOverflowWarnings([])
-    }
-  }, [previewMode, pdfPagesData.warnings])
-
-  // Render individual PDF page
-  const renderPDFPage = (pageData: PDFPageData, pageIndex: number) => {
-    const { frontmatter, sections, pageNumber, isFirstPage } = pageData
-    const styles = templateStyles
-    const useMinimalLayout = template?.name.includes('Minimal') || template?.name.includes('Clean')
-
-    // Separate sections for two-column layout
-    const sidebarSections = sections.filter((s: CVSection) =>
-      ['skills', 'languages', 'interests', 'tools'].some((type: string) =>
-        (s.title?.toLowerCase() || '').includes(type) || s.type === type
-      )
-    )
-
-    const mainSections = sections.filter((s: CVSection) =>
-      !['skills', 'languages', 'interests', 'tools'].some((type: string) =>
-        (s.title?.toLowerCase() || '').includes(type) || s.type === type
-      )
-    )
-
-    return (
-      <div
-        key={pageIndex}
-        className="bg-white shadow-lg mx-auto mb-6 relative keep-together"
-        style={{
-          width: templateStyles['--page-width'] as string || '210mm',
-          height: '297mm',
-          padding: `${templateStyles['--page-margin-top']} ${templateStyles['--page-margin-right']} ${templateStyles['--page-margin-bottom']} ${templateStyles['--page-margin-left']}`,
-          pageBreakAfter: 'always',
-          boxSizing: 'border-box'
-        }}
-      >
-        {/* Page content with template styling */}
-        <div
-          style={{
-            height: '100%',
-            overflow: 'hidden',
-            ...templateStyles,
-            fontFamily: templateStyles['--font-family'],
-            fontSize: templateStyles['--body-font-size'],
-            color: templateStyles['--text-color']
-          }}
-        >
-          {useMinimalLayout ? (
-            // Minimal Clean - Single column layout
-            <>
-              {/* Header only on first page */}
-              {frontmatter && (
-                <header className="text-center mb-6 pb-4" style={{ borderBottom: `2px solid ${templateStyles['--accent-color']}` }}>
-                  <h1
-                    className="font-bold mb-2"
-                    style={{
-                      fontSize: templateStyles['--name-font-size'],
-                      fontWeight: templateStyles['--name-font-weight'],
-                      color: templateStyles['--name-color'],
-                      letterSpacing: templateStyles['--name-letter-spacing'],
-                      textTransform: templateStyles['--name-text-transform'] as any,
-                      textAlign: templateStyles['--name-alignment'] as any,
-                      marginBottom: templateStyles['--name-margin-bottom'],
-                      fontFamily: templateStyles['--heading-font-family']
-                    }}
-                  >
-                    {frontmatter.name || 'Your Name'}
-                  </h1>
-                  {frontmatter.title && (
-                    <p
-                      className="font-medium mb-4"
-                      style={{
-                        fontSize: templateStyles['--h3-font-size'],
-                        color: templateStyles['--accent-color'] || '#6b7280'
-                      }}
-                    >
-                      {frontmatter.title}
-                    </p>
-                  )}
-                  {/* Contact info centered */}
-                  <div className="flex justify-center gap-4 mb-4" style={{
-                    color: templateStyles['--contact-icon-color'],
-                    fontSize: templateStyles['--contact-font-size'],
-                    gap: templateStyles['--contact-spacing']
-                  }}>
-                    {frontmatter.email && <span>{frontmatter.email}</span>}
-                    {frontmatter.phone && <span>{frontmatter.phone}</span>}
-                    {frontmatter.location && <span>{frontmatter.location}</span>}
-                  </div>
-                </header>
-              )}
-
-              {/* All sections in single column */}
-              {sections.map((section, sectionIndex) => (
-                <section key={sectionIndex} className="mb-6 keep-together" style={{ pageBreakInside: 'avoid', breakInside: 'avoid' }}>
-                  <h2
-                    className="text-lg font-bold uppercase tracking-wide mb-3 pb-1"
-                    style={{
-                      fontFamily: templateStyles['--heading-font-family'],
-                      fontSize: templateStyles['--section-header-font-size'],
-                      fontWeight: templateStyles['--section-header-font-weight'],
-                      color: templateStyles['--section-header-color'],
-                      textTransform: templateStyles['--section-header-text-transform'] as any,
-                      letterSpacing: templateStyles['--section-header-letter-spacing'],
-                      borderBottom: templateStyles['--section-header-border-bottom'],
-                      borderColor: templateStyles['--section-header-border-color'],
-                      padding: templateStyles['--section-header-padding'],
-                      marginTop: templateStyles['--section-header-margin-top'],
-                      marginBottom: templateStyles['--section-header-margin-bottom']
-                    }}
-                  >
-                    {section.title}
-                  </h2>
-                  <div className="space-y-3">
-                    {/* Use shared renderer with PDF pagination */}
-                    {renderSectionContent(section, false, true)}
-                  </div>
-                </section>
-              ))}
-            </>
-          ) : (
-            // Modern Professional - Two column layout
-            <div className="flex h-full">
-              {/* Left sidebar for skills/contact */}
-              <div
-                className="w-2/5"
-                style={{
-                  backgroundColor: templateStyles['--surface-color'] as string || '#e6d7c3',
-                  padding: '0.5cm',
-                  height: '100%',
-                  overflow: 'hidden'
-                }}
-              >
-                {/* Contact info in sidebar */}
-                {frontmatter && (
-                  <div className="mb-6">
-                    <div className="text-center mb-4">
-                      {photoUrl ? (
-                        <img
-                          src={photoUrl}
-                          alt="Profile"
-                          className="w-32 h-32 rounded-full mx-auto mb-3 object-cover"
-                          style={{ width: '200px', height: '200px' }}
-                        />
-                      ) : (
-                        <div className="w-32 h-32 rounded-full mx-auto mb-3 flex items-center justify-center"
-                             style={{ backgroundColor: '#d4a574', width: '200px', height: '200px' }}>
-                          <span className="text-white text-xs font-medium">Photo</span>
-                        </div>
-                      )}
-                      <h1
-                        className="font-bold mb-2"
-                        style={{
-                          fontSize: templateStyles['--name-font-size'],
-                          fontWeight: templateStyles['--name-font-weight'],
-                          color: 'var(--on-secondary-color)',
-                          letterSpacing: templateStyles['--name-letter-spacing'],
-                          textTransform: templateStyles['--name-text-transform'] as any,
-                          textAlign: 'center',
-                          marginBottom: templateStyles['--name-margin-bottom'],
-                          fontFamily: templateStyles['--heading-font-family']
-                        }}
-                      >
-                        {frontmatter.name || 'Your Name'}
-                      </h1>
-                      {frontmatter.title && (
-                        <p
-                          className="font-medium text-center mb-4"
-                          style={{
-                            fontSize: templateStyles['--body-font-size'],
-                            color: 'var(--on-secondary-color)'
-                          }}
-                        >
-                          {frontmatter.title}
-                        </p>
-                      )}
-                    </div>
-
-                    {/* Contact details with icons */}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: templateStyles['--contact-spacing'] }}>
-                      {frontmatter.phone && (
-                        <div className="flex items-center text-sm" style={{
-                          color: 'var(--on-secondary-color)',
-                          fontSize: templateStyles['--contact-font-size'],
-                          gap: templateStyles['--contact-spacing']
-                        }}>
-                          <Phone size={parseInt(templateStyles['--contact-icon-size'] as string) || 16} className="flex-shrink-0" style={{ color: templateStyles['--contact-icon-color'] }} />
-                          <span>{frontmatter.phone}</span>
-                        </div>
-                      )}
-                      {frontmatter.email && (
-                        <div className="flex items-center text-sm" style={{
-                          color: 'var(--on-secondary-color)',
-                          fontSize: templateStyles['--contact-font-size'],
-                          gap: templateStyles['--contact-spacing']
-                        }}>
-                          <Envelope size={parseInt(templateStyles['--contact-icon-size'] as string) || 16} className="flex-shrink-0" style={{ color: templateStyles['--contact-icon-color'] }} />
-                          <span className="break-all">{frontmatter.email}</span>
-                        </div>
-                      )}
-                      {frontmatter.linkedin && (
-                        <div className="flex items-center text-sm" style={{
-                          color: 'var(--on-secondary-color)',
-                          fontSize: templateStyles['--contact-font-size'],
-                          gap: templateStyles['--contact-spacing']
-                        }}>
-                          <LinkedinLogo size={parseInt(templateStyles['--contact-icon-size'] as string) || 16} className="flex-shrink-0" style={{ color: templateStyles['--contact-icon-color'] }} />
-                          <span className="break-all">{frontmatter.linkedin.replace(/^https?:\/\//, '')}</span>
-                        </div>
-                      )}
-                      {frontmatter.github && (
-                        <div className="flex items-center text-sm" style={{
-                          color: 'var(--on-secondary-color)',
-                          fontSize: templateStyles['--contact-font-size'],
-                          gap: templateStyles['--contact-spacing']
-                        }}>
-                          <GithubLogo size={parseInt(templateStyles['--contact-icon-size'] as string) || 16} className="flex-shrink-0" style={{ color: templateStyles['--contact-icon-color'] }} />
-                          <span className="break-all">{frontmatter.github.replace(/^https?:\/\//, '')}</span>
-                        </div>
-                      )}
-                      {frontmatter.website && (
-                        <div className="flex items-center text-sm" style={{
-                          color: 'var(--on-secondary-color)',
-                          fontSize: templateStyles['--contact-font-size'],
-                          gap: templateStyles['--contact-spacing']
-                        }}>
-                          <Globe size={parseInt(templateStyles['--contact-icon-size'] as string) || 16} className="flex-shrink-0" style={{ color: templateStyles['--contact-icon-color'] }} />
-                          <span className="break-all">{frontmatter.website.replace(/^https?:\/\//, '')}</span>
-                        </div>
-                      )}
-                      {frontmatter.location && (
-                        <div className="flex items-center text-sm" style={{
-                          color: 'var(--on-secondary-color)',
-                          fontSize: templateStyles['--contact-font-size'],
-                          gap: templateStyles['--contact-spacing']
-                        }}>
-                          <MapPin size={parseInt(templateStyles['--contact-icon-size'] as string) || 16} className="flex-shrink-0" style={{ color: templateStyles['--contact-icon-color'] }} />
-                          <span>{frontmatter.location}</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {/* Sidebar sections */}
-                {sidebarSections.map((section, sectionIndex) => (
-                  <div key={sectionIndex} className="mb-6 keep-together" style={{ pageBreakInside: 'avoid', breakInside: 'avoid' }}>
-                    <h3
-                      className="text-sm font-bold uppercase tracking-wide mb-3 px-3 py-1 rounded"
-                      style={{
-                        fontFamily: templateStyles['--heading-font-family'],
-                        color: 'var(--on-tertiary-color)',
-                        backgroundColor: templateStyles['--accent-color'] as string || '#c4956c'
-                      }}
-                    >
-                      {section.title}
-                    </h3>
-                    <div className="space-y-2 sidebar">
-                      {/* Use shared renderer with PDF pagination, sidebar styling */}
-                      {renderSectionContent(section, true, true)}
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {/* Right main content */}
-              <div
-                className="flex-1"
-                style={{
-                  backgroundColor: templateStyles['--background-color'] as string || '#f7f5f3',
-                  padding: '0.5cm',
-                  height: '100%',
-                  overflow: 'hidden'
-                }}
-              >
-                {/* Header only on first page */}
-                {pageNumber === 1 && frontmatter && (
-                  <header className="mb-6">
-                    <h1
-                      className="font-bold uppercase tracking-wide mb-2"
-                      style={{
-                        fontSize: templateStyles['--name-font-size'],
-                        fontWeight: templateStyles['--name-font-weight'],
-                        color: templateStyles['--name-color'],
-                        letterSpacing: templateStyles['--name-letter-spacing'],
-                        textTransform: templateStyles['--name-text-transform'] as any,
-                        textAlign: templateStyles['--name-alignment'] as any,
-                        marginBottom: templateStyles['--name-margin-bottom'],
-                        fontFamily: templateStyles['--heading-font-family']
-                      }}
-                    >
-                      {frontmatter.name || 'Your Name'}
-                    </h1>
-                    {frontmatter.title && (
-                      <p
-                        className="font-medium mb-4"
-                        style={{
-                          fontSize: templateStyles['--h3-font-size'],
-                          color: 'var(--text-secondary)'
-                        }}
-                      >
-                        {frontmatter.title}
-                      </p>
-                    )}
-                  </header>
-                )}
-
-                {/* Main content sections */}
-                {mainSections.map((section, sectionIndex) => (
-                  <section key={sectionIndex} className="mb-6 keep-together" style={{ pageBreakInside: 'avoid', breakInside: 'avoid' }}>
-                    <h2
-                      className="text-base font-bold uppercase tracking-wide mb-3 px-3 py-1 rounded"
-                      style={{
-                        fontFamily: templateStyles['--heading-font-family'],
-                        fontSize: templateStyles['--section-header-font-size'],
-                        fontWeight: templateStyles['--section-header-font-weight'],
-                        color: 'var(--on-primary-color)',
-                        textTransform: templateStyles['--section-header-text-transform'] as any,
-                        letterSpacing: templateStyles['--section-header-letter-spacing'],
-                        backgroundColor: templateStyles['--primary-color'] as string || '#a8956b',
-                        marginTop: templateStyles['--section-header-margin-top'],
-                        marginBottom: templateStyles['--section-header-margin-bottom']
-                      }}
-                    >
-                      {section.title}
-                    </h2>
-                    <div className="space-y-3">
-                      {/* Use shared renderer with PDF pagination */}
-                      {renderSectionContent(section, false, true)}
-                    </div>
-                  </section>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Page number */}
-        <div
-          className="absolute bottom-4 right-4 text-xs"
-          style={{ fontSize: 'var(--tiny-font-size)', color: 'var(--text-muted)' }}
-        >
-          Page {pageNumber}
-        </div>
-      </div>
-    )
-  }
 
   // Helper function to render skills with configurable tag/separator style
   const renderSkills = (skillCategories: SkillCategory[], isSidebar: boolean = false) => {
@@ -1015,8 +577,67 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
     )
   }
 
+  // Page break indicator component for page-markers mode
+  const PageBreakIndicator: React.FC<{ pageNumber: number }> = ({ pageNumber }) => (
+    <div className="page-break-indicator">
+      <div className="page-break-line" />
+      <span className="page-break-label">Page {pageNumber}</span>
+    </div>
+  )
+
+  // Render Exact PDF preview using backend-generated PDF
+  const renderExactPDF = () => {
+    if (pdfLoading) {
+      return (
+        <div className="pdf-loading">
+          <div className="flex flex-col items-center gap-3">
+            <div className="animate-spin h-8 w-8 border-2 border-primary border-t-transparent rounded-full" />
+            <span>Generating PDF preview...</span>
+          </div>
+        </div>
+      )
+    }
+
+    if (pdfError) {
+      return (
+        <div className="pdf-error">
+          <div className="flex flex-col items-center gap-3">
+            <span>{pdfError}</span>
+            <button
+              onClick={() => setPdfVersion(v => v + 1)}
+              className="px-4 py-2 text-sm bg-primary text-white rounded hover:bg-primary-hover"
+            >
+              Retry
+            </button>
+          </div>
+        </div>
+      )
+    }
+
+    if (!pdfUrl) {
+      return (
+        <div className="pdf-loading">
+          <span>Waiting for PDF...</span>
+        </div>
+      )
+    }
+
+    return (
+      <iframe
+        src={pdfUrl}
+        className="exact-pdf-preview"
+        title="PDF Preview"
+      />
+    )
+  }
+
   // Generate CV layout based on template and preview mode
   const renderCV = () => {
+    // For exact-pdf mode, render the PDF viewer
+    if (previewMode === 'exact-pdf') {
+      return renderExactPDF()
+    }
+
     if (!parsedContent) return null
 
     const { frontmatter, sections } = parsedContent
@@ -1026,16 +647,7 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
     const useModernLayout = template?.name.includes('Modern') || template?.name.includes('Professional')
     const useMinimalLayout = template?.name.includes('Minimal') || template?.name.includes('Clean')
 
-    // For PDF mode, render paginated layout
-    if (previewMode === 'pdf') {
-      return (
-        <div className="max-w-5xl mx-auto">
-          {pdfPagesData.pages.map((page, index) => renderPDFPage(page, index))}
-        </div>
-      )
-    }
-
-    // For web mode, use existing layouts
+    // For web mode and page-markers mode, use continuous layouts
     // Separate sections into sidebar and main content
     const sidebarSections = sections.filter((s: CVSection) =>
       ['skills', 'languages', 'interests', 'tools'].some((type: string) =>
@@ -1348,13 +960,38 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
     }
   }
 
-  // NOTE: We DON'T use parsedContent.html because it's too simple (flat HTML)
-  // We need the structured sections for sophisticated layout (two-column, tags, pagination)
-  // The html field is only used for PDF export backend
+  // Mode selector UI component
+  const PreviewModeSelector: React.FC = () => (
+    <div className="preview-mode-selector">
+      <button
+        className={previewMode === 'web' ? 'active' : ''}
+        onClick={() => handleModeChange('web')}
+        title="Continuous scroll, no page boundaries"
+      >
+        <Monitor size={16} weight="bold" />
+        <span>Web</span>
+      </button>
+      <button
+        className={previewMode === 'page-markers' ? 'active' : ''}
+        onClick={() => handleModeChange('page-markers')}
+        title="Show approximate page break positions"
+      >
+        <ListDashes size={16} weight="bold" />
+        <span>Page Markers</span>
+      </button>
+      <button
+        className={previewMode === 'exact-pdf' ? 'active' : ''}
+        onClick={() => handleModeChange('exact-pdf')}
+        title="Exact PDF preview from backend"
+      >
+        <FilePdf size={16} weight="bold" />
+        <span>Exact PDF</span>
+      </button>
+    </div>
+  )
 
-  // FALLBACK: Use legacy section-based rendering (for PDF mode or old CVs)
   return (
-    <div className="h-full bg-surface overflow-auto">
+    <div className="h-full bg-surface overflow-auto flex flex-col">
       {/* Loading Overlay */}
       {isPending && (
         <div className="absolute inset-0 bg-surface/80 flex items-center justify-center z-10">
@@ -1362,98 +999,27 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
         </div>
       )}
 
-      {/* Overflow Warnings for PDF mode */}
-      {previewMode === 'pdf' && overflowWarnings.length > 0 && (
-        <div className="mx-6 mt-4 mb-2 p-3 rounded-lg" style={{ backgroundColor: '#fef3c7', borderColor: '#fcd34d', borderWidth: '1px' }}>
-          <div className="flex items-start gap-2">
-            <svg className="w-5 h-5 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20" style={{ color: '#d97706' }}>
-              <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-            </svg>
-            <div className="flex-1">
-              <h4 className="text-sm font-semibold mb-1" style={{ color: '#92400e' }}>PDF Layout Warnings</h4>
-              <ul className="text-xs space-y-1" style={{ color: '#b45309' }}>
-                {overflowWarnings.map((warning, index) => (
-                  <li key={index}>• {warning}</li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Hidden measuring container for PDF mode */}
-      {previewMode === 'pdf' && parsedContent && (
-        <div
-          ref={measureContainerRef}
-          style={{
-            position: 'absolute',
-            left: '-9999px',
-            top: 0,
-            width: '210mm',
-            visibility: 'hidden',
-            pointerEvents: 'none'
-          }}
-        >
-          {/* Render header for measurement */}
-          {parsedContent.frontmatter && (
-            <header data-measure="header" className="mb-8" style={templateStyles}>
-              <h1
-                className="font-bold uppercase tracking-wide mb-2"
-                style={{
-                  fontSize: 'var(--name-font-size)',
-                  fontWeight: 'var(--name-font-weight)',
-                  color: 'var(--name-color)',
-                  letterSpacing: 'var(--name-letter-spacing)',
-                  textTransform: 'var(--name-text-transform)' as any,
-                  textAlign: 'var(--name-alignment)' as any,
-                  marginBottom: 'var(--name-margin-bottom)',
-                  fontFamily: 'var(--heading-font-family)'
-                }}
-              >
-                {parsedContent.frontmatter.name || 'Your Name'}
-              </h1>
-              {parsedContent.frontmatter.title && (
-                <p
-                  className="font-medium"
-                  style={{
-                    fontSize: 'var(--h3-font-size)',
-                    color: 'var(--accent-color)'
-                  }}
-                >
-                  {parsedContent.frontmatter.title}
-                </p>
-              )}
-            </header>
-          )}
-
-          {/* Render each section for measurement */}
-          {parsedContent.sections.map((section, index) => (
-            <section
-              key={index}
-              data-measure-section={index}
-              className="mb-8"
-              style={templateStyles}
-            >
-              <h3 className="text-base font-bold uppercase tracking-wide mb-3 px-3 py-1 rounded">
-                {section.title}
-              </h3>
-              <div className="space-y-3">
-                {/* Use shared renderer with PDF pagination for accurate measurement */}
-                {renderSectionContent(section, false, true)}
-              </div>
-            </section>
-          ))}
-        </div>
-      )}
+      {/* Mode Selector Header */}
+      <div className="flex-shrink-0 px-4 py-2 border-b border-border bg-surface sticky top-0 z-10">
+        <PreviewModeSelector />
+      </div>
 
       {/* CV Preview Content */}
-      <div className={`p-6 transition-opacity duration-200 ${isPending ? 'opacity-70' : 'opacity-100'}`}>
-        <div
-          className="transition-transform duration-200 ease-in-out"
-          style={getZoomStyles()}
-        >
-          {renderCV()}
-        </div>
+      <div className={`flex-1 p-6 transition-opacity duration-200 ${isPending ? 'opacity-70' : 'opacity-100'} ${previewMode === 'exact-pdf' ? 'p-0' : ''}`}>
+        {previewMode === 'exact-pdf' ? (
+          // Exact PDF mode takes full height without zoom transform
+          <div className="h-full">
+            {renderCV()}
+          </div>
+        ) : (
+          // Web and Page Markers modes use zoom transform
+          <div
+            className="transition-transform duration-200 ease-in-out"
+            style={getZoomStyles()}
+          >
+            {renderCV()}
+          </div>
+        )}
       </div>
     </div>
   )

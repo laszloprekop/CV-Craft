@@ -221,6 +221,48 @@ router.post('/validate', asyncHandler(async (req, res) => {
 }));
 
 /**
+ * GET /api/cvs/:id/preview-pdf - Get PDF preview for live viewing
+ * Returns the PDF as a binary stream for display in an iframe
+ */
+router.get('/:id/preview-pdf', validateUuid('id'), asyncHandler(async (req, res) => {
+  const { cvService } = getServices();
+
+  try {
+    console.log('[preview-pdf] Starting PDF generation for CV:', req.params.id);
+
+    // Export as PDF to a temporary location
+    const exportResult = await cvService.exportCV(req.params.id, 'pdf');
+    console.log('[preview-pdf] Export result:', exportResult);
+
+    // Get the file path and send it as a PDF
+    const fs = await import('fs/promises');
+    const path = await import('path');
+    const filePath = path.join(process.cwd(), exportResult.file_path);
+    console.log('[preview-pdf] Reading PDF from:', filePath);
+
+    const pdfBuffer = await fs.readFile(filePath);
+    console.log('[preview-pdf] PDF buffer size:', pdfBuffer.length);
+
+    // Set headers for PDF display (not download)
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', 'inline; filename="preview.pdf"');
+    res.setHeader('Content-Length', pdfBuffer.length);
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+
+    res.send(pdfBuffer);
+  } catch (error) {
+    console.error('[preview-pdf] Error generating PDF:', error);
+    if (error instanceof CVServiceError && error.code === 'NOT_FOUND') {
+      return res.status(404).json({
+        error: 'NOT_FOUND',
+        message: 'CV not found'
+      });
+    }
+    throw error;
+  }
+}));
+
+/**
  * POST /api/cvs/:id/export - Export CV to different formats
  */
 router.post('/:id/export', validateUuid('id'), asyncHandler(async (req, res) => {

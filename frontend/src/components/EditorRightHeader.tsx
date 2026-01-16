@@ -1,6 +1,7 @@
 /**
  * Right Header for CV Preview
- * Contains: Template Selector, Settings, Zoom Controls, Preview Mode, Export
+ * Contains: Template Selector, Settings, Zoom Controls, Export
+ * Note: Preview Mode is now managed within CVPreview component
  */
 
 import React from 'react'
@@ -9,7 +10,6 @@ import {
   ArrowsHorizontal,
   ArrowsVertical,
   MagnifyingGlass,
-  Globe,
   FilePdf,
   FloppyDisk,
   Package,
@@ -20,13 +20,11 @@ import {
 } from '@phosphor-icons/react'
 
 
-type PreviewMode = 'web' | 'pdf'
 type ZoomLevel = 'fit-width' | 'fit-height' | 'actual-size' | 'custom'
 
 interface EditorRightHeaderProps {
   templateId?: string
   templates?: Array<{ id: string; name: string }>
-  previewMode?: PreviewMode
   zoomLevel?: ZoomLevel
   zoomPercentage?: number
   isSaving?: boolean
@@ -34,7 +32,6 @@ interface EditorRightHeaderProps {
   showEditor?: boolean
   onTemplateChange?: (templateId: string) => void
   onSettingsClick?: () => void
-  onPreviewModeChange?: (mode: PreviewMode) => void
   onZoomChange?: (level: ZoomLevel) => void
   onZoomIn?: () => void
   onZoomOut?: () => void
@@ -47,7 +44,6 @@ interface EditorRightHeaderProps {
 export const EditorRightHeader: React.FC<EditorRightHeaderProps> = ({
   templateId,
   templates = [],
-  previewMode = 'web',
   zoomLevel = 'fit-width',
   zoomPercentage = 100,
   isSaving = false,
@@ -55,7 +51,6 @@ export const EditorRightHeader: React.FC<EditorRightHeaderProps> = ({
   showEditor = true,
   onTemplateChange,
   onSettingsClick,
-  onPreviewModeChange,
   onZoomChange,
   onZoomIn,
   onZoomOut,
@@ -167,10 +162,10 @@ export const EditorRightHeader: React.FC<EditorRightHeaderProps> = ({
           <ArrowsHorizontal size={18} weight="bold" />
         </button>
 
-        <button 
+        <button
           className={`flex items-center gap-0.5 px-1.5 py-1 text-xs border rounded transition-all duration-150 ${
-            zoomLevel === 'actual-size' 
-              ? 'bg-primary text-text-inverse border-primary' 
+            zoomLevel === 'actual-size'
+              ? 'bg-primary text-text-inverse border-primary'
               : 'bg-transparent text-text-primary border-border hover:bg-background hover:border-primary'
           }`}
           onClick={() => onZoomChange?.('actual-size')}
@@ -178,34 +173,6 @@ export const EditorRightHeader: React.FC<EditorRightHeaderProps> = ({
         >
           <MagnifyingGlass size={18} weight="bold" />
           1:1
-        </button>
-
-        <div className="w-px h-4 bg-border mx-0.5" />
-
-        <button
-          className={`flex items-center gap-0.5 px-1.5 py-1 text-xs border rounded transition-all duration-150 ${
-            previewMode === 'web'
-              ? 'bg-primary text-text-inverse border-primary'
-              : 'bg-transparent text-text-primary border-border hover:bg-background hover:border-primary'
-          }`}
-          onClick={() => onPreviewModeChange?.('web')}
-          title="Web preview (continuous)"
-        >
-          <Globe size={18} weight="bold" />
-          Web
-        </button>
-
-        <button
-          className={`flex items-center gap-0.5 px-1.5 py-1 text-xs border rounded transition-all duration-150 ${
-            previewMode === 'pdf'
-              ? 'bg-primary text-text-inverse border-primary'
-              : 'bg-transparent text-text-primary border-border hover:bg-background hover:border-primary'
-          }`}
-          onClick={() => onPreviewModeChange?.('pdf')}
-          title="PDF preview (paginated)"
-        >
-          <FilePdf size={18} weight="bold" />
-          PDF
         </button>
       </div>
 
