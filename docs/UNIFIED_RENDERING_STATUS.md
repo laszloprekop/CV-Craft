@@ -247,6 +247,8 @@ Added ~180 lines of CSS rules for semantic classes:
 
 ### Created
 - `/shared/utils/sectionRenderer.ts` - Shared HTML renderer (201 lines)
+- `/shared/utils/semanticCSS.ts` - Shared CSS generator for semantic classes (v1.11.0)
+- `/frontend/src/utils/injectSemanticCSS.ts` - Frontend CSS injection utility (v1.11.0)
 
 ### Modified (Phase 1-2)
 - `/backend/src/lib/pdf-generator/index.ts` - Now uses shared renderer
@@ -255,6 +257,16 @@ Added ~180 lines of CSS rules for semantic classes:
 ### Modified (Phase 3)
 - `/frontend/src/components/CVPreview.tsx` - Uses shared renderer for section content via `dangerouslySetInnerHTML`
 - `/frontend/src/index.css` - Added ~180 lines of CSS for semantic classes
+
+### Modified (Phase 4 - v1.11.0)
+- `/backend/src/lib/pdf-generator/index.ts` - Added:
+  - SVG icons for contact info (ICONS constant)
+  - `loadPhotoAsDataUri()` for base64 photo embedding
+  - `renderSkillsSection()` for pill-style skill tags
+  - Fixed sidebar background with `position: fixed`
+  - Explicit A4 width calculations (84mm sidebar, 126mm main)
+- `/frontend/src/components/CVPreview.tsx` - Imports and calls `injectSemanticCSS()`
+- `/frontend/src/index.css` - Moved semantic CSS to shared module (now just a comment pointing to shared)
 
 ---
 

@@ -2,6 +2,46 @@
 
 All notable changes to CV-Craft will be documented in this file.
 
+## [1.11.0] - 2026-01-16
+
+### Added
+- **Shared Semantic CSS Module** - DRY architecture for web/PDF styling consistency
+  - Created `shared/utils/semanticCSS.ts` with `getSemanticCSS()` and `getTwoColumnHeaderCSS()`
+  - Frontend injects CSS via `injectSemanticCSS()` utility at runtime
+  - Backend imports directly into PDF generator
+  - Single source of truth for ~180 lines of semantic class CSS
+
+- **PDF Photo Support** - Profile photos now load from asset storage
+  - `loadPhotoAsDataUri()` reads photo from `./storage/assets/{assetId}.{ext}`
+  - Converts to base64 data URI for reliable PDF embedding
+  - Falls back to frontmatter.photo URL if no asset
+
+- **PDF Contact Icons** - SVG icons for all contact fields
+  - Phone, Email, LinkedIn, GitHub, Globe (website), Location
+  - Icons embedded as inline SVG in PDF HTML
+  - Matches web preview visual appearance
+
+- **PDF Skill Tags** - Pill-style rendering for skills
+  - Custom `renderSkillsSection()` respects `config.components.tags.style`
+  - Supports both "pill" (rounded background) and "inline" (separated text) styles
+  - CSS for `.skill-tag`, `.skill-tags`, `.skill-category-block`
+
+### Fixed
+- **PDF Sidebar Full Height** - Background now extends to bottom of every page
+  - Added `.sidebar-background` with `position: fixed` and `height: 100vh`
+  - Explicit widths: sidebar 84mm (40%), main 126mm (60%) of 210mm A4
+  - Fixed `.cv-page` padding conflicts between layouts
+
+- **PDF Page Margins** - Consistent margins for two-column layout
+  - Removed conflicting base `.cv-page` padding
+  - Two-column: sidebar `20mm 6mm`, main `20mm 8mm`
+  - Single-column uses separate page margin variables
+
+### Technical Insights
+- **DRY CSS Pattern**: Export CSS as template literal function from shared module; backend imports directly, frontend injects via `<style>` element on module load
+- **Photo Embedding Strategy**: For PDF generation, convert images to base64 data URIs to avoid network requests in Puppeteer
+- **Fixed Background for Multi-Page**: Use `position: fixed` with `height: 100vh` to make backgrounds span all pages in print
+
 ## [1.10.0] - 2026-01-16
 
 ### Added

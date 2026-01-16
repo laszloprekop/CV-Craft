@@ -16,6 +16,10 @@ import { loadFonts } from '../services/GoogleFontsService'
 import { resolveSemanticColor } from '../utils/colorResolver'
 import { generateCSSVariables } from '../../../shared/utils/cssVariableGenerator'
 import { renderSections } from '../../../shared/utils/sectionRenderer'
+import { injectSemanticCSS } from '../utils/injectSemanticCSS'
+
+// Inject shared semantic CSS on module load
+injectSemanticCSS()
 
 // Type for CSS properties including custom properties (CSS variables)
 // Using Record<string, any> to allow CSS variable access without strict type checking
