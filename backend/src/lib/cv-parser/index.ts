@@ -674,11 +674,16 @@ export class CVParser {
     if (node.type === 'text') {
       return node.value;
     }
-    
+
+    // Preserve line breaks (markdown soft line break: two trailing spaces)
+    if (node.type === 'break') {
+      return '\n';
+    }
+
     if (node.children) {
       return node.children.map((child: any) => this.extractTextFromNode(child)).join('');
     }
-    
+
     return '';
   }
 

@@ -177,16 +177,20 @@ export function getSemanticCSS(): string {
 
 .skill-tag {
   display: inline-block;
-  padding: 0.25rem 0.5rem;
-  font-size: var(--tag-font-size, 0.75rem);
+  padding: 0.25rem 0.625rem;
+  font-family: var(--heading-font-family);
+  font-size: var(--tag-font-size-custom, var(--tag-font-size, 0.75rem));
   font-weight: var(--tag-font-weight, 500);
-  background-color: var(--tag-bg-color, #d4c4b0);
-  color: var(--tag-text-color, #4a3d2a);
-  border-radius: var(--tag-border-radius, 4px);
+  background-color: var(--tag-bg-color, rgba(184, 177, 157, 0.72));
+  color: var(--tag-text-color, #ffffff);
+  border-radius: var(--tag-border-radius, 4em);
+  -webkit-print-color-adjust: exact !important;
+  print-color-adjust: exact !important;
 }
 
 .skill-inline {
-  font-size: var(--small-font-size);
+  font-family: var(--font-family);
+  font-size: var(--tag-font-size-custom, var(--small-font-size));
   color: var(--on-secondary-color, #4a3d2a);
 }
 

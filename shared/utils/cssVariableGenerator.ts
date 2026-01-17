@@ -23,7 +23,30 @@ function calculateFontSize(scale: number, baseFontSize: string): string {
  * @param config - The template configuration
  * @returns Object mapping CSS variable names to their values
  */
+/**
+ * Ensure a margin value has units (defaults to 'mm')
+ */
+function ensureMarginUnits(value: string | number | undefined, defaultValue: string = '20mm'): string {
+  if (!value && value !== 0) return defaultValue;
+  const strValue = String(value);
+  // If it's just a number, append 'mm'
+  if (/^\d+(\.\d+)?$/.test(strValue)) {
+    return `${strValue}mm`;
+  }
+  return strValue;
+}
+
 export function generateCSSVariables(config: TemplateConfig): Record<string, string> {
+  // Ensure layout and pageMargin exist with defaults
+  const layout = config.layout || {};
+  const rawPageMargin = layout.pageMargin || {};
+  const pageMargin = {
+    top: ensureMarginUnits(rawPageMargin.top, '20mm'),
+    right: ensureMarginUnits(rawPageMargin.right, '20mm'),
+    bottom: ensureMarginUnits(rawPageMargin.bottom, '20mm'),
+    left: ensureMarginUnits(rawPageMargin.left, '20mm'),
+  };
+
   const baseFontSize = config.typography.baseFontSize || '10pt';
   const fontScale = config.typography.fontScale || {
     h1: 3.2,
@@ -104,19 +127,20 @@ export function generateCSSVariables(config: TemplateConfig): Record<string, str
     '--compact-line-height': String(config.typography.lineHeight.compact || 1.4),
 
     // Layout
-    '--page-width': config.layout.pageWidth,
-    '--page-margin-top': config.layout.pageMargin.top,
-    '--page-margin-right': config.layout.pageMargin.right,
-    '--page-margin-bottom': config.layout.pageMargin.bottom,
-    '--page-margin-left': config.layout.pageMargin.left,
-    '--section-spacing': config.layout.sectionSpacing,
-    '--paragraph-spacing': config.layout.paragraphSpacing,
+    '--page-width': layout.pageWidth || '210mm',
+    '--page-margin-top': pageMargin.top || '20mm',
+    '--page-margin-right': pageMargin.right || '20mm',
+    '--page-margin-bottom': pageMargin.bottom || '20mm',
+    '--page-margin-left': pageMargin.left || '20mm',
+    '--section-spacing': layout.sectionSpacing || '24px',
+    '--paragraph-spacing': layout.paragraphSpacing || '12px',
 
     // Tags - semantic color pairs with opacity
     '--tag-bg-color': hexToRgba(tagBaseColor, tagBgOpacity),
     '--tag-text-color': hexToRgba(tagOnColor, tagTextOpacity),
     '--tag-border-radius': config.components.tags.borderRadius,
     '--tag-font-size-custom': config.components.tags?.fontSize || calculateFontSize(fontScale.tag || 1.3, baseFontSize),
+    '--tag-font-weight': String(config.components.tags?.fontWeight || 500),
 
     // Date Line
     '--date-line-color': resolveSemanticColor(

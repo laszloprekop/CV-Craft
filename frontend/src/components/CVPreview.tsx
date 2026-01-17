@@ -514,10 +514,18 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
     console.log('[CVPreview] 🎨 Applying styles:', {
       'accent': activeConfig?.colors.accent,
       'baseFontSize': activeConfig?.typography.baseFontSize,
+      'pageMargin': activeConfig?.layout?.pageMargin,
     })
 
     // Use shared CSS variable generator for consistency with PDF export
     const cssVariables = generateCSSVariables(activeConfig)
+
+    console.log('[CVPreview] 📐 Page margins:', {
+      '--page-margin-top': cssVariables['--page-margin-top'],
+      '--page-margin-right': cssVariables['--page-margin-right'],
+      '--page-margin-bottom': cssVariables['--page-margin-bottom'],
+      '--page-margin-left': cssVariables['--page-margin-left'],
+    })
 
     return cssVariables as CSSCustomProperties
   }, [template, config])
@@ -841,7 +849,7 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
                 backgroundColor: templateStyles['--surface-color'] as string || '#e6d7c3'
               }}
             >
-              <div className="relative z-10" style={{ padding: '20mm 6mm' }}>
+              <div className="relative z-10" style={{ padding: `${templateStyles['--page-margin-top'] || '20mm'} 6mm ${templateStyles['--page-margin-bottom'] || '20mm'} ${templateStyles['--page-margin-left'] || '6mm'}` }}>
                 {/* Profile Photo */}
                 <div className="mb-6 flex justify-center">
                   {photoUrl ? (
@@ -953,7 +961,7 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
 
             {/* Right Main Content */}
             <div className="flex-1 relative" style={{ minHeight: 'auto', backgroundColor: templateStyles['--background-color'] as string || '#f7f5f3' }}>
-              <div className="relative z-10" style={{ padding: '20mm 8mm' }}>
+              <div className="relative z-10" style={{ padding: `${templateStyles['--page-margin-top'] || '20mm'} ${templateStyles['--page-margin-right'] || '8mm'} ${templateStyles['--page-margin-bottom'] || '20mm'} 8mm` }}>
                 {/* Name and Title Header */}
                 {frontmatter && (
                   <header className="mb-8">

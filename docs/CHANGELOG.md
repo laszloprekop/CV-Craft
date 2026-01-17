@@ -2,6 +2,34 @@
 
 All notable changes to CV-Craft will be documented in this file.
 
+## [1.13.0] - 2026-01-17
+
+### Added
+- **PDF Overlay Technique** - Multi-layer PDF generation for reliable two-column layouts
+  - Renders sidebar and main columns as separate PDFs
+  - Creates background layer with two-column colors
+  - Merges all layers using pdf-lib for pixel-perfect output
+  - Backgrounds extend full-bleed on all pages without position:fixed issues
+  - Added `pdf-lib` dependency for PDF merging
+
+### Fixed
+- **Skills Rendering as Pills in PDF** - Skill tags now match HTML preview styling
+  - Fixed multi-line string parsing for skill categories
+  - Added `parseSkillString()` to extract category and individual skills
+  - Pills render with proper background colors, border radius, and fonts
+- **Google Fonts Loading in PDF** - Fonts now load correctly in PDF export
+  - Extract actual fonts from `fontFamily.heading` and `fontFamily.body` config
+  - Filter to known Google Fonts (IBM Plex Sans, Cardo, Inter, etc.)
+  - Wait for `document.fonts.ready` before PDF capture
+- **Markdown Line Break Preservation** - Soft breaks (two trailing spaces) now preserved
+  - CV parser handles `break` nodes in markdown AST
+  - Line breaks in Skills section no longer concatenate incorrectly
+
+### Technical Insights
+- **PDF Overlay Architecture**: Three separate Puppeteer renders (sidebar, main, background) merged with pdf-lib ensures consistent backgrounds across multi-page documents
+- **Skill Parsing Regex**: `/^\*{0,2}([^:*]+)\*{0,2}:\s*(.+)$/` matches "**Category:** skill1, skill2" pattern
+- **Google Font Detection**: Maintain whitelist of known Google Fonts; extract first font from font-stack and check against list
+
 ## [1.12.0] - 2026-01-17
 
 ### Changed
