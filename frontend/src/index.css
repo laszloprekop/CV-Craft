@@ -28,11 +28,16 @@
 
 .preview-mode-selector {
   display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.preview-mode-selector .mode-buttons {
+  display: flex;
   gap: 0.25rem;
   padding: 0.25rem;
   background: var(--surface-color, #f5f5f5);
   border-radius: 0.5rem;
-  width: fit-content;
 }
 
 .preview-mode-selector button {
@@ -59,37 +64,69 @@
   color: white;
 }
 
+/* Page markers toggle button */
+.preview-mode-selector .page-markers-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.5rem 0.625rem;
+  border: 1px solid var(--border-color, #d1d5db);
+  background: var(--surface-color, #f5f5f5);
+  border-radius: 0.375rem;
+  cursor: pointer;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-secondary, #666);
+  transition: all 0.15s ease;
+}
+
+.preview-mode-selector .page-markers-toggle:hover {
+  background: var(--hover-color, #e5e5e5);
+  border-color: var(--text-secondary, #666);
+}
+
+.preview-mode-selector .page-markers-toggle.active {
+  background: var(--accent-light, #dbeafe);
+  border-color: var(--primary-color, #2563eb);
+  color: var(--primary-color, #2563eb);
+}
+
 /* ========================================
-   Page Break Indicators (Page Markers mode)
+   Page Break Indicators (Page Markers)
    ======================================== */
 
 .page-break-indicator {
-  position: relative;
-  width: 100%;
-  height: 2.5rem;
-  margin: 1.5rem 0;
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 0;
   display: flex;
   align-items: center;
   justify-content: center;
+  pointer-events: none;
+  z-index: 100;
 }
 
 .page-break-line {
   position: absolute;
-  left: 0;
-  right: 0;
-  top: 50%;
-  border-top: 2px dashed var(--border-color, #d1d5db);
+  left: -1rem;
+  right: -1rem;
+  top: 0;
+  border-top: 2px dashed #ef4444;
+  opacity: 0.7;
 }
 
 .page-break-label {
   position: relative;
-  background: var(--surface-color, #f5f5f5);
-  padding: 0.25rem 0.75rem;
-  font-size: 0.75rem;
-  font-weight: 500;
-  color: var(--text-muted, #9ca3af);
+  top: -0.75rem;
+  background: #ef4444;
+  padding: 0.125rem 0.5rem;
+  font-size: 0.625rem;
+  font-weight: 600;
+  color: white;
   border-radius: 9999px;
-  border: 1px solid var(--border-color, #d1d5db);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 /* ========================================

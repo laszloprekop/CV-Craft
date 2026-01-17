@@ -2,6 +2,31 @@
 
 All notable changes to CV-Craft will be documented in this file.
 
+## [1.12.0] - 2026-01-17
+
+### Changed
+- **Preview Mode Consolidation** - Simplified from three modes to two
+  - Consolidated `web` and `page-markers` modes into single `html` mode
+  - `html` mode: Fast HTML preview with optional page markers toggle
+  - `exact-pdf` mode: Backend-generated PDF for accurate pagination
+  - Page markers toggle shows/hides A4 page break indicators
+  - Both mode and toggle visibility persist in localStorage
+
+### Added
+- **Page Markers Implementation** - Actually working page break indicators
+  - Calculates A4 page breaks based on content height (297mm - 40mm margins)
+  - Red dashed lines with "Page 2", "Page 3" labels at break positions
+  - Toggle button with Eye/EyeSlash icons in HTML mode header
+  - Recalculates on content, zoom, or style changes
+
+### Fixed
+- **Node.js Module Warning** - Added `"type": "module"` to frontend/package.json
+  - Eliminates `MODULE_TYPELESS_PACKAGE_JSON` warning on dev server start
+
+### Technical Insights
+- **Page Break Calculation**: Convert mm to pixels at 96 DPI (3.7795 px/mm), calculate content height, insert indicators at intervals of (297mm - 40mm margins)
+- **localStorage Persistence**: Separate keys for mode (`cv-craft-preview-mode`) and toggle (`cv-craft-page-markers-visible`) allow independent persistence
+
 ## [1.11.0] - 2026-01-16
 
 ### Added

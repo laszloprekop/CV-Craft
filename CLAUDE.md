@@ -56,8 +56,10 @@ npm run lint:fix     # Auto-fix lint issues
 **Web/PDF Rendering Divergence:** The web preview (`CVPreview.tsx`) and PDF generator use different rendering approaches. PDF uses a shared renderer (`shared/utils/sectionRenderer.ts`), but web preview still uses manual JSX. This causes styling inconsistencies between preview and exported PDF. See `docs/UNIFIED_RENDERING_STATUS.md` for details.
 
 **Preview Modes:** CVPreview has two modes:
-- `web` (continuous scroll) - default live preview
-- `pdf` (paginated A4 pages) - shows page breaks, uses height measurement system
+- `html` (default) - fast HTML preview with optional page markers toggle
+- `exact-pdf` - embeds backend-generated PDF for accurate pagination
+
+Page markers show approximate A4 page break positions as red dashed lines. Toggle visibility persists in localStorage.
 
 ## Important Patterns
 

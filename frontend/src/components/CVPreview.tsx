@@ -9,7 +9,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import React, { useMemo, useState, useEffect, useCallback } from 'react'
-import { Phone, Envelope, LinkedinLogo, GithubLogo, MapPin, Globe, Monitor, ListDashes, FilePdf } from '@phosphor-icons/react'
+import { Phone, Envelope, LinkedinLogo, GithubLogo, MapPin, Globe, Browser, FilePdf, ListDashes, Eye, EyeSlash } from '@phosphor-icons/react'
 import type { CVInstance, Template, TemplateSettings, TemplateConfig, Asset, CVFrontmatter, CVSection, ParsedCVContent } from '../../../shared/types'
 import { assetApi, cvApi } from '../services/api'
 import { loadFonts } from '../services/GoogleFontsService'
@@ -42,21 +42,41 @@ interface StructuredEntry {
   bullets?: (string | { text: string })[]
 }
 
-// Preview mode types - three distinct modes for different use cases
-type PreviewMode = 'web' | 'page-markers' | 'exact-pdf'
+// Preview mode types - two modes: HTML preview vs exact PDF
+type PreviewMode = 'html' | 'exact-pdf'
 
-// localStorage key for mode persistence
+// localStorage keys for persistence
 const PREVIEW_MODE_KEY = 'cv-craft-preview-mode'
+const PAGE_MARKERS_KEY = 'cv-craft-page-markers-visible'
 
-// Load saved mode or default to 'page-markers'
+// Load saved mode or default to 'html'
 const getInitialPreviewMode = (): PreviewMode => {
-  if (typeof window === 'undefined') return 'page-markers'
+  if (typeof window === 'undefined') return 'html'
   const saved = localStorage.getItem(PREVIEW_MODE_KEY)
-  if (saved === 'web' || saved === 'page-markers' || saved === 'exact-pdf') {
+  if (saved === 'html' || saved === 'exact-pdf') {
     return saved
   }
-  return 'page-markers'
+  // Migrate old values
+  if (saved === 'web' || saved === 'page-markers') {
+    localStorage.setItem(PREVIEW_MODE_KEY, 'html')
+    return 'html'
+  }
+  return 'html'
 }
+
+// Load saved page markers visibility or default to true
+const getInitialPageMarkersVisible = (): boolean => {
+  if (typeof window === 'undefined') return true
+  const saved = localStorage.getItem(PAGE_MARKERS_KEY)
+  if (saved === 'true' || saved === 'false') {
+    return saved === 'true'
+  }
+  return true
+}
+
+// A4 page dimensions in mm
+const A4_HEIGHT_MM = 297
+const PAGE_MARGIN_MM = 20 // Top and bottom margins
 
 interface CVPreviewProps {
   cv: CVInstance | null
@@ -87,6 +107,13 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
   // Preview mode state with localStorage persistence
   const [previewMode, setPreviewMode] = useState<PreviewMode>(getInitialPreviewMode)
 
+  // Page markers visibility state with localStorage persistence
+  const [pageMarkersVisible, setPageMarkersVisible] = useState<boolean>(getInitialPageMarkersVisible)
+
+  // Ref for measuring content height for page markers
+  const contentRef = React.useRef<HTMLDivElement>(null)
+  const [pageBreaks, setPageBreaks] = useState<number[]>([])
+
   // Exact PDF mode state
   const [pdfUrl, setPdfUrl] = useState<string | null>(null)
   const [pdfLoading, setPdfLoading] = useState(false)
@@ -97,6 +124,15 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
   const handleModeChange = useCallback((mode: PreviewMode) => {
     setPreviewMode(mode)
     localStorage.setItem(PREVIEW_MODE_KEY, mode)
+  }, [])
+
+  // Handle page markers visibility toggle with persistence
+  const handlePageMarkersToggle = useCallback(() => {
+    setPageMarkersVisible(prev => {
+      const newValue = !prev
+      localStorage.setItem(PAGE_MARKERS_KEY, String(newValue))
+      return newValue
+    })
   }, [])
 
   // Load Google Fonts when config changes
@@ -486,6 +522,47 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
     return cssVariables as CSSCustomProperties
   }, [template, config])
 
+  // Calculate page breaks when content changes or page markers become visible
+  useEffect(() => {
+    if (!pageMarkersVisible || previewMode !== 'html' || !contentRef.current) {
+      setPageBreaks([])
+      return
+    }
+
+    // Delay calculation to allow content to render
+    const calculatePageBreaks = () => {
+      if (!contentRef.current) return
+
+      const contentElement = contentRef.current
+      const contentHeight = contentElement.scrollHeight
+
+      // Convert mm to pixels (assuming 96 DPI standard)
+      // 1mm = 3.7795275591 pixels at 96 DPI
+      const MM_TO_PX = 3.7795275591
+      const pageHeightPx = A4_HEIGHT_MM * MM_TO_PX
+      const marginPx = PAGE_MARGIN_MM * MM_TO_PX
+      const contentAreaHeightPx = pageHeightPx - (2 * marginPx)
+
+      // Calculate page break positions
+      const breaks: number[] = []
+      let currentPosition = contentAreaHeightPx
+
+      while (currentPosition < contentHeight) {
+        breaks.push(currentPosition)
+        currentPosition += contentAreaHeightPx
+      }
+
+      setPageBreaks(breaks)
+    }
+
+    // Use requestAnimationFrame to ensure DOM is ready
+    const rafId = requestAnimationFrame(() => {
+      // Additional small delay to ensure all styles are applied
+      setTimeout(calculatePageBreaks, 100)
+    })
+
+    return () => cancelAnimationFrame(rafId)
+  }, [pageMarkersVisible, previewMode, parsedContent, templateStyles, zoomPercentage])
 
   // Helper function to render skills with configurable tag/separator style
   const renderSkills = (skillCategories: SkillCategory[], isSidebar: boolean = false) => {
@@ -967,30 +1044,35 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
   // Mode selector UI component
   const PreviewModeSelector: React.FC = () => (
     <div className="preview-mode-selector">
-      <button
-        className={previewMode === 'web' ? 'active' : ''}
-        onClick={() => handleModeChange('web')}
-        title="Continuous scroll, no page boundaries"
-      >
-        <Monitor size={16} weight="bold" />
-        <span>Web</span>
-      </button>
-      <button
-        className={previewMode === 'page-markers' ? 'active' : ''}
-        onClick={() => handleModeChange('page-markers')}
-        title="Show approximate page break positions"
-      >
-        <ListDashes size={16} weight="bold" />
-        <span>Page Markers</span>
-      </button>
-      <button
-        className={previewMode === 'exact-pdf' ? 'active' : ''}
-        onClick={() => handleModeChange('exact-pdf')}
-        title="Exact PDF preview from backend"
-      >
-        <FilePdf size={16} weight="bold" />
-        <span>Exact PDF</span>
-      </button>
+      <div className="mode-buttons">
+        <button
+          className={previewMode === 'html' ? 'active' : ''}
+          onClick={() => handleModeChange('html')}
+          title="Fast HTML preview"
+        >
+          <Browser size={16} weight="bold" />
+          <span>HTML</span>
+        </button>
+        <button
+          className={previewMode === 'exact-pdf' ? 'active' : ''}
+          onClick={() => handleModeChange('exact-pdf')}
+          title="Exact PDF preview from backend"
+        >
+          <FilePdf size={16} weight="bold" />
+          <span>Exact PDF</span>
+        </button>
+      </div>
+      {/* Page markers toggle - only visible in HTML mode */}
+      {previewMode === 'html' && (
+        <button
+          className={`page-markers-toggle ${pageMarkersVisible ? 'active' : ''}`}
+          onClick={handlePageMarkersToggle}
+          title={pageMarkersVisible ? 'Hide page markers' : 'Show page markers'}
+        >
+          {pageMarkersVisible ? <Eye size={16} weight="bold" /> : <EyeSlash size={16} weight="bold" />}
+          <ListDashes size={16} weight="bold" />
+        </button>
+      )}
     </div>
   )
 
@@ -1016,12 +1098,24 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
             {renderCV()}
           </div>
         ) : (
-          // Web and Page Markers modes use zoom transform
+          // HTML mode uses zoom transform and optional page markers
           <div
-            className="transition-transform duration-200 ease-in-out"
+            ref={contentRef}
+            className="transition-transform duration-200 ease-in-out relative"
             style={getZoomStyles()}
           >
             {renderCV()}
+            {/* Page break indicators */}
+            {pageMarkersVisible && pageBreaks.map((position, index) => (
+              <div
+                key={index}
+                className="page-break-indicator"
+                style={{ top: `${position}px` }}
+              >
+                <div className="page-break-line" />
+                <span className="page-break-label">Page {index + 2}</span>
+              </div>
+            ))}
           </div>
         )}
       </div>
