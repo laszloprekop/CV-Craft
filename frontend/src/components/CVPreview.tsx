@@ -754,7 +754,7 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
     if (useMinimalLayout) {
       return (
         <div
-          className="bg-white shadow-lg max-w-5xl mx-auto print:shadow-none relative overflow-hidden"
+          className="cv-preview-content bg-white shadow-lg max-w-5xl mx-auto print:shadow-none relative overflow-hidden"
           style={{
             minHeight: 'auto',
             width: '210mm',
@@ -827,7 +827,7 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
     // Default Modern Two-Column Layout
     return (
       <div
-        className="bg-white shadow-lg max-w-5xl mx-auto print:shadow-none relative overflow-hidden"
+        className="cv-preview-content bg-white shadow-lg max-w-5xl mx-auto print:shadow-none relative overflow-hidden"
         style={{
           minHeight: 'auto',
           width: templateStyles['--page-width'] as string || '210mm',
@@ -846,7 +846,8 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
               className="w-2/5 relative"
               style={{
                 minHeight: 'auto',
-                backgroundColor: templateStyles['--surface-color'] as string || '#e6d7c3'
+                backgroundColor: templateStyles['--surface-color'] as string || '#e6d7c3',
+                overflow: 'hidden'
               }}
             >
               <div className="relative z-10" style={{ padding: `${templateStyles['--page-margin-top'] || '20mm'} 6mm ${templateStyles['--page-margin-bottom'] || '20mm'} ${templateStyles['--page-margin-left'] || '6mm'}` }}>

@@ -343,7 +343,7 @@ export function generateTwoColumnBody(
 
   return `
 <div class="cv-content">
-  <div class="sidebar">
+  <div class="sidebar-container sidebar">
     ${photoHTML}
     ${contactHTML}
     ${sidebarHTML}

@@ -435,6 +435,22 @@ export function getSemanticCSS(): string {
 .sidebar .content-text {
   color: var(--on-secondary-color, #4a3d2a);
 }
+
+/* Reduce bullet indentation in sidebar to prevent overflow */
+.sidebar .entry-bullets {
+  margin-left: 1rem;
+}
+
+/* Prevent skill tags from overflowing */
+.sidebar .skill-tags {
+  max-width: 100%;
+}
+
+.sidebar .skill-tag {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 `
 }
 
@@ -508,12 +524,29 @@ export function getTwoColumnLayoutCSS(): string {
   min-height: 100%;
 }
 
-.sidebar {
+/* Sidebar container - fixed dimensions for PDF
+   Note: Web preview uses Tailwind w-2/5 with inline padding,
+   so this only applies in PDF/full document mode */
+.sidebar-container {
   width: 84mm;
   min-width: 84mm;
   max-width: 84mm;
   padding: var(--page-margin-top, 20mm) 6mm var(--page-margin-bottom, 20mm) var(--page-margin-left, 6mm);
   flex-shrink: 0;
+}
+
+/* Sidebar content styling - applied to content elements for text/color overrides
+   No width/padding here - that's handled by container or JSX */
+.sidebar {
+  overflow: hidden;
+  max-width: 100%;
+}
+
+/* Ensure nested elements don't overflow sidebar */
+.sidebar * {
+  max-width: 100%;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 .main-content {

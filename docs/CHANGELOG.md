@@ -2,6 +2,22 @@
 
 All notable changes to CV-Craft will be documented in this file.
 
+## [1.14.1] - 2026-01-18
+
+### Fixed
+- **Sidebar Content Overflow** - Nested elements no longer extend beyond sidebar container
+  - Separated `.sidebar-container` (layout) from `.sidebar` (text styling) in CSS
+  - Added `overflow: hidden` and `max-width: 100%` constraints to sidebar
+  - Reduced bullet indentation in sidebar (1.5rem → 1rem) to prevent overflow
+- **Heading Padding Inconsistency** - Web and PDF now have matching heading spacing
+  - Added scoped heading reset (margin: 0, line-height: 1.2) to web preview
+  - Web preview was using browser defaults; now matches PDF's explicit styles
+  - Added `cv-preview-content` wrapper class for scoped styling
+
+### Technical Insights
+- **CSS Class Separation**: Layout properties (width, padding) belong on container class; text/color overrides on content class. Mixing causes conflicts when same class applied at different nesting levels.
+- **Browser Defaults**: Web preview needs explicit heading resets to match PDF's `* { margin: 0 }` - don't assume Tailwind or React reset these.
+
 ## [1.14.0] - 2026-01-18
 
 ### Changed
