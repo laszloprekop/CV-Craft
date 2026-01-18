@@ -452,8 +452,9 @@ export function getSemanticCSS(): string {
 }
 
 .sidebar .entry-title {
-  font-size: var(--small-font-size);
-  font-weight: 600;
+  font-size: var(--job-title-font-size);
+  font-weight: var(--job-title-font-weight, 600);
+  color: var(--job-title-color);
 }
 
 .sidebar .entry-company,
@@ -509,12 +510,12 @@ export function getTwoColumnHeaderCSS(): string {
 .sidebar .cv-section > h2.section-header,
 .sidebar .sidebar-section > h2.section-header {
   font-family: var(--heading-font-family);
-  font-size: var(--h3-font-size);
+  font-size: var(--section-header-font-size);
   font-weight: var(--section-header-font-weight, bold);
   text-transform: var(--section-header-text-transform, uppercase);
   letter-spacing: var(--section-header-letter-spacing, 0.05em);
   margin-bottom: var(--section-header-margin-bottom, 12px);
-  margin-top: var(--section-header-margin-top, 8px);
+  margin-top: var(--section-header-margin-top, 16px);
   padding: var(--section-header-padding, 4px 12px);
   border-radius: 4px;
   border-bottom: none;
@@ -524,12 +525,12 @@ export function getTwoColumnHeaderCSS(): string {
 
 .main-content .cv-section > h2.section-header {
   font-family: var(--heading-font-family);
-  font-size: var(--h3-font-size);
+  font-size: var(--section-header-font-size);
   font-weight: var(--section-header-font-weight, bold);
   text-transform: var(--section-header-text-transform, uppercase);
   letter-spacing: var(--section-header-letter-spacing, 0.05em);
   margin-bottom: var(--section-header-margin-bottom, 12px);
-  margin-top: 12px;
+  margin-top: var(--section-header-margin-top, 16px);
   padding: var(--section-header-padding, 4px 12px);
   border-radius: 4px;
   border-bottom: none;

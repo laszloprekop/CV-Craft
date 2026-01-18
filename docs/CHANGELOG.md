@@ -2,6 +2,17 @@
 
 All notable changes to CV-Craft will be documented in this file.
 
+## [1.16.2] - 2026-01-18
+
+### Fixed
+- **HTML/PDF Styling Consistency** - Fixed CSS variable mismatches causing visual differences between preview and PDF
+  - H2 section headers: Changed from `--h3-font-size` to `--section-header-font-size` (was 20% smaller in PDF)
+  - H2 margins: Changed hardcoded `8px`/`12px` to use `--section-header-margin-top` variable
+  - H3 job titles in sidebar: Changed from `--small-font-size` to `--job-title-font-size` for consistency
+
+### Technical Insights
+- **CSS Specificity in Hybrid Rendering**: When HTML preview uses inline styles (higher specificity) and PDF uses stylesheet rules, both must reference the same CSS variables to ensure visual consistency. The `semanticCSS.ts` two-column overrides were using wrong variables.
+
 ## [1.16.1] - 2026-01-18
 
 ### Changed
