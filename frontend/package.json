@@ -1,12 +1,13 @@
 {
   "name": "cv-craft-frontend",
-  "version": "1.15.0",
+  "version": "1.16.0",
   "type": "module",
   "description": "Frontend React app for CV Craft - Static CV Generator",
   "private": true,
   "dependencies": {
     "@monaco-editor/react": "^4.6.0",
     "@phosphor-icons/react": "^2.1.10",
+    "@tabler/icons-react": "^3.36.1",
     "@tailwindcss/typography": "^0.5.16",
     "autoprefixer": "^10.4.21",
     "axios": "^1.6.2",

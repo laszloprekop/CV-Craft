@@ -6,7 +6,7 @@
  */
 
 import React, { useState, useRef, useEffect } from 'react';
-import { CaretRight } from '@phosphor-icons/react';
+import { IconChevronRight } from '@tabler/icons-react';
 
 interface CollapsibleSectionProps {
   /** Unique identifier for localStorage persistence */
@@ -17,6 +17,8 @@ interface CollapsibleSectionProps {
   defaultOpen?: boolean;
   /** Optional badge text (e.g., count of items) */
   badge?: string;
+  /** Optional icon to display before the label */
+  icon?: React.ReactNode;
   /** Child controls to render when expanded */
   children: React.ReactNode;
 }
@@ -51,6 +53,7 @@ export const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
   label,
   defaultOpen = false,
   badge,
+  icon,
   children,
 }) => {
   const { isOpen, toggle } = useCollapsibleState(id, defaultOpen);
@@ -87,14 +90,17 @@ export const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
       >
         <div className="flex items-center gap-2">
           {/* Chevron Icon */}
-          <CaretRight
+          <IconChevronRight
             size={12}
-            weight="bold"
+            stroke={2}
             className="text-text-muted transition-transform duration-150"
             style={{
               transform: isOpen ? 'rotate(90deg)' : 'rotate(0deg)',
             }}
           />
+
+          {/* Optional Icon */}
+          {icon && <span className="text-text-secondary">{icon}</span>}
 
           {/* Label */}
           <span className="text-[11px] font-semibold text-text-primary tracking-tight">

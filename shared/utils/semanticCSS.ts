@@ -54,7 +54,7 @@ a:hover {
 
 /**
  * Generate CSS for photo/profile image
- * Uses CSS variable --profile-photo-size for consistent sizing between web and PDF
+ * Uses CSS variables for consistent sizing between web and PDF
  */
 export function getPhotoCSS(): string {
   return `
@@ -63,17 +63,25 @@ export function getPhotoCSS(): string {
    ======================================== */
 .photo-container {
   display: flex;
-  justify-content: center;
-  margin-bottom: 16px;
+  justify-content: var(--profile-photo-position, center);
+  margin-top: var(--profile-photo-margin-top, 0px);
+  margin-bottom: var(--profile-photo-margin-bottom, 16px);
+  margin-left: var(--profile-photo-margin-left, 0px);
+  margin-right: var(--profile-photo-margin-right, 0px);
 }
 
 .profile-photo {
   width: var(--profile-photo-size, 160px);
   height: var(--profile-photo-size, 160px);
   border-radius: var(--profile-photo-border-radius, 50%);
-  border: var(--profile-photo-border, none);
+  border-width: var(--profile-photo-border-width, 3px);
+  border-style: var(--profile-photo-border-style, solid);
+  border-color: var(--profile-photo-border-color, #e2e8f0);
   object-fit: cover;
   display: block;
+  box-shadow: var(--profile-photo-shadow, none);
+  opacity: var(--profile-photo-opacity, 1);
+  filter: var(--profile-photo-filter, none);
 }
 
 .profile-photo-placeholder {
@@ -86,6 +94,9 @@ export function getPhotoCSS(): string {
   justify-content: center;
   font-size: var(--tiny-font-size);
   color: var(--on-muted-color, #888);
+  box-shadow: var(--profile-photo-shadow, none);
+  opacity: var(--profile-photo-opacity, 1);
+  filter: var(--profile-photo-filter, none);
 }
 `
 }

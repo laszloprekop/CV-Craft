@@ -123,6 +123,12 @@ export function generateCSSVariables(config: TemplateConfig): Record<string, str
       config,
       config.components.links?.hoverColorOpacity
     ) || config.components.links?.hoverColor || config.colors.links.hover,
+    '--link-font-size': config.components.links?.fontSize || 'inherit',
+    '--link-font-weight': String(config.components.links?.fontWeight || 500),
+    '--link-letter-spacing': config.components.links?.letterSpacing || '0em',
+    '--link-text-transform': config.components.links?.textTransform || 'none',
+    '--link-font-style': config.components.links?.fontStyle || 'normal',
+    '--link-underline-style': config.components.links?.underlineStyle || 'always',
 
     // Typography
     '--font-family': config.typography.fontFamily.body,
@@ -170,6 +176,11 @@ export function generateCSSVariables(config: TemplateConfig): Record<string, str
     '--tag-border-radius': config.components.tags.borderRadius,
     '--tag-font-size-custom': config.components.tags?.fontSize || calculateFontSize(fontScale.tag || 1.3, baseFontSize),
     '--tag-font-weight': String(config.components.tags?.fontWeight || 500),
+    '--tag-letter-spacing': config.components.tags?.letterSpacing || '0em',
+    '--tag-text-transform': config.components.tags?.textTransform || 'none',
+    '--tag-font-style': config.components.tags?.fontStyle || 'normal',
+    '--tag-padding': config.components.tags?.padding || '4px 8px',
+    '--tag-gap': config.components.tags?.gap || '8px',
 
     // Date Line
     '--date-line-color': resolveSemanticColor(
@@ -178,10 +189,13 @@ export function generateCSSVariables(config: TemplateConfig): Record<string, str
       config.components.dateLine.colorOpacity
     ),
     '--date-line-font-size-custom': config.components.dateLine?.fontSize || calculateFontSize(fontScale.dateLine || 1.3, baseFontSize),
-    '--date-line-font-style': config.components.dateLine?.fontStyle || 'normal',
-    '--date-line-alignment': config.components.dateLine?.alignment || 'left',
+    '--date-line-font-weight': String(config.components.dateLine?.fontWeight || 400),
+    '--date-line-font-style': config.components.dateLine?.fontStyle || 'italic',
+    '--date-line-alignment': config.components.dateLine?.alignment || 'right',
+    '--date-line-letter-spacing': config.components.dateLine?.letterSpacing || '0em',
+    '--date-line-text-transform': config.components.dateLine?.textTransform || 'none',
 
-    // Name (H1)
+    // Name (H1) - Typography
     '--name-font-size': config.components.name?.fontSize || calculateFontSize(fontScale.h1, baseFontSize),
     '--name-font-weight': String(config.components.name?.fontWeight || 700),
     '--name-color': resolveSemanticColor(
@@ -192,7 +206,46 @@ export function generateCSSVariables(config: TemplateConfig): Record<string, str
     '--name-letter-spacing': config.components.name?.letterSpacing || '-0.02em',
     '--name-text-transform': config.components.name?.textTransform || 'uppercase',
     '--name-alignment': config.components.name?.alignment || 'left',
+    '--name-line-height': String(config.components.name?.lineHeight || 1.2),
+    '--name-font-style': config.components.name?.fontStyle || 'normal',
+    // Name (H1) - Spacing
+    '--name-margin-top': config.components.name?.marginTop || '0px',
     '--name-margin-bottom': config.components.name?.marginBottom || '8px',
+    '--name-padding': config.components.name?.padding || '0px',
+    // Name (H1) - Background
+    '--name-background-color': resolveSemanticColor(
+      config.components.name?.backgroundColorKey,
+      config,
+      config.components.name?.backgroundColorOpacity ?? 0
+    ) || 'transparent',
+    '--name-border-radius': config.components.name?.borderRadius || '0px',
+    // Name (H1) - Border
+    '--name-border-style': config.components.name?.borderStyle || 'none',
+    '--name-border-width': config.components.name?.borderWidth || '0px',
+    '--name-border-color': resolveSemanticColor(
+      config.components.name?.borderColorKey,
+      config,
+      config.components.name?.borderColorOpacity ?? 1
+    ) || 'transparent',
+    // Name (H1) - Divider
+    '--name-divider-style': config.components.name?.dividerStyle || 'none',
+    '--name-divider-width': config.components.name?.dividerWidth || '2px',
+    '--name-divider-color': resolveSemanticColor(
+      config.components.name?.dividerColorKey,
+      config,
+      config.components.name?.dividerColorOpacity ?? 1
+    ) || config.colors.primary,
+    // Name (H1) - Shadow
+    '--name-shadow': (() => {
+      const shadow = config.components.name?.shadow || 'none';
+      const shadowMap: Record<string, string> = {
+        none: 'none',
+        sm: '0 1px 2px rgba(0, 0, 0, 0.05)',
+        md: '0 4px 6px rgba(0, 0, 0, 0.1)',
+        lg: '0 10px 15px rgba(0, 0, 0, 0.1)',
+      };
+      return shadowMap[shadow] || 'none';
+    })(),
 
     // Header Section
     '--header-alignment': config.components.header?.alignment || 'left',
@@ -207,14 +260,51 @@ export function generateCSSVariables(config: TemplateConfig): Record<string, str
     ) || config.components.contactInfo?.iconColor || config.colors.text.secondary,
     '--contact-spacing': config.components.contactInfo?.spacing || '12px',
     '--contact-font-size': config.components.contactInfo?.fontSize || calculateFontSize(fontScale.small, baseFontSize),
+    '--contact-font-weight': String(config.components.contactInfo?.fontWeight || 400),
+    '--contact-color': resolveSemanticColor(
+      config.components.contactInfo?.colorKey,
+      config,
+      config.components.contactInfo?.colorOpacity
+    ) || config.components.contactInfo?.textColor || config.colors.text.secondary,
+    '--contact-letter-spacing': config.components.contactInfo?.letterSpacing || '0em',
+    '--contact-text-transform': config.components.contactInfo?.textTransform || 'none',
+    '--contact-font-style': config.components.contactInfo?.fontStyle || 'normal',
 
     // Profile Photo - 160px is optimal for two-column PDF layout
     '--profile-photo-size': config.components.profilePhoto?.size || '160px',
     '--profile-photo-border-radius': config.components.profilePhoto?.borderRadius || '50%',
-    '--profile-photo-border': config.components.profilePhoto?.border || '3px solid #e2e8f0',
+    '--profile-photo-border-width': config.components.profilePhoto?.borderWidth || '3px',
+    '--profile-photo-border-style': config.components.profilePhoto?.borderStyle || 'solid',
     '--profile-photo-border-color': config.components.profilePhoto?.borderColor || '#e2e8f0',
+    '--profile-photo-border': `${config.components.profilePhoto?.borderWidth || '3px'} ${config.components.profilePhoto?.borderStyle || 'solid'} ${config.components.profilePhoto?.borderColor || '#e2e8f0'}`,
+    '--profile-photo-position': config.components.profilePhoto?.position || 'center',
+    '--profile-photo-margin-top': config.components.profilePhoto?.marginTop || '0px',
+    '--profile-photo-margin-bottom': config.components.profilePhoto?.marginBottom || '16px',
+    '--profile-photo-margin-left': config.components.profilePhoto?.marginLeft || '0px',
+    '--profile-photo-margin-right': config.components.profilePhoto?.marginRight || '0px',
+    '--profile-photo-opacity': String(config.components.profilePhoto?.opacity ?? 1),
+    '--profile-photo-shadow': (() => {
+      const shadow = config.components.profilePhoto?.shadow || 'none';
+      const shadowMap: Record<string, string> = {
+        none: 'none',
+        sm: '0 1px 2px rgba(0, 0, 0, 0.05)',
+        md: '0 4px 6px rgba(0, 0, 0, 0.1)',
+        lg: '0 10px 15px rgba(0, 0, 0, 0.1)',
+        xl: '0 20px 25px rgba(0, 0, 0, 0.15)',
+      };
+      return shadowMap[shadow] || 'none';
+    })(),
+    '--profile-photo-filter': (() => {
+      const filter = config.components.profilePhoto?.filter || 'none';
+      const filterMap: Record<string, string> = {
+        none: 'none',
+        grayscale: 'grayscale(100%)',
+        sepia: 'sepia(100%)',
+      };
+      return filterMap[filter] || 'none';
+    })(),
 
-    // Section Headers (H2)
+    // Section Headers (H2) - Typography
     '--section-header-font-size': config.components.sectionHeader?.fontSize || calculateFontSize(fontScale.h2, baseFontSize),
     '--section-header-font-weight': String(config.components.sectionHeader?.fontWeight || 700),
     '--section-header-color': resolveSemanticColor(
@@ -223,18 +313,50 @@ export function generateCSSVariables(config: TemplateConfig): Record<string, str
       config.components.sectionHeader?.colorOpacity
     ) || config.components.sectionHeader?.color || config.colors.primary,
     '--section-header-text-transform': config.components.sectionHeader?.textTransform || 'uppercase',
-    '--section-header-border-bottom': config.components.sectionHeader?.borderBottom || '2px solid',
-    '--section-header-border-color': resolveSemanticColor(
-      config.components.sectionHeader?.dividerColorKey,
-      config,
-      config.components.sectionHeader?.dividerColorOpacity
-    ) || config.components.sectionHeader?.dividerColor || config.components.sectionHeader?.borderColor || config.colors.primary,
-    '--section-header-padding': config.components.sectionHeader?.padding || '4px 12px',
+    '--section-header-letter-spacing': config.components.sectionHeader?.letterSpacing || '0.05em',
+    '--section-header-line-height': String(config.components.sectionHeader?.lineHeight || 1.2),
+    '--section-header-font-style': config.components.sectionHeader?.fontStyle || 'normal',
+    // Section Headers (H2) - Spacing
     '--section-header-margin-top': config.components.sectionHeader?.marginTop || '24px',
     '--section-header-margin-bottom': config.components.sectionHeader?.marginBottom || '12px',
-    '--section-header-letter-spacing': config.components.sectionHeader?.letterSpacing || '0.05em',
+    '--section-header-padding': config.components.sectionHeader?.padding || '4px 12px',
+    // Section Headers (H2) - Background
+    '--section-header-background-color': resolveSemanticColor(
+      config.components.sectionHeader?.backgroundColorKey,
+      config,
+      config.components.sectionHeader?.backgroundColorOpacity ?? 0
+    ) || 'transparent',
+    '--section-header-border-radius': config.components.sectionHeader?.borderRadius || '0px',
+    // Section Headers (H2) - Border
+    '--section-header-border-style': config.components.sectionHeader?.borderStyle || 'none',
+    '--section-header-border-width': config.components.sectionHeader?.borderWidth || '0px',
+    '--section-header-border-color': resolveSemanticColor(
+      config.components.sectionHeader?.borderColorKey,
+      config,
+      config.components.sectionHeader?.borderColorOpacity ?? 1
+    ) || 'transparent',
+    // Section Headers (H2) - Divider (legacy support + new)
+    '--section-header-border-bottom': config.components.sectionHeader?.borderBottom || '2px solid',
+    '--section-header-divider-style': config.components.sectionHeader?.dividerStyle || 'none',
+    '--section-header-divider-width': config.components.sectionHeader?.dividerWidth || '2px',
+    '--section-header-divider-color': resolveSemanticColor(
+      config.components.sectionHeader?.dividerColorKey,
+      config,
+      config.components.sectionHeader?.dividerColorOpacity ?? 1
+    ) || config.components.sectionHeader?.dividerColor || config.components.sectionHeader?.borderColor || config.colors.primary,
+    // Section Headers (H2) - Shadow
+    '--section-header-shadow': (() => {
+      const shadow = config.components.sectionHeader?.shadow || 'none';
+      const shadowMap: Record<string, string> = {
+        none: 'none',
+        sm: '0 1px 2px rgba(0, 0, 0, 0.05)',
+        md: '0 4px 6px rgba(0, 0, 0, 0.1)',
+        lg: '0 10px 15px rgba(0, 0, 0, 0.1)',
+      };
+      return shadowMap[shadow] || 'none';
+    })(),
 
-    // Job Titles (H3)
+    // Job Titles (H3) - Typography
     '--job-title-font-size': config.components.jobTitle?.fontSize || calculateFontSize(fontScale.h3, baseFontSize),
     '--job-title-font-weight': String(config.components.jobTitle?.fontWeight || 600),
     '--job-title-color': resolveSemanticColor(
@@ -242,7 +364,48 @@ export function generateCSSVariables(config: TemplateConfig): Record<string, str
       config,
       config.components.jobTitle?.colorOpacity
     ) || config.components.jobTitle?.color || config.colors.text.primary,
+    '--job-title-letter-spacing': config.components.jobTitle?.letterSpacing || '0em',
+    '--job-title-text-transform': config.components.jobTitle?.textTransform || 'none',
+    '--job-title-line-height': String(config.components.jobTitle?.lineHeight || 1.3),
+    '--job-title-font-style': config.components.jobTitle?.fontStyle || 'normal',
+    // Job Titles (H3) - Spacing
+    '--job-title-margin-top': config.components.jobTitle?.marginTop || '0px',
     '--job-title-margin-bottom': config.components.jobTitle?.marginBottom || '4px',
+    '--job-title-padding': config.components.jobTitle?.padding || '0px',
+    // Job Titles (H3) - Background
+    '--job-title-background-color': resolveSemanticColor(
+      config.components.jobTitle?.backgroundColorKey,
+      config,
+      config.components.jobTitle?.backgroundColorOpacity ?? 0
+    ) || 'transparent',
+    '--job-title-border-radius': config.components.jobTitle?.borderRadius || '0px',
+    // Job Titles (H3) - Border
+    '--job-title-border-style': config.components.jobTitle?.borderStyle || 'none',
+    '--job-title-border-width': config.components.jobTitle?.borderWidth || '0px',
+    '--job-title-border-color': resolveSemanticColor(
+      config.components.jobTitle?.borderColorKey,
+      config,
+      config.components.jobTitle?.borderColorOpacity ?? 1
+    ) || 'transparent',
+    // Job Titles (H3) - Divider
+    '--job-title-divider-style': config.components.jobTitle?.dividerStyle || 'none',
+    '--job-title-divider-width': config.components.jobTitle?.dividerWidth || '2px',
+    '--job-title-divider-color': resolveSemanticColor(
+      config.components.jobTitle?.dividerColorKey,
+      config,
+      config.components.jobTitle?.dividerColorOpacity ?? 1
+    ) || config.colors.primary,
+    // Job Titles (H3) - Shadow
+    '--job-title-shadow': (() => {
+      const shadow = config.components.jobTitle?.shadow || 'none';
+      const shadowMap: Record<string, string> = {
+        none: 'none',
+        sm: '0 1px 2px rgba(0, 0, 0, 0.05)',
+        md: '0 4px 6px rgba(0, 0, 0, 0.1)',
+        lg: '0 10px 15px rgba(0, 0, 0, 0.1)',
+      };
+      return shadowMap[shadow] || 'none';
+    })(),
 
     // Organization Names
     '--org-name-font-size': config.components.organizationName?.fontSize || calculateFontSize(fontScale.body, baseFontSize),
@@ -274,6 +437,17 @@ export function generateCSSVariables(config: TemplateConfig): Record<string, str
     '--animation-duration': config.advanced?.animations ? '0.2s' : '0s',
     '--shadow-default': config.advanced?.shadows ? '0 1px 3px rgba(0, 0, 0, 0.1)' : 'none',
     '--shadow-hover': config.advanced?.shadows ? '0 4px 12px rgba(0, 0, 0, 0.15)' : 'none',
+
+    // Page Numbers (PDF)
+    '--page-number-font-size': config.pdf.pageNumbers?.fontSize || '10px',
+    '--page-number-font-weight': String(config.pdf.pageNumbers?.fontWeight || 400),
+    '--page-number-color': resolveSemanticColor(
+      config.pdf.pageNumbers?.colorKey,
+      config,
+      config.pdf.pageNumbers?.colorOpacity
+    ) || config.colors.text.secondary,
+    '--page-number-margin': config.pdf.pageNumbers?.margin || '10mm',
+    '--page-number-position': config.pdf.pageNumbers?.position || 'bottom-center',
   };
 }
 

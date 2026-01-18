@@ -210,9 +210,41 @@ export interface TemplateConfig {
       colorOpacity?: number; // 0-1
       color?: string; // Legacy support
       letterSpacing?: string;
+      lineHeight?: number;
       textTransform?: 'none' | 'uppercase' | 'lowercase' | 'capitalize';
+      fontStyle?: 'normal' | 'italic';
       alignment?: 'left' | 'center' | 'right';
+      // Margin
+      marginMode?: 'uniform' | 'individual';
+      marginUniform?: string;
+      marginTop?: string;
+      marginRight?: string;
       marginBottom?: string;
+      marginLeft?: string;
+      // Padding
+      paddingMode?: 'uniform' | 'individual';
+      paddingUniform?: string;
+      padding?: string; // Legacy - used as uniform value
+      paddingTop?: string;
+      paddingRight?: string;
+      paddingBottom?: string;
+      paddingLeft?: string;
+      // Background
+      backgroundColorKey?: 'primary' | 'secondary' | 'tertiary' | 'muted' | 'text-primary' | 'text-secondary' | 'text-muted';
+      backgroundColorOpacity?: number;
+      borderRadius?: string;
+      // Border
+      borderStyle?: 'none' | 'solid' | 'dashed' | 'dotted';
+      borderWidth?: string;
+      borderColorKey?: 'primary' | 'secondary' | 'tertiary' | 'muted' | 'text-primary' | 'text-secondary' | 'text-muted';
+      borderColorOpacity?: number;
+      // Divider
+      dividerStyle?: 'none' | 'underline' | 'full-width';
+      dividerWidth?: string;
+      dividerColorKey?: 'primary' | 'secondary' | 'tertiary' | 'muted' | 'text-primary' | 'text-secondary' | 'text-muted';
+      dividerColorOpacity?: number;
+      // Shadow
+      shadow?: 'none' | 'sm' | 'md' | 'lg';
     };
     // Contact information bar
     contactInfo: {
@@ -220,12 +252,18 @@ export interface TemplateConfig {
       iconSize?: string;
       iconColorKey?: 'primary' | 'secondary' | 'tertiary' | 'muted' | 'text-primary' | 'text-secondary' | 'text-muted';
       iconColorOpacity?: number;
+      colorKey?: 'primary' | 'secondary' | 'tertiary' | 'muted' | 'text-primary' | 'text-secondary' | 'text-muted';
+      colorOpacity?: number;
       textColorKey?: 'primary' | 'secondary' | 'tertiary' | 'muted' | 'text-primary' | 'text-secondary' | 'text-muted';
       textColorOpacity?: number;
       iconColor?: string; // Legacy support
       textColor?: string; // Legacy support
       spacing?: string;
       fontSize?: string;
+      fontWeight?: number;
+      letterSpacing?: string;
+      textTransform?: 'none' | 'uppercase' | 'lowercase' | 'capitalize';
+      fontStyle?: 'normal' | 'italic';
       showIcons?: boolean;
       iconPosition?: 'left' | 'right';
       separator?: '·' | '|' | '•' | 'none'; // Separator between contact items
@@ -235,8 +273,20 @@ export interface TemplateConfig {
       size?: string;
       borderRadius?: string;
       border?: string;
+      borderWidth?: string;
+      borderStyle?: 'none' | 'solid' | 'dashed' | 'dotted' | 'double';
       borderColor?: string;
       position?: 'left' | 'center' | 'right';
+      // Margin
+      marginMode?: 'uniform' | 'individual';
+      marginUniform?: string;
+      marginTop?: string;
+      marginBottom?: string;
+      marginLeft?: string;
+      marginRight?: string;
+      shadow?: 'none' | 'sm' | 'md' | 'lg' | 'xl';
+      opacity?: number;
+      filter?: 'none' | 'grayscale' | 'sepia';
     };
     header: {
       backgroundColor?: string;
@@ -248,28 +298,52 @@ export interface TemplateConfig {
     };
     // Section headers (H2)
     sectionHeader: {
-      fontFamily?: string; // Can override heading font
+      // Typography
+      fontFamily?: string;
       fontSize?: string;
       fontWeight?: number;
       colorKey?: 'primary' | 'secondary' | 'tertiary' | 'muted' | 'text-primary' | 'text-secondary' | 'text-muted';
       colorOpacity?: number;
       color?: string; // Legacy support
+      letterSpacing?: string;
+      lineHeight?: number;
       textTransform?: 'none' | 'uppercase' | 'lowercase' | 'capitalize';
-      dividerStyle?: 'none' | 'underline' | 'full-width' | 'accent-bar'; // Visual divider style
-      dividerColorKey?: 'primary' | 'secondary' | 'tertiary' | 'muted' | 'text-primary' | 'text-secondary' | 'text-muted';
-      dividerColorOpacity?: number;
-      dividerColor?: string; // Legacy support - Color for the divider
-      dividerWidth?: string; // Thickness of divider
+      fontStyle?: 'normal' | 'italic';
+      // Margin
+      marginMode?: 'uniform' | 'individual';
+      marginUniform?: string;
+      marginTop?: string;
+      marginRight?: string;
+      marginBottom?: string;
+      marginLeft?: string;
+      // Padding
+      paddingMode?: 'uniform' | 'individual';
+      paddingUniform?: string;
+      padding?: string; // Legacy - used as uniform value
+      paddingTop?: string;
+      paddingRight?: string;
+      paddingBottom?: string;
+      paddingLeft?: string;
+      // Background
       backgroundColorKey?: 'primary' | 'secondary' | 'tertiary' | 'muted' | 'text-primary' | 'text-secondary' | 'text-muted';
       backgroundColorOpacity?: number;
       backgroundColor?: string; // Legacy support
-      borderBottom?: string; // Legacy support
-      borderColor?: string;
+      borderRadius?: string;
+      // Border
+      borderStyle?: 'none' | 'solid' | 'dashed' | 'dotted';
       borderWidth?: string;
-      padding?: string;
-      marginTop?: string;
-      marginBottom?: string;
-      letterSpacing?: string;
+      borderColorKey?: 'primary' | 'secondary' | 'tertiary' | 'muted' | 'text-primary' | 'text-secondary' | 'text-muted';
+      borderColorOpacity?: number;
+      borderColor?: string; // Legacy support
+      borderBottom?: string; // Legacy support
+      // Divider
+      dividerStyle?: 'none' | 'underline' | 'full-width' | 'accent-bar';
+      dividerWidth?: string;
+      dividerColorKey?: 'primary' | 'secondary' | 'tertiary' | 'muted' | 'text-primary' | 'text-secondary' | 'text-muted';
+      dividerColorOpacity?: number;
+      dividerColor?: string; // Legacy support
+      // Shadow
+      shadow?: 'none' | 'sm' | 'md' | 'lg';
     };
     section: {
       marginBottom: string;
@@ -280,15 +354,48 @@ export interface TemplateConfig {
     };
     // Job/education titles (H3)
     jobTitle: {
-      fontFamily?: string; // Can override heading font
+      // Typography
+      fontFamily?: string;
       fontSize?: string;
       fontWeight?: number;
       colorKey?: 'primary' | 'secondary' | 'tertiary' | 'muted' | 'text-primary' | 'text-secondary' | 'text-muted';
       colorOpacity?: number;
       color?: string; // Legacy support
-      fontStyle?: 'normal' | 'italic';
-      marginBottom?: string;
+      letterSpacing?: string;
+      lineHeight?: number;
       textTransform?: 'none' | 'uppercase' | 'lowercase' | 'capitalize';
+      fontStyle?: 'normal' | 'italic';
+      // Margin
+      marginMode?: 'uniform' | 'individual';
+      marginUniform?: string;
+      marginTop?: string;
+      marginRight?: string;
+      marginBottom?: string;
+      marginLeft?: string;
+      // Padding
+      paddingMode?: 'uniform' | 'individual';
+      paddingUniform?: string;
+      padding?: string; // Legacy - used as uniform value
+      paddingTop?: string;
+      paddingRight?: string;
+      paddingBottom?: string;
+      paddingLeft?: string;
+      // Background
+      backgroundColorKey?: 'primary' | 'secondary' | 'tertiary' | 'muted' | 'text-primary' | 'text-secondary' | 'text-muted';
+      backgroundColorOpacity?: number;
+      borderRadius?: string;
+      // Border
+      borderStyle?: 'none' | 'solid' | 'dashed' | 'dotted';
+      borderWidth?: string;
+      borderColorKey?: 'primary' | 'secondary' | 'tertiary' | 'muted' | 'text-primary' | 'text-secondary' | 'text-muted';
+      borderColorOpacity?: number;
+      // Divider
+      dividerStyle?: 'none' | 'underline' | 'full-width';
+      dividerWidth?: string;
+      dividerColorKey?: 'primary' | 'secondary' | 'tertiary' | 'muted' | 'text-primary' | 'text-secondary' | 'text-muted';
+      dividerColorOpacity?: number;
+      // Shadow
+      shadow?: 'none' | 'sm' | 'md' | 'lg';
     };
     // Organization/company names
     organizationName: {
@@ -315,6 +422,7 @@ export interface TemplateConfig {
       colorPair?: 'primary' | 'secondary' | 'tertiary' | 'muted'; // Which semantic color pair to use
       backgroundOpacity?: number; // 0-1, opacity for background color
       textOpacity?: number; // 0-1, opacity for text color
+      textColorKey?: 'primary' | 'secondary' | 'tertiary' | 'muted' | 'text-primary' | 'text-secondary' | 'text-muted' | 'on-tertiary';
       backgroundColor?: string; // Legacy: direct color (will be deprecated)
       textColor?: string; // Legacy: direct color (will be deprecated)
       borderRadius: string;
@@ -323,6 +431,9 @@ export interface TemplateConfig {
       gap: string;
       border?: string;
       fontWeight?: number;
+      letterSpacing?: string;
+      textTransform?: 'none' | 'uppercase' | 'lowercase' | 'capitalize';
+      fontStyle?: 'normal' | 'italic';
       style?: 'pill' | 'inline'; // pill = rounded tags, inline = separated text
       separator?: '·' | '|' | '•' | ',' | 'none'; // separator for inline style
     };
@@ -333,6 +444,8 @@ export interface TemplateConfig {
       fontStyle: 'normal' | 'italic';
       fontSize?: string; // Optional - falls back to calculated dateLine × baseFontSize
       fontWeight?: number;
+      letterSpacing?: string;
+      textTransform?: 'none' | 'uppercase' | 'lowercase' | 'capitalize';
       alignment: 'left' | 'right';
       format?: 'full' | 'short' | 'year-only'; // date format preset
     };
@@ -371,7 +484,11 @@ export interface TemplateConfig {
       hoverColor?: string; // Legacy support - Hover state color
       underline: boolean; // Legacy support
       underlineStyle?: 'none' | 'always' | 'hover'; // When to show underline
+      fontSize?: string;
       fontWeight?: number;
+      letterSpacing?: string;
+      textTransform?: 'none' | 'uppercase' | 'lowercase' | 'capitalize';
+      fontStyle?: 'normal' | 'italic';
       decoration?: 'none' | 'underline' | 'dotted' | 'dashed'; // Legacy support
     };
     divider: {
@@ -391,6 +508,11 @@ export interface TemplateConfig {
       enabled: boolean;
       position: 'top-left' | 'top-center' | 'top-right' | 'bottom-left' | 'bottom-center' | 'bottom-right';
       format?: string;
+      fontSize?: string;
+      fontWeight?: number;
+      colorKey?: 'primary' | 'secondary' | 'tertiary' | 'muted' | 'text-primary' | 'text-secondary' | 'text-muted';
+      colorOpacity?: number;
+      margin?: string;
     };
   };
 

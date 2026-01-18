@@ -815,7 +815,8 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
           <div className="p-8">
             {/* Header */}
             <header className="text-center mb-6 pb-4" style={{ borderBottom: `2px solid ${templateStyles['--accent-color']}` }}>
-              <h1 className="text-3xl font-bold mb-2" style={{
+              <h1 className="text-3xl font-bold" style={{
+                // Typography
                 fontFamily: templateStyles['--heading-font-family'],
                 fontSize: templateStyles['--name-font-size'],
                 fontWeight: templateStyles['--name-font-weight'],
@@ -823,10 +824,36 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
                 letterSpacing: templateStyles['--name-letter-spacing'],
                 textTransform: templateStyles['--name-text-transform'] as any,
                 textAlign: templateStyles['--name-alignment'] as any,
-                marginBottom: templateStyles['--name-margin-bottom']
+                lineHeight: templateStyles['--name-line-height'],
+                fontStyle: templateStyles['--name-font-style'] as any,
+                // Spacing
+                marginTop: templateStyles['--name-margin-top'],
+                marginBottom: templateStyles['--name-margin-bottom'],
+                padding: templateStyles['--name-padding'],
+                // Background
+                backgroundColor: templateStyles['--name-background-color'],
+                borderRadius: templateStyles['--name-border-radius'],
+                // Border
+                borderStyle: templateStyles['--name-border-style'] as any,
+                borderWidth: templateStyles['--name-border-style'] !== 'none' ? templateStyles['--name-border-width'] : undefined,
+                borderColor: templateStyles['--name-border-style'] !== 'none' ? templateStyles['--name-border-color'] : undefined,
+                // Shadow
+                boxShadow: templateStyles['--name-shadow'],
               }}>
                 {frontmatter.name || 'Your Name'}
               </h1>
+              {/* Name Divider */}
+              {templateStyles['--name-divider-style'] && templateStyles['--name-divider-style'] !== 'none' && (
+                <div style={{
+                  height: templateStyles['--name-divider-width'] || '2px',
+                  backgroundColor: templateStyles['--name-divider-color'],
+                  width: templateStyles['--name-divider-style'] === 'full-width' ? '100%' : 'auto',
+                  marginTop: '4px',
+                  marginBottom: '8px',
+                  marginLeft: 'auto',
+                  marginRight: 'auto',
+                }} />
+              )}
               {frontmatter.title && (
                 <p className="mb-4" style={{ fontSize: 'var(--h3-font-size)', color: 'var(--text-secondary)' }}>{frontmatter.title}</p>
               )}
@@ -845,21 +872,41 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
             {/* All sections in single column */}
             {sections.map((section, index) => (
               <section key={index} style={{ marginBottom: templateStyles['--section-spacing'] || '24px' }}>
-                <h2 className="text-xl font-semibold mb-3 pb-1" style={{
+                <h2 className="text-xl font-semibold section-header" style={{
+                  // Typography
                   fontFamily: templateStyles['--heading-font-family'],
                   fontSize: templateStyles['--section-header-font-size'],
                   fontWeight: templateStyles['--section-header-font-weight'],
                   color: templateStyles['--section-header-color'],
                   textTransform: templateStyles['--section-header-text-transform'] as any,
                   letterSpacing: templateStyles['--section-header-letter-spacing'],
-                  borderBottom: templateStyles['--section-header-border-bottom'],
-                  borderColor: templateStyles['--section-header-border-color'],
+                  lineHeight: templateStyles['--section-header-line-height'],
+                  fontStyle: templateStyles['--section-header-font-style'] as any,
+                  // Spacing
                   padding: templateStyles['--section-header-padding'],
                   marginTop: index === 0 ? '0' : templateStyles['--section-header-margin-top'],
-                  marginBottom: templateStyles['--section-header-margin-bottom']
+                  marginBottom: templateStyles['--section-header-margin-bottom'],
+                  // Background
+                  backgroundColor: templateStyles['--section-header-background-color'],
+                  borderRadius: templateStyles['--section-header-border-radius'],
+                  // Border
+                  borderStyle: templateStyles['--section-header-border-style'] as any,
+                  borderWidth: templateStyles['--section-header-border-style'] !== 'none' ? templateStyles['--section-header-border-width'] : undefined,
+                  borderColor: templateStyles['--section-header-border-style'] !== 'none' ? templateStyles['--section-header-border-color'] : undefined,
+                  // Shadow
+                  boxShadow: templateStyles['--section-header-shadow'],
                 }}>
                   {section.title}
                 </h2>
+                {/* Section Header Divider */}
+                {templateStyles['--section-header-divider-style'] && templateStyles['--section-header-divider-style'] !== 'none' && (
+                  <div style={{
+                    height: templateStyles['--section-header-divider-width'] || '2px',
+                    backgroundColor: templateStyles['--section-header-divider-color'],
+                    width: templateStyles['--section-header-divider-style'] === 'full-width' ? '100%' : 'auto',
+                    marginBottom: '8px',
+                  }} />
+                )}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: templateStyles['--paragraph-spacing'] }}>
                   {/* Use shared renderer for consistent web/PDF output */}
                   {renderSectionContent(section, false, false)}
@@ -904,7 +951,12 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
             >
               <div className="relative z-10" style={{ padding: `${templateStyles['--page-margin-top'] || '20mm'} 6mm ${templateStyles['--page-margin-bottom'] || '20mm'} ${templateStyles['--page-margin-left'] || '6mm'}` }}>
                 {/* Profile Photo - uses CSS variables for consistent styling with PDF */}
-                <div className="mb-4 flex justify-center photo-container">
+                <div className="mb-4 flex justify-center photo-container" style={{
+                  marginTop: templateStyles['--profile-photo-margin-top'] || '0px',
+                  marginBottom: templateStyles['--profile-photo-margin-bottom'] || '16px',
+                  marginLeft: templateStyles['--profile-photo-margin-left'] || '0px',
+                  marginRight: templateStyles['--profile-photo-margin-right'] || '0px',
+                }}>
                   {photoUrl ? (
                     <img
                       src={photoUrl}
@@ -915,7 +967,10 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
                         height: templateStyles['--profile-photo-size'] || '160px',
                         borderRadius: templateStyles['--profile-photo-border-radius'] || '50%',
                         border: templateStyles['--profile-photo-border'] || '3px solid #e2e8f0',
-                        objectFit: 'cover'
+                        objectFit: 'cover',
+                        opacity: templateStyles['--profile-photo-opacity'] || 1,
+                        boxShadow: templateStyles['--profile-photo-shadow'] || 'none',
+                        filter: templateStyles['--profile-photo-filter'] || 'none',
                       }}
                     />
                   ) : (
@@ -926,7 +981,10 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
                         height: templateStyles['--profile-photo-size'] || '160px',
                         borderRadius: templateStyles['--profile-photo-border-radius'] || '50%',
                         border: templateStyles['--profile-photo-border'] || '3px solid #e2e8f0',
-                        backgroundColor: 'var(--muted-color)'
+                        backgroundColor: 'var(--muted-color)',
+                        opacity: templateStyles['--profile-photo-opacity'] || 1,
+                        boxShadow: templateStyles['--profile-photo-shadow'] || 'none',
+                        filter: templateStyles['--profile-photo-filter'] || 'none',
                       }}
                     >
                       <span style={{ fontSize: 'var(--tiny-font-size)', color: 'var(--on-muted-color)' }}>Photo</span>
@@ -1016,20 +1074,43 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
                 <h2
                   className="font-bold uppercase tracking-wide rounded section-header"
                   style={{
+                    // Typography
                     fontFamily: templateStyles['--heading-font-family'],
                     fontSize: templateStyles['--section-header-font-size'],
                     fontWeight: templateStyles['--section-header-font-weight'],
                     color: 'var(--on-tertiary-color)',
-                    backgroundColor: templateStyles['--accent-color'] as string || '#c4956c',
+                    letterSpacing: templateStyles['--section-header-letter-spacing'],
+                    textTransform: templateStyles['--section-header-text-transform'] as any,
+                    lineHeight: templateStyles['--section-header-line-height'],
+                    fontStyle: templateStyles['--section-header-font-style'] as any,
+                    // Spacing
                     padding: templateStyles['--section-header-padding'],
                     marginBottom: templateStyles['--section-header-margin-bottom'],
                     marginTop: index === 0 ? '0' : templateStyles['--section-header-margin-top'],
-                    letterSpacing: templateStyles['--section-header-letter-spacing'],
-                    borderBottom: 'none'
+                    // Background (sidebar uses accent color by default)
+                    backgroundColor: templateStyles['--section-header-background-color'] !== 'transparent'
+                      ? templateStyles['--section-header-background-color']
+                      : (templateStyles['--accent-color'] as string || '#c4956c'),
+                    borderRadius: templateStyles['--section-header-border-radius'] || '4px',
+                    // Border
+                    borderStyle: templateStyles['--section-header-border-style'] as any,
+                    borderWidth: templateStyles['--section-header-border-style'] !== 'none' ? templateStyles['--section-header-border-width'] : undefined,
+                    borderColor: templateStyles['--section-header-border-style'] !== 'none' ? templateStyles['--section-header-border-color'] : undefined,
+                    // Shadow
+                    boxShadow: templateStyles['--section-header-shadow'],
                   }}
                 >
                   {section.title}
                 </h2>
+                {/* Section Header Divider */}
+                {templateStyles['--section-header-divider-style'] && templateStyles['--section-header-divider-style'] !== 'none' && (
+                  <div style={{
+                    height: templateStyles['--section-header-divider-width'] || '2px',
+                    backgroundColor: templateStyles['--section-header-divider-color'],
+                    width: templateStyles['--section-header-divider-style'] === 'full-width' ? '100%' : 'auto',
+                    marginBottom: '8px',
+                  }} />
+                )}
 
                 {/* Section Content - use shared renderer for consistent web/PDF output */}
                 <div className="sidebar" style={{ display: 'flex', flexDirection: 'column', gap: templateStyles['--paragraph-spacing'] }}>
@@ -1047,20 +1128,45 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
                 {frontmatter && (
                   <header className="mb-8" style={{ textAlign: templateStyles['--header-alignment'] as any || 'left' }}>
                 <h1
-                  className="font-bold uppercase tracking-wide mb-2"
+                  className="font-bold uppercase tracking-wide"
                   style={{
+                    // Typography
                     fontSize: templateStyles['--name-font-size'],
                     fontWeight: templateStyles['--name-font-weight'],
                     color: templateStyles['--name-color'],
                     letterSpacing: templateStyles['--name-letter-spacing'],
                     textTransform: templateStyles['--name-text-transform'] as any,
                     textAlign: templateStyles['--name-alignment'] as any,
+                    fontFamily: templateStyles['--heading-font-family'],
+                    lineHeight: templateStyles['--name-line-height'],
+                    fontStyle: templateStyles['--name-font-style'] as any,
+                    // Spacing
+                    marginTop: templateStyles['--name-margin-top'],
                     marginBottom: templateStyles['--name-margin-bottom'],
-                    fontFamily: templateStyles['--heading-font-family']
+                    padding: templateStyles['--name-padding'],
+                    // Background
+                    backgroundColor: templateStyles['--name-background-color'],
+                    borderRadius: templateStyles['--name-border-radius'],
+                    // Border
+                    borderStyle: templateStyles['--name-border-style'] as any,
+                    borderWidth: templateStyles['--name-border-style'] !== 'none' ? templateStyles['--name-border-width'] : undefined,
+                    borderColor: templateStyles['--name-border-style'] !== 'none' ? templateStyles['--name-border-color'] : undefined,
+                    // Shadow
+                    boxShadow: templateStyles['--name-shadow'],
                   }}
                 >
                   {frontmatter.name || 'Your Name'}
                 </h1>
+                {/* Name Divider */}
+                {templateStyles['--name-divider-style'] && templateStyles['--name-divider-style'] !== 'none' && (
+                  <div style={{
+                    height: templateStyles['--name-divider-width'] || '2px',
+                    backgroundColor: templateStyles['--name-divider-color'],
+                    width: templateStyles['--name-divider-style'] === 'full-width' ? '100%' : 'auto',
+                    marginTop: '4px',
+                    marginBottom: '8px',
+                  }} />
+                )}
                 {frontmatter.title && (
                   <p
                     className="font-medium"
@@ -1083,22 +1189,43 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
                 <h2
                   className="font-bold uppercase tracking-wide rounded section-header"
                   style={{
+                    // Typography
                     fontFamily: templateStyles['--heading-font-family'],
                     fontSize: templateStyles['--section-header-font-size'],
                     fontWeight: templateStyles['--section-header-font-weight'],
                     color: 'var(--on-primary-color)',
                     textTransform: templateStyles['--section-header-text-transform'] as any,
                     letterSpacing: templateStyles['--section-header-letter-spacing'],
-                    backgroundColor: templateStyles['--primary-color'] as string || '#a8956b',
+                    lineHeight: templateStyles['--section-header-line-height'],
+                    fontStyle: templateStyles['--section-header-font-style'] as any,
+                    // Spacing
                     padding: templateStyles['--section-header-padding'],
                     marginTop: index === 0 ? '0' : templateStyles['--section-header-margin-top'],
                     marginBottom: templateStyles['--section-header-margin-bottom'],
-                    borderRadius: '4px',
-                    borderBottom: 'none'
+                    // Background (main content uses primary color by default)
+                    backgroundColor: templateStyles['--section-header-background-color'] !== 'transparent'
+                      ? templateStyles['--section-header-background-color']
+                      : (templateStyles['--primary-color'] as string || '#a8956b'),
+                    borderRadius: templateStyles['--section-header-border-radius'] || '4px',
+                    // Border
+                    borderStyle: templateStyles['--section-header-border-style'] as any,
+                    borderWidth: templateStyles['--section-header-border-style'] !== 'none' ? templateStyles['--section-header-border-width'] : undefined,
+                    borderColor: templateStyles['--section-header-border-style'] !== 'none' ? templateStyles['--section-header-border-color'] : undefined,
+                    // Shadow
+                    boxShadow: templateStyles['--section-header-shadow'],
                   }}
                 >
                   {section.title}
                 </h2>
+                {/* Section Header Divider */}
+                {templateStyles['--section-header-divider-style'] && templateStyles['--section-header-divider-style'] !== 'none' && (
+                  <div style={{
+                    height: templateStyles['--section-header-divider-width'] || '2px',
+                    backgroundColor: templateStyles['--section-header-divider-color'],
+                    width: templateStyles['--section-header-divider-style'] === 'full-width' ? '100%' : 'auto',
+                    marginBottom: '8px',
+                  }} />
+                )}
 
                 {/* Section Content - Use shared renderer for consistent web/PDF output */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: templateStyles['--paragraph-spacing'] }}>

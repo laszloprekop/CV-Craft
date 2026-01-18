@@ -1,5 +1,20 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { X } from '@phosphor-icons/react';
+import {
+  IconX,
+  IconPalette,
+  IconTypography,
+  IconFile,
+  IconSettings,
+  IconColorSwatch,
+  IconBorderAll,
+  IconDimensions,
+  IconLayout,
+  IconBoxMargin,
+  IconFileExport,
+  IconTextCaption,
+  IconBold,
+  IconCode,
+} from '@tabler/icons-react';
 import type { TemplateConfig } from '../../../shared/types';
 import {
   ColorControl,
@@ -26,7 +41,7 @@ interface TemplateConfigPanelProps {
   onClose: () => void;
 }
 
-type TabType = 'colors' | 'styles' | 'layout' | 'pdf' | 'advanced';
+type TabType = 'colors' | 'styles' | 'page' | 'advanced';
 
 export const TemplateConfigPanel: React.FC<TemplateConfigPanelProps> = ({
   config,
@@ -67,12 +82,11 @@ export const TemplateConfigPanel: React.FC<TemplateConfigPanelProps> = ({
     };
   }, []); // Empty deps - only run on mount/unmount
 
-  const tabs: { id: TabType; label: string }[] = [
-    { id: 'colors', label: 'Colors' },
-    { id: 'styles', label: 'Styles' },
-    { id: 'layout', label: 'Layout' },
-    { id: 'pdf', label: 'PDF' },
-    { id: 'advanced', label: 'Advanced' },
+  const tabs: { id: TabType; label: string; icon: React.ReactNode }[] = [
+    { id: 'colors', label: 'Colors', icon: <IconPalette size={14} /> },
+    { id: 'styles', label: 'Styles', icon: <IconTypography size={14} /> },
+    { id: 'page', label: 'Page', icon: <IconFile size={14} /> },
+    { id: 'advanced', label: 'Advanced', icon: <IconSettings size={14} /> },
   ];
 
   // Helper to update nested config (live preview) with debounced save
@@ -134,7 +148,7 @@ export const TemplateConfigPanel: React.FC<TemplateConfigPanelProps> = ({
           onClick={onClose}
           className="bg-transparent border-none cursor-pointer p-1 hover:bg-surface rounded"
         >
-          <X size={16} />
+          <IconX size={16} />
         </button>
       </div>
 
@@ -144,12 +158,13 @@ export const TemplateConfigPanel: React.FC<TemplateConfigPanelProps> = ({
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`px-2 py-1.5 text-xs font-medium whitespace-nowrap border-b-2 transition-colors ${
+            className={`flex items-center gap-1 px-2 py-1.5 text-xs font-medium whitespace-nowrap border-b-2 transition-colors ${
               activeTab === tab.id
                 ? 'border-primary text-primary'
                 : 'border-transparent text-text-secondary hover:text-text-primary'
             }`}
           >
+            {tab.icon}
             {tab.label}
           </button>
         ))}
@@ -159,7 +174,10 @@ export const TemplateConfigPanel: React.FC<TemplateConfigPanelProps> = ({
       <div className="flex-1 overflow-y-auto">
         {activeTab === 'colors' && (
           <div>
-            <h4 className="text-xs font-semibold text-text-primary mb-1.5">Main Colors</h4>
+            <h4 className="flex items-center gap-1.5 text-xs font-semibold text-text-primary mb-1.5">
+              <IconColorSwatch size={12} />
+              Main Colors
+            </h4>
 
             {/* Primary & On Primary */}
             <div className="grid grid-cols-2 gap-1">
@@ -249,7 +267,10 @@ export const TemplateConfigPanel: React.FC<TemplateConfigPanelProps> = ({
               />
             </div>
 
-            <h4 className="text-xs font-semibold text-text-primary mb-1.5 mt-3">Border & Links</h4>
+            <h4 className="flex items-center gap-1.5 text-xs font-semibold text-text-primary mb-1.5 mt-3">
+              <IconBorderAll size={12} />
+              Border & Links
+            </h4>
             <ColorControl
               label="Borders"
               value={config.colors.borders}
@@ -295,9 +316,44 @@ export const TemplateConfigPanel: React.FC<TemplateConfigPanelProps> = ({
           />
         )}
 
-        {activeTab === 'layout' && (
+        {activeTab === 'page' && (
           <div>
+            {/* Page Size & Orientation at top */}
+            <h4 className="flex items-center gap-1.5 text-xs font-semibold text-text-primary mb-1.5">
+              <IconDimensions size={12} />
+              Page Size
+            </h4>
+            <div className="grid grid-cols-2 gap-1">
+              <SelectControl
+                label="Size"
+                value={config.pdf.pageSize}
+                onChange={(value) =>
+                  updateConfig('pdf', { pageSize: value as any })
+                }
+                options={[
+                  { value: 'A4', label: 'A4' },
+                  { value: 'Letter', label: 'Letter' },
+                  { value: 'Legal', label: 'Legal' },
+                ]}
+              />
+              <SelectControl
+                label="Orientation"
+                value={config.pdf.orientation}
+                onChange={(value) =>
+                  updateConfig('pdf', { orientation: value as any })
+                }
+                options={[
+                  { value: 'portrait', label: 'Portrait' },
+                  { value: 'landscape', label: 'Landscape' },
+                ]}
+              />
+            </div>
+
             {/* Layout Template Picker */}
+            <h4 className="flex items-center gap-1.5 text-xs font-semibold text-text-primary mb-1.5 mt-3">
+              <IconLayout size={12} />
+              Page Layout
+            </h4>
             <LayoutPicker
               value={config.layout.templateType || 'two-column'}
               onChange={(value) => updateConfig('layout', { templateType: value })}
@@ -310,22 +366,16 @@ export const TemplateConfigPanel: React.FC<TemplateConfigPanelProps> = ({
                 value={config.layout.sidebarWidth || '84mm'}
                 onChange={(value) => updateConfig('layout', { sidebarWidth: value })}
                 units={['mm', '%', 'px']}
-                description="Width of the sidebar column in two-column layouts"
+                description="Width of the sidebar column"
               />
             )}
 
-            <h4 className="text-xs font-semibold text-text-primary mb-1.5 mt-3">Page Dimensions</h4>
-            <SpacingControl
-              label="Page Width"
-              value={config.layout.pageWidth}
-              onChange={(value) =>
-                updateConfig('layout', { pageWidth: value })
-              }
-              units={['mm', 'px', 'rem']}
-            />
-
+            <h4 className="flex items-center gap-1.5 text-xs font-semibold text-text-primary mb-1.5 mt-3">
+              <IconBoxMargin size={12} />
+              Page Margins
+            </h4>
             <BoxModelControl
-              label="Page Margins"
+              label="Margins"
               value={config.layout.pageMargin}
               onChange={(value) =>
                 updateConfig('layout', { pageMargin: value })
@@ -333,50 +383,10 @@ export const TemplateConfigPanel: React.FC<TemplateConfigPanelProps> = ({
               type="margin"
             />
 
-            <SpacingControl
-              label="Section Spacing"
-              value={config.layout.sectionSpacing}
-              onChange={(value) =>
-                updateConfig('layout', { sectionSpacing: value })
-              }
-            />
-
-            <SpacingControl
-              label="Paragraph Spacing"
-              value={config.layout.paragraphSpacing}
-              onChange={(value) =>
-                updateConfig('layout', { paragraphSpacing: value })
-              }
-            />
-          </div>
-        )}
-
-
-        {activeTab === 'pdf' && (
-          <div>
-            <SelectControl
-              label="Page Size"
-              value={config.pdf.pageSize}
-              onChange={(value) =>
-                updateConfig('pdf', { pageSize: value as any })
-              }
-              options={[
-                { value: 'A4', label: 'A4 (210 x 297 mm)' },
-                { value: 'Letter', label: 'Letter (8.5 x 11 in)' },
-                { value: 'Legal', label: 'Legal (8.5 x 14 in)' },
-              ]}
-            />
-            <SelectControl
-              label="Orientation"
-              value={config.pdf.orientation}
-              onChange={(value) =>
-                updateConfig('pdf', { orientation: value as any })
-              }
-              options={[
-                { value: 'portrait', label: 'Portrait' },
-                { value: 'landscape', label: 'Landscape' },
-              ]}
-            />
+            <h4 className="flex items-center gap-1.5 text-xs font-semibold text-text-primary mb-1.5 mt-3">
+              <IconFileExport size={12} />
+              PDF Export
+            </h4>
             <ToggleControl
               label="Print Color Adjust"
               value={config.pdf.printColorAdjust}
@@ -385,8 +395,6 @@ export const TemplateConfigPanel: React.FC<TemplateConfigPanelProps> = ({
               }
               description="Preserve colors when printing"
             />
-
-            <h4 className="text-xs font-semibold text-text-primary mb-1.5 mt-3">Page Numbers</h4>
             <ToggleControl
               label="Show Page Numbers"
               value={config.pdf.pageNumbers.enabled}
@@ -395,34 +403,15 @@ export const TemplateConfigPanel: React.FC<TemplateConfigPanelProps> = ({
                   pageNumbers: { ...config.pdf.pageNumbers, enabled: value },
                 })
               }
-              description="Appears in PDF export only"
+              description="Style in Styles → Page #"
             />
-            {config.pdf.pageNumbers.enabled && (
-              <SelectControl
-                label="Position"
-                value={config.pdf.pageNumbers.position}
-                onChange={(value) =>
-                  updateConfig('pdf', {
-                    pageNumbers: { ...config.pdf.pageNumbers, position: value as any },
-                  })
-                }
-                options={[
-                  { value: 'top-left', label: 'Top Left' },
-                  { value: 'top-center', label: 'Top Center' },
-                  { value: 'top-right', label: 'Top Right' },
-                  { value: 'bottom-left', label: 'Bottom Left' },
-                  { value: 'bottom-center', label: 'Bottom Center' },
-                  { value: 'bottom-right', label: 'Bottom Right' },
-                ]}
-              />
-            )}
           </div>
         )}
 
         {activeTab === 'advanced' && (
           <div>
             {/* Font Library moved from Fonts tab */}
-            <CollapsibleSection id="advanced-font-library" label="Font Library" defaultOpen={false}>
+            <CollapsibleSection id="advanced-font-library" label="Font Library" defaultOpen={false} icon={<IconTypography size={12} />}>
               <p className="text-[10px] text-text-secondary mb-3">
                 Add Google Fonts to your library. Only fonts you add will appear in font selectors.
               </p>
@@ -443,7 +432,10 @@ export const TemplateConfigPanel: React.FC<TemplateConfigPanelProps> = ({
                 }}
               />
 
-              <h4 className="text-xs font-semibold text-text-primary mb-2 mt-4">Active Fonts</h4>
+              <h4 className="flex items-center gap-1.5 text-xs font-semibold text-text-primary mb-2 mt-4">
+                <IconTextCaption size={12} />
+                Active Fonts
+              </h4>
               <FontSelector
                 label="Heading Font"
                 value={config.typography.fontFamily.heading}

@@ -2,6 +2,29 @@
 
 All notable changes to CV-Craft will be documented in this file.
 
+## [1.16.0] - 2026-01-18
+
+### Added
+- **LinkedSpacingControl Component** - New UI control for margin/padding with uniform/individual modes
+  - Toggle between uniform (all sides equal) and individual (per-side) spacing
+  - Link/unlink icons indicate mode; individual mode shows Top/Right/Bottom/Left inputs
+  - Added to SpacingSection for heading elements (Name, H2, H3) and Photo
+
+- **Tabler Icons Integration** - Replaced Phosphor icons with Tabler icons throughout config panel
+  - Tab icons: Colors (palette), Styles (typography), Page (file), Advanced (settings)
+  - Section headers with contextual icons throughout all tabs
+  - Element selector icons: H1, H2, H3, calendar, tag, link, etc.
+  - CollapsibleSection now supports optional `icon` prop
+
+### Changed
+- **Type Definitions Extended** - Added margin/padding mode support to component types
+  - `marginMode`, `marginUniform`, `marginTop/Right/Bottom/Left` for name, sectionHeader, jobTitle, profilePhoto
+  - `paddingMode`, `paddingUniform`, `paddingTop/Right/Bottom/Left` for heading components
+
+### Technical Insights
+- **Icon Library Migration**: Tabler icons use `stroke` prop for weight (1.5 default, 2.5 for bold) vs Phosphor's `weight` prop
+- **Linked Spacing Pattern**: Store both uniform and individual values; mode determines which is applied. Preserves user input when switching modes.
+
 ## [1.15.0] - 2026-01-18
 
 ### Changed
