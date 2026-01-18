@@ -12,8 +12,8 @@ import {
   IconBoxMargin,
   IconFileExport,
   IconTextCaption,
-  IconBold,
   IconCode,
+  IconAdjustments,
 } from '@tabler/icons-react';
 import type { TemplateConfig } from '../../../shared/types';
 import {
@@ -83,10 +83,10 @@ export const TemplateConfigPanel: React.FC<TemplateConfigPanelProps> = ({
   }, []); // Empty deps - only run on mount/unmount
 
   const tabs: { id: TabType; label: string; icon: React.ReactNode }[] = [
-    { id: 'colors', label: 'Colors', icon: <IconPalette size={14} /> },
-    { id: 'styles', label: 'Styles', icon: <IconTypography size={14} /> },
-    { id: 'page', label: 'Page', icon: <IconFile size={14} /> },
-    { id: 'advanced', label: 'Advanced', icon: <IconSettings size={14} /> },
+    { id: 'colors', label: 'Colors', icon: <IconPalette size={16} /> },
+    { id: 'styles', label: 'Styles', icon: <IconTypography size={16} /> },
+    { id: 'page', label: 'Page', icon: <IconFile size={16} /> },
+    { id: 'advanced', label: 'Etc.', icon: <IconSettings size={16} /> },
   ];
 
   // Helper to update nested config (live preview) with debounced save
@@ -173,138 +173,133 @@ export const TemplateConfigPanel: React.FC<TemplateConfigPanelProps> = ({
       {/* Content */}
       <div className="flex-1 overflow-y-auto">
         {activeTab === 'colors' && (
-          <div>
-            <h4 className="flex items-center gap-1.5 text-xs font-semibold text-text-primary mb-1.5">
-              <IconColorSwatch size={12} />
-              Main Colors
-            </h4>
+          <div className="space-y-0">
+            <CollapsibleSection id="colors-main" label="Main Colors" defaultOpen={true} icon={<IconColorSwatch size={14} />}>
+              {/* Primary & On Primary */}
+              <div className="grid grid-cols-2 gap-1">
+                <ColorControl
+                  label="Primary"
+                  value={config.colors.primary}
+                  onChange={(value) => updateConfig('colors', { primary: value })}
+                  onChangeComplete={(value) => commitConfig('colors', { primary: value })}
+                />
+                <ColorControl
+                  label="On Primary"
+                  value={config.colors.onPrimary}
+                  onChange={(value) => updateConfig('colors', { onPrimary: value })}
+                  onChangeComplete={(value) => commitConfig('colors', { onPrimary: value })}
+                />
+              </div>
 
-            {/* Primary & On Primary */}
-            <div className="grid grid-cols-2 gap-1">
-              <ColorControl
-                label="Primary"
-                value={config.colors.primary}
-                onChange={(value) => updateConfig('colors', { primary: value })}
-                onChangeComplete={(value) => commitConfig('colors', { primary: value })}
-              />
-              <ColorControl
-                label="On Primary"
-                value={config.colors.onPrimary}
-                onChange={(value) => updateConfig('colors', { onPrimary: value })}
-                onChangeComplete={(value) => commitConfig('colors', { onPrimary: value })}
-              />
-            </div>
+              {/* Secondary & On Secondary */}
+              <div className="grid grid-cols-2 gap-1">
+                <ColorControl
+                  label="Secondary"
+                  value={config.colors.secondary}
+                  onChange={(value) => updateConfig('colors', { secondary: value })}
+                  onChangeComplete={(value) => commitConfig('colors', { secondary: value })}
+                />
+                <ColorControl
+                  label="On Secondary"
+                  value={config.colors.onSecondary}
+                  onChange={(value) => updateConfig('colors', { onSecondary: value })}
+                  onChangeComplete={(value) => commitConfig('colors', { onSecondary: value })}
+                />
+              </div>
 
-            {/* Secondary & On Secondary */}
-            <div className="grid grid-cols-2 gap-1">
-              <ColorControl
-                label="Secondary"
-                value={config.colors.secondary}
-                onChange={(value) => updateConfig('colors', { secondary: value })}
-                onChangeComplete={(value) => commitConfig('colors', { secondary: value })}
-              />
-              <ColorControl
-                label="On Secondary"
-                value={config.colors.onSecondary}
-                onChange={(value) => updateConfig('colors', { onSecondary: value })}
-                onChangeComplete={(value) => commitConfig('colors', { onSecondary: value })}
-              />
-            </div>
+              {/* Tertiary & On Tertiary */}
+              <div className="grid grid-cols-2 gap-1">
+                <ColorControl
+                  label="Tertiary"
+                  value={config.colors.tertiary}
+                  onChange={(value) => updateConfig('colors', { tertiary: value })}
+                  onChangeComplete={(value) => commitConfig('colors', { tertiary: value })}
+                />
+                <ColorControl
+                  label="On Tertiary"
+                  value={config.colors.onTertiary}
+                  onChange={(value) => updateConfig('colors', { onTertiary: value })}
+                  onChangeComplete={(value) => commitConfig('colors', { onTertiary: value })}
+                />
+              </div>
 
-            {/* Tertiary & On Tertiary */}
-            <div className="grid grid-cols-2 gap-1">
-              <ColorControl
-                label="Tertiary"
-                value={config.colors.tertiary}
-                onChange={(value) => updateConfig('colors', { tertiary: value })}
-                onChangeComplete={(value) => commitConfig('colors', { tertiary: value })}
-              />
-              <ColorControl
-                label="On Tertiary"
-                value={config.colors.onTertiary}
-                onChange={(value) => updateConfig('colors', { onTertiary: value })}
-                onChangeComplete={(value) => commitConfig('colors', { onTertiary: value })}
-              />
-            </div>
+              {/* Muted & On Muted */}
+              <div className="grid grid-cols-2 gap-1">
+                <ColorControl
+                  label="Muted"
+                  value={config.colors.muted}
+                  onChange={(value) => updateConfig('colors', { muted: value })}
+                  onChangeComplete={(value) => commitConfig('colors', { muted: value })}
+                />
+                <ColorControl
+                  label="On Muted"
+                  value={config.colors.onMuted}
+                  onChange={(value) => updateConfig('colors', { onMuted: value })}
+                  onChangeComplete={(value) => commitConfig('colors', { onMuted: value })}
+                />
+              </div>
 
-            {/* Muted & On Muted */}
-            <div className="grid grid-cols-2 gap-1">
-              <ColorControl
-                label="Muted"
-                value={config.colors.muted}
-                onChange={(value) => updateConfig('colors', { muted: value })}
-                onChangeComplete={(value) => commitConfig('colors', { muted: value })}
-              />
-              <ColorControl
-                label="On Muted"
-                value={config.colors.onMuted}
-                onChange={(value) => updateConfig('colors', { onMuted: value })}
-                onChangeComplete={(value) => commitConfig('colors', { onMuted: value })}
-              />
-            </div>
+              {/* Background & On Background */}
+              <div className="grid grid-cols-2 gap-1 mb-2">
+                <ColorControl
+                  label="Background"
+                  value={config.colors.background}
+                  onChange={(value) => updateConfig('colors', { background: value })}
+                  onChangeComplete={(value) => commitConfig('colors', { background: value })}
+                />
+                <ColorControl
+                  label="On Background"
+                  value={config.colors.text.primary}
+                  onChange={(value) =>
+                    updateConfig('colors', {
+                      text: { ...config.colors.text, primary: value },
+                    })
+                  }
+                  onChangeComplete={(value) =>
+                    commitConfig('colors', {
+                      text: { ...config.colors.text, primary: value },
+                    })
+                  }
+                />
+              </div>
+            </CollapsibleSection>
 
-            {/* Background & On Background */}
-            <div className="grid grid-cols-2 gap-1">
+            <CollapsibleSection id="colors-borders" label="Border & Links" defaultOpen={true} icon={<IconBorderAll size={14} />}>
               <ColorControl
-                label="Background"
-                value={config.colors.background}
-                onChange={(value) => updateConfig('colors', { background: value })}
-                onChangeComplete={(value) => commitConfig('colors', { background: value })}
+                label="Borders"
+                value={config.colors.borders}
+                onChange={(value) => updateConfig('colors', { borders: value })}
+                onChangeComplete={(value) => commitConfig('colors', { borders: value })}
               />
               <ColorControl
-                label="On Background"
-                value={config.colors.text.primary}
+                label="Link (Default)"
+                value={config.colors.links.default}
                 onChange={(value) =>
                   updateConfig('colors', {
-                    text: { ...config.colors.text, primary: value },
+                    links: { ...config.colors.links, default: value },
                   })
                 }
                 onChangeComplete={(value) =>
                   commitConfig('colors', {
-                    text: { ...config.colors.text, primary: value },
+                    links: { ...config.colors.links, default: value },
                   })
                 }
               />
-            </div>
-
-            <h4 className="flex items-center gap-1.5 text-xs font-semibold text-text-primary mb-1.5 mt-3">
-              <IconBorderAll size={12} />
-              Border & Links
-            </h4>
-            <ColorControl
-              label="Borders"
-              value={config.colors.borders}
-              onChange={(value) => updateConfig('colors', { borders: value })}
-              onChangeComplete={(value) => commitConfig('colors', { borders: value })}
-            />
-            <ColorControl
-              label="Link (Default)"
-              value={config.colors.links.default}
-              onChange={(value) =>
-                updateConfig('colors', {
-                  links: { ...config.colors.links, default: value },
-                })
-              }
-              onChangeComplete={(value) =>
-                commitConfig('colors', {
-                  links: { ...config.colors.links, default: value },
-                })
-              }
-            />
-            <ColorControl
-              label="Link (Hover)"
-              value={config.colors.links.hover}
-              onChange={(value) =>
-                updateConfig('colors', {
-                  links: { ...config.colors.links, hover: value },
-                })
-              }
-              onChangeComplete={(value) =>
-                commitConfig('colors', {
-                  links: { ...config.colors.links, hover: value },
-                })
-              }
-            />
+              <ColorControl
+                label="Link (Hover)"
+                value={config.colors.links.hover}
+                onChange={(value) =>
+                  updateConfig('colors', {
+                    links: { ...config.colors.links, hover: value },
+                  })
+                }
+                onChangeComplete={(value) =>
+                  commitConfig('colors', {
+                    links: { ...config.colors.links, hover: value },
+                  })
+                }
+              />
+            </CollapsibleSection>
           </div>
         )}
 
@@ -317,101 +312,90 @@ export const TemplateConfigPanel: React.FC<TemplateConfigPanelProps> = ({
         )}
 
         {activeTab === 'page' && (
-          <div>
-            {/* Page Size & Orientation at top */}
-            <h4 className="flex items-center gap-1.5 text-xs font-semibold text-text-primary mb-1.5">
-              <IconDimensions size={12} />
-              Page Size
-            </h4>
-            <div className="grid grid-cols-2 gap-1">
-              <SelectControl
-                label="Size"
-                value={config.pdf.pageSize}
+          <div className="space-y-0">
+            <CollapsibleSection id="page-size" label="Page Size" defaultOpen={true} icon={<IconDimensions size={14} />}>
+              <div className="grid grid-cols-2 gap-1 mb-2">
+                <SelectControl
+                  label="Size"
+                  value={config.pdf.pageSize}
+                  onChange={(value) =>
+                    updateConfig('pdf', { pageSize: value as any })
+                  }
+                  options={[
+                    { value: 'A4', label: 'A4' },
+                    { value: 'Letter', label: 'Letter' },
+                    { value: 'Legal', label: 'Legal' },
+                  ]}
+                />
+                <SelectControl
+                  label="Orientation"
+                  value={config.pdf.orientation}
+                  onChange={(value) =>
+                    updateConfig('pdf', { orientation: value as any })
+                  }
+                  options={[
+                    { value: 'portrait', label: 'Portrait' },
+                    { value: 'landscape', label: 'Landscape' },
+                  ]}
+                />
+              </div>
+            </CollapsibleSection>
+
+            <CollapsibleSection id="page-layout" label="Page Layout" defaultOpen={true} icon={<IconLayout size={14} />}>
+              <LayoutPicker
+                value={config.layout.templateType || 'two-column'}
+                onChange={(value) => updateConfig('layout', { templateType: value })}
+              />
+
+              {/* Sidebar Width (for two-column layouts) */}
+              {(config.layout.templateType === 'two-column' || config.layout.templateType === 'sidebar-left' || config.layout.templateType === 'sidebar-right') && (
+                <SpacingControl
+                  label="Sidebar Width"
+                  value={config.layout.sidebarWidth || '84mm'}
+                  onChange={(value) => updateConfig('layout', { sidebarWidth: value })}
+                  units={['mm', '%', 'px']}
+                  description="Width of the sidebar column"
+                />
+              )}
+            </CollapsibleSection>
+
+            <CollapsibleSection id="page-margins" label="Page Margins" defaultOpen={false} icon={<IconBoxMargin size={14} />}>
+              <BoxModelControl
+                label="Margins"
+                value={config.layout.pageMargin}
                 onChange={(value) =>
-                  updateConfig('pdf', { pageSize: value as any })
+                  updateConfig('layout', { pageMargin: value })
                 }
-                options={[
-                  { value: 'A4', label: 'A4' },
-                  { value: 'Letter', label: 'Letter' },
-                  { value: 'Legal', label: 'Legal' },
-                ]}
+                type="margin"
               />
-              <SelectControl
-                label="Orientation"
-                value={config.pdf.orientation}
+            </CollapsibleSection>
+
+            <CollapsibleSection id="pdf-export" label="PDF Export" defaultOpen={false} icon={<IconFileExport size={14} />}>
+              <ToggleControl
+                label="Print Color Adjust"
+                value={config.pdf.printColorAdjust}
                 onChange={(value) =>
-                  updateConfig('pdf', { orientation: value as any })
+                  updateConfig('pdf', { printColorAdjust: value })
                 }
-                options={[
-                  { value: 'portrait', label: 'Portrait' },
-                  { value: 'landscape', label: 'Landscape' },
-                ]}
+                description="Preserve colors when printing"
               />
-            </div>
-
-            {/* Layout Template Picker */}
-            <h4 className="flex items-center gap-1.5 text-xs font-semibold text-text-primary mb-1.5 mt-3">
-              <IconLayout size={12} />
-              Page Layout
-            </h4>
-            <LayoutPicker
-              value={config.layout.templateType || 'two-column'}
-              onChange={(value) => updateConfig('layout', { templateType: value })}
-            />
-
-            {/* Sidebar Width (for two-column layouts) */}
-            {(config.layout.templateType === 'two-column' || config.layout.templateType === 'sidebar-left' || config.layout.templateType === 'sidebar-right') && (
-              <SpacingControl
-                label="Sidebar Width"
-                value={config.layout.sidebarWidth || '84mm'}
-                onChange={(value) => updateConfig('layout', { sidebarWidth: value })}
-                units={['mm', '%', 'px']}
-                description="Width of the sidebar column"
+              <ToggleControl
+                label="Show Page Numbers"
+                value={config.pdf.pageNumbers.enabled}
+                onChange={(value) =>
+                  updateConfig('pdf', {
+                    pageNumbers: { ...config.pdf.pageNumbers, enabled: value },
+                  })
+                }
+                description="Style in Styles → Page #"
               />
-            )}
-
-            <h4 className="flex items-center gap-1.5 text-xs font-semibold text-text-primary mb-1.5 mt-3">
-              <IconBoxMargin size={12} />
-              Page Margins
-            </h4>
-            <BoxModelControl
-              label="Margins"
-              value={config.layout.pageMargin}
-              onChange={(value) =>
-                updateConfig('layout', { pageMargin: value })
-              }
-              type="margin"
-            />
-
-            <h4 className="flex items-center gap-1.5 text-xs font-semibold text-text-primary mb-1.5 mt-3">
-              <IconFileExport size={12} />
-              PDF Export
-            </h4>
-            <ToggleControl
-              label="Print Color Adjust"
-              value={config.pdf.printColorAdjust}
-              onChange={(value) =>
-                updateConfig('pdf', { printColorAdjust: value })
-              }
-              description="Preserve colors when printing"
-            />
-            <ToggleControl
-              label="Show Page Numbers"
-              value={config.pdf.pageNumbers.enabled}
-              onChange={(value) =>
-                updateConfig('pdf', {
-                  pageNumbers: { ...config.pdf.pageNumbers, enabled: value },
-                })
-              }
-              description="Style in Styles → Page #"
-            />
+            </CollapsibleSection>
           </div>
         )}
 
         {activeTab === 'advanced' && (
-          <div>
-            {/* Font Library moved from Fonts tab */}
-            <CollapsibleSection id="advanced-font-library" label="Font Library" defaultOpen={false} icon={<IconTypography size={12} />}>
+          <div className="space-y-0">
+            <CollapsibleSection id="etc-font-library" label="Font Library" defaultOpen={false} icon={<IconTypography size={14} />}>
               <p className="text-[10px] text-text-secondary mb-3">
                 Add Google Fonts to your library. Only fonts you add will appear in font selectors.
               </p>
@@ -433,7 +417,7 @@ export const TemplateConfigPanel: React.FC<TemplateConfigPanelProps> = ({
               />
 
               <h4 className="flex items-center gap-1.5 text-xs font-semibold text-text-primary mb-2 mt-4">
-                <IconTextCaption size={12} />
+                <IconTextCaption size={14} />
                 Active Fonts
               </h4>
               <FontSelector
@@ -474,50 +458,49 @@ export const TemplateConfigPanel: React.FC<TemplateConfigPanelProps> = ({
               />
             </CollapsibleSection>
 
-            <SelectControl
-              label="Icon Set"
-              value={config.advanced?.iconSet || 'phosphor'}
-              onChange={(value) =>
-                updateConfig('advanced', {
-                  ...config.advanced,
-                  iconSet: value as any,
-                })
-              }
-              options={[
-                { value: 'phosphor', label: 'Phosphor Icons' },
-                { value: 'lucide', label: 'Lucide Icons' },
-                { value: 'feather', label: 'Feather Icons' },
-                { value: 'none', label: 'None' },
-              ]}
-            />
-            <ToggleControl
-              label="Enable Animations"
-              value={config.advanced?.animations || false}
-              onChange={(value) =>
-                updateConfig('advanced', {
-                  ...config.advanced,
-                  animations: value,
-                })
-              }
-              description="Add subtle animations to the CV"
-            />
-            <ToggleControl
-              label="Enable Shadows"
-              value={config.advanced?.shadows || false}
-              onChange={(value) =>
-                updateConfig('advanced', {
-                  ...config.advanced,
-                  shadows: value,
-                })
-              }
-              description="Add shadow effects to elements"
-            />
+            <CollapsibleSection id="etc-preferences" label="Preferences" defaultOpen={true} icon={<IconAdjustments size={14} />}>
+              <SelectControl
+                label="Icon Set"
+                value={config.advanced?.iconSet || 'phosphor'}
+                onChange={(value) =>
+                  updateConfig('advanced', {
+                    ...config.advanced,
+                    iconSet: value as any,
+                  })
+                }
+                options={[
+                  { value: 'phosphor', label: 'Phosphor Icons' },
+                  { value: 'lucide', label: 'Lucide Icons' },
+                  { value: 'feather', label: 'Feather Icons' },
+                  { value: 'none', label: 'None' },
+                ]}
+              />
+              <ToggleControl
+                label="Enable Animations"
+                value={config.advanced?.animations || false}
+                onChange={(value) =>
+                  updateConfig('advanced', {
+                    ...config.advanced,
+                    animations: value,
+                  })
+                }
+                description="Add subtle animations to the CV"
+              />
+              <ToggleControl
+                label="Enable Shadows"
+                value={config.advanced?.shadows || false}
+                onChange={(value) =>
+                  updateConfig('advanced', {
+                    ...config.advanced,
+                    shadows: value,
+                  })
+                }
+                description="Add shadow effects to elements"
+              />
+            </CollapsibleSection>
 
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-text-primary mb-2">
-                Custom CSS
-              </label>
-              <p className="text-xs text-text-secondary mb-2">
+            <CollapsibleSection id="etc-custom-css" label="Custom CSS" defaultOpen={false} icon={<IconCode size={14} />}>
+              <p className="text-[10px] text-text-secondary mb-2">
                 Add custom CSS rules (use with caution)
               </p>
               <textarea
@@ -529,10 +512,10 @@ export const TemplateConfigPanel: React.FC<TemplateConfigPanelProps> = ({
                   })
                 }
                 rows={8}
-                className="w-full px-3 py-2 text-sm font-mono border border-border rounded bg-background text-text-primary focus:outline-none focus:border-primary"
+                className="w-full px-3 py-2 text-sm font-mono border border-border rounded bg-background text-text-primary focus:outline-none focus:border-primary mb-2"
                 placeholder="/* Add custom CSS here */"
               />
-            </div>
+            </CollapsibleSection>
           </div>
         )}
       </div>

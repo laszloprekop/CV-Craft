@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState } from 'react';
 import {
   IconTypography,
   IconH1,
@@ -143,16 +143,16 @@ const ELEMENTS: ElementDef[] = [
 
 // Icons for elements
 const ELEMENT_ICONS: Record<SemanticElement, React.ReactNode> = {
-  base: <IconTypography size={12} />,
-  name: <IconH1 size={12} />,
-  sectionHeader: <IconH2 size={12} />,
-  jobTitle: <IconH3 size={12} />,
-  date: <IconCalendar size={12} />,
-  tag: <IconTag size={12} />,
-  link: <IconLink size={12} />,
-  contact: <IconAddressBook size={12} />,
-  photo: <IconUserCircle size={12} />,
-  pageNumber: <IconHash size={12} />,
+  base: <IconTypography size={14} />,
+  name: <IconH1 size={14} />,
+  sectionHeader: <IconH2 size={14} />,
+  jobTitle: <IconH3 size={14} />,
+  date: <IconCalendar size={14} />,
+  tag: <IconTag size={14} />,
+  link: <IconLink size={14} />,
+  contact: <IconAddressBook size={14} />,
+  photo: <IconUserCircle size={14} />,
+  pageNumber: <IconHash size={14} />,
 };
 
 interface SemanticElementEditorProps {
@@ -175,7 +175,7 @@ const Section: React.FC<{
         className="w-full flex items-center gap-1.5 py-1.5 px-2 text-[10px] font-semibold text-text-primary hover:bg-surface/50 rounded-t transition-colors"
       >
         <span className="flex-1 text-left uppercase tracking-wide">{label}</span>
-        {isOpen ? <IconChevronUp size={10} /> : <IconChevronDown size={10} />}
+        {isOpen ? <IconChevronUp size={12} /> : <IconChevronDown size={12} />}
       </button>
       {isOpen && <div className="px-2 pb-2">{children}</div>}
     </div>
@@ -1059,9 +1059,9 @@ export const SemanticElementEditor: React.FC<SemanticElementEditorProps> = ({
   // Render editor for dates
   const renderDateEditor = () => {
     const dateLine = config.components.dateLine || {};
-    const updateDateLine = useCallback((key: string, value: any) => {
+    const updateDateLine = (key: string, value: any) => {
       onChange('components', { dateLine: { ...config.components.dateLine, [key]: value } });
-    }, [config.components.dateLine, onChange]);
+    };
     return (
       <TypographySection
         fontSize={dateLine.fontSize}
@@ -1092,9 +1092,9 @@ export const SemanticElementEditor: React.FC<SemanticElementEditorProps> = ({
   // Render editor for tags
   const renderTagEditor = () => {
     const tags = config.components.tags || {};
-    const updateTag = useCallback((key: string, value: any) => {
+    const updateTag = (key: string, value: any) => {
       onChange('components', { tags: { ...config.components.tags, [key]: value } });
-    }, [config.components.tags, onChange]);
+    };
     // Custom update handler for tags (maps colorKey to textColorKey)
     const tagTypographyUpdate = (key: string, value: any) => {
       if (key === 'colorKey') updateTag('textColorKey', value);
@@ -1157,9 +1157,9 @@ export const SemanticElementEditor: React.FC<SemanticElementEditorProps> = ({
   // Render editor for links
   const renderLinkEditor = () => {
     const links = config.components.links || {};
-    const updateLink = useCallback((key: string, value: any) => {
+    const updateLink = (key: string, value: any) => {
       onChange('components', { links: { ...config.components.links, [key]: value } });
-    }, [config.components.links, onChange]);
+    };
     return (
       <>
         <TypographySection
@@ -1193,9 +1193,9 @@ export const SemanticElementEditor: React.FC<SemanticElementEditorProps> = ({
   // Render editor for contact
   const renderContactEditor = () => {
     const contactInfo = config.components.contactInfo || {};
-    const updateContact = useCallback((key: string, value: any) => {
+    const updateContact = (key: string, value: any) => {
       onChange('components', { contactInfo: { ...config.components.contactInfo, [key]: value } });
-    }, [config.components.contactInfo, onChange]);
+    };
     return (
       <>
         <TypographySection
@@ -1231,9 +1231,9 @@ export const SemanticElementEditor: React.FC<SemanticElementEditorProps> = ({
   // Render editor for photo
   const renderPhotoEditor = () => {
     const profilePhoto = config.components.profilePhoto || {};
-    const updatePhoto = useCallback((key: string, value: any) => {
+    const updatePhoto = (key: string, value: any) => {
       onChange('components', { profilePhoto: { ...config.components.profilePhoto, [key]: value } });
-    }, [config.components.profilePhoto, onChange]);
+    };
     return (
       <>
         <SizePositionSection
@@ -1272,9 +1272,9 @@ export const SemanticElementEditor: React.FC<SemanticElementEditorProps> = ({
   // Render editor for page numbers
   const renderPageNumberEditor = () => {
     const pageNumbers = config.pdf.pageNumbers || {};
-    const updatePageNumbers = useCallback((key: string, value: any) => {
+    const updatePageNumbers = (key: string, value: any) => {
       onChange('pdf', { pageNumbers: { ...config.pdf.pageNumbers, [key]: value } });
-    }, [config.pdf.pageNumbers, onChange]);
+    };
     return (
       <>
         <Section label="Typography">

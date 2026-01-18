@@ -126,7 +126,7 @@ export const LinkedSpacingControl: React.FC<LinkedSpacingControlProps> = ({
             }`}
             title="Uniform spacing (all sides equal)"
           >
-            <IconLink size={14} stroke={isUniform ? 2.5 : 1.5} />
+            <IconLink size={16} stroke={isUniform ? 2.5 : 1.5} />
           </button>
 
           {/* Individual mode */}
@@ -140,7 +140,7 @@ export const LinkedSpacingControl: React.FC<LinkedSpacingControlProps> = ({
             }`}
             title="Individual spacing (each side separate)"
           >
-            <IconUnlink size={14} stroke={!isUniform ? 2.5 : 1.5} />
+            <IconUnlink size={16} stroke={!isUniform ? 2.5 : 1.5} />
           </button>
         </div>
       </div>

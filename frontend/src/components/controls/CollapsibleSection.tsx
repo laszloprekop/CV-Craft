@@ -91,7 +91,7 @@ export const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
         <div className="flex items-center gap-2">
           {/* Chevron Icon */}
           <IconChevronRight
-            size={12}
+            size={14}
             stroke={2}
             className="text-text-muted transition-transform duration-150"
             style={{

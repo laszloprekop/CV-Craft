@@ -2,6 +2,23 @@
 
 All notable changes to CV-Craft will be documented in this file.
 
+## [1.16.1] - 2026-01-18
+
+### Changed
+- **Consistent CollapsibleSection UI** - All Template Config tabs now use CollapsibleSection components
+  - Colors tab: "Main Colors", "Border & Links" sections
+  - Page tab: "Page Size", "Page Layout", "Page Margins", "PDF Export" sections
+  - Etc. tab: "Font Library", "Preferences", "Custom CSS" sections
+  - Each section has contextual Tabler icons for visual consistency
+
+### Fixed
+- **React Hooks Violation Crash** - Fixed app crash when clicking Date/Tag/Link/Contact/Photo/Page# in Styles tab
+  - Removed invalid `useCallback` usage inside nested render functions
+  - Hooks must be called at top level of components, not inside nested functions
+
+### Technical Insights
+- **React Rules of Hooks**: Never use hooks (`useCallback`, `useState`, etc.) inside nested functions, loops, or conditions. If a nested function needs memoization, either move the hook to component top level or use plain functions if memoization isn't critical.
+
 ## [1.16.0] - 2026-01-18
 
 ### Added
