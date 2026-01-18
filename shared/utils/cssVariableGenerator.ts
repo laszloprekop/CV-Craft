@@ -174,8 +174,8 @@ export function generateCSSVariables(config: TemplateConfig): Record<string, str
     '--contact-spacing': config.components.contactInfo?.spacing || '12px',
     '--contact-font-size': config.components.contactInfo?.fontSize || calculateFontSize(fontScale.small, baseFontSize),
 
-    // Profile Photo
-    '--profile-photo-size': config.components.profilePhoto?.size || '200px',
+    // Profile Photo - 160px is optimal for two-column PDF layout
+    '--profile-photo-size': config.components.profilePhoto?.size || '160px',
     '--profile-photo-border-radius': config.components.profilePhoto?.borderRadius || '50%',
     '--profile-photo-border': config.components.profilePhoto?.border || '3px solid #e2e8f0',
     '--profile-photo-border-color': config.components.profilePhoto?.borderColor || '#e2e8f0',

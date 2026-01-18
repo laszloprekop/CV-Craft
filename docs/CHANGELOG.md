@@ -2,6 +2,26 @@
 
 All notable changes to CV-Craft will be documented in this file.
 
+## [1.14.0] - 2026-01-18
+
+### Changed
+- **Unified Style Pipeline** - Single source of truth for web and PDF styling
+  - Created modular CSS generators in `shared/utils/`: `semanticCSS.ts`, `paginationCSS.ts`
+  - Created HTML renderers: `layoutRenderer.ts`, `contactRenderer.ts`, `photoRenderer.ts`
+  - Refactored pdf-generator from ~3468 lines to ~570 lines using shared utilities
+  - All CSS now uses CSS variables (no hardcoded pt/px values in PDF)
+
+### Fixed
+- **Photo Size Mismatch** - Both web and PDF now use `--profile-photo-size` (160px default)
+- **Photo Border Mismatch** - Both now use `--profile-photo-border` (3px solid #e2e8f0 default)
+- **Section Header Styling** - Fixed CSS selector mismatch (`main` → `main-content`) in PDF
+- **Sidebar H3 Font Size** - Web preview now uses `--h3-font-size` CSS variable instead of Tailwind's `text-sm`
+
+### Technical Insights
+- **CSS Selector Consistency**: PDF's `generateColumnHTML()` now outputs `class="main-content"` to match CSS selectors `.main-content .cv-section > h2.section-header`
+- **Inline Style Fallbacks**: When using CSS variables in inline styles, fallbacks must match the default values in `cssVariableGenerator.ts`
+- **DRY CSS Architecture**: Export CSS as functions (`getPhotoCSS()`, `getContactCSS()`, etc.) that can be composed for different contexts
+
 ## [1.13.0] - 2026-01-17
 
 ### Added

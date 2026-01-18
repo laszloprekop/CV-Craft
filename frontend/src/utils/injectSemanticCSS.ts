@@ -5,7 +5,15 @@
  * This ensures both web preview and PDF use the same CSS rules.
  */
 
-import { getSemanticCSS, getTwoColumnHeaderCSS } from '../../../shared/utils/semanticCSS'
+import {
+  getSemanticCSS,
+  getTwoColumnHeaderCSS,
+  getPhotoCSS,
+  getContactCSS,
+  getNameHeaderCSS,
+  getTwoColumnLayoutCSS
+} from '../../../shared/utils/semanticCSS'
+import { getPaginationCSS, getPageMarkersCSS } from '../../../shared/utils/paginationCSS'
 
 let injected = false
 
@@ -17,8 +25,15 @@ export function injectSemanticCSS(): void {
   if (injected || typeof document === 'undefined') return
 
   const css = `
+/* === Shared Semantic CSS (from shared/utils/) === */
 ${getSemanticCSS()}
 ${getTwoColumnHeaderCSS()}
+${getPhotoCSS()}
+${getContactCSS()}
+${getNameHeaderCSS()}
+${getTwoColumnLayoutCSS()}
+${getPaginationCSS()}
+${getPageMarkersCSS()}
 `
 
   const style = document.createElement('style')

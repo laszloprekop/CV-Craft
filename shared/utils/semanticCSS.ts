@@ -1,11 +1,174 @@
 /**
  * Shared Semantic CSS Generator
  *
- * Generates CSS for semantic classes used by the shared section renderer.
+ * Single source of truth for all CV styling.
  * Used by both web preview (frontend) and PDF generator (backend) for consistent styling.
  *
  * All styles use CSS custom properties from generateCSSVariables() for theming.
+ * NO hardcoded values - everything flows from CSS variables.
  */
+
+/**
+ * Generate base CSS reset and document styles
+ */
+export function getBaseCSS(): string {
+  return `
+/* ========================================
+   Base Reset and Document Styles
+   ======================================== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  width: 210mm;
+  font-family: var(--font-family), 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: var(--body-font-size);
+  color: var(--text-color);
+  line-height: var(--body-line-height, 1.5);
+  -webkit-print-color-adjust: exact !important;
+  print-color-adjust: exact !important;
+}
+
+/* Typography base */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--heading-font-family), 'Crimson Text', Georgia, serif;
+  line-height: var(--heading-line-height, 1.2);
+  font-weight: var(--heading-weight, 700);
+  page-break-after: avoid;
+  break-after: avoid;
+}
+
+a {
+  color: var(--link-color);
+  text-decoration: underline;
+}
+
+a:hover {
+  color: var(--link-hover-color);
+}
+`
+}
+
+/**
+ * Generate CSS for photo/profile image
+ * Uses CSS variable --profile-photo-size for consistent sizing between web and PDF
+ */
+export function getPhotoCSS(): string {
+  return `
+/* ========================================
+   Profile Photo Styles
+   ======================================== */
+.photo-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.profile-photo {
+  width: var(--profile-photo-size, 160px);
+  height: var(--profile-photo-size, 160px);
+  border-radius: var(--profile-photo-border-radius, 50%);
+  border: var(--profile-photo-border, none);
+  object-fit: cover;
+  display: block;
+}
+
+.profile-photo-placeholder {
+  width: var(--profile-photo-size, 160px);
+  height: var(--profile-photo-size, 160px);
+  border-radius: var(--profile-photo-border-radius, 50%);
+  background-color: var(--muted-color, #e5e5e5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--tiny-font-size);
+  color: var(--on-muted-color, #888);
+}
+`
+}
+
+/**
+ * Generate CSS for contact information
+ * Supports both vertical (sidebar) and horizontal (header) layouts
+ */
+export function getContactCSS(): string {
+  return `
+/* ========================================
+   Contact Information Styles
+   ======================================== */
+.contact-info {
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--contact-spacing, 8px);
+}
+
+.contact-info.horizontal {
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.contact-item {
+  display: flex;
+  align-items: center;
+  gap: var(--contact-spacing, 8px);
+  font-size: var(--contact-font-size, var(--small-font-size));
+  color: var(--on-secondary-color, #4a3d2a);
+}
+
+.contact-item svg {
+  flex-shrink: 0;
+  width: var(--contact-icon-size, 14px);
+  height: var(--contact-icon-size, 14px);
+  color: var(--contact-icon-color, var(--on-secondary-color, #4a3d2a));
+}
+
+.contact-item a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.contact-item a:hover {
+  text-decoration: underline;
+}
+
+.break-all {
+  word-break: break-all;
+}
+`
+}
+
+/**
+ * Generate CSS for name/title header in main content
+ */
+export function getNameHeaderCSS(): string {
+  return `
+/* ========================================
+   Name and Title Header Styles
+   ======================================== */
+h1.cv-name,
+.main-content > h1 {
+  font-family: var(--heading-font-family);
+  font-size: var(--name-font-size);
+  font-weight: var(--name-font-weight, 700);
+  color: var(--name-color, var(--primary-color));
+  letter-spacing: var(--name-letter-spacing, 0);
+  text-transform: var(--name-text-transform, none);
+  margin-bottom: var(--name-margin-bottom, 0.25rem);
+}
+
+.job-title,
+.main-content > p.job-title {
+  font-size: var(--h3-font-size);
+  color: var(--accent-color);
+  margin-bottom: 1rem;
+}
+`
+}
 
 /**
  * Generate CSS for semantic classes from shared renderer
@@ -20,7 +183,7 @@ export function getSemanticCSS(): string {
 
 /* Section styling */
 .cv-section {
-  margin-bottom: 1.5rem;
+  margin-bottom: var(--section-spacing, 1.5rem);
 }
 
 .section-header {
@@ -40,7 +203,7 @@ export function getSemanticCSS(): string {
 .section-content {
   font-size: var(--body-font-size);
   color: var(--text-color);
-  line-height: 1.6;
+  line-height: var(--body-line-height, 1.6);
 }
 
 /* Entry (job, education, project) styling */
@@ -69,14 +232,14 @@ export function getSemanticCSS(): string {
   align-items: flex-start;
   flex-wrap: wrap;
   gap: 0.5rem;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.25rem;
 }
 
 .entry-title {
+  font-family: var(--heading-font-family);
   font-size: var(--job-title-font-size);
   font-weight: var(--job-title-font-weight);
   color: var(--job-title-color);
-  margin-bottom: var(--job-title-margin-bottom);
   margin: 0;
 }
 
@@ -184,6 +347,7 @@ export function getSemanticCSS(): string {
   background-color: var(--tag-bg-color, rgba(184, 177, 157, 0.72));
   color: var(--tag-text-color, #ffffff);
   border-radius: var(--tag-border-radius, 4em);
+  line-height: 1.4;
   -webkit-print-color-adjust: exact !important;
   print-color-adjust: exact !important;
 }
@@ -237,7 +401,7 @@ export function getSemanticCSS(): string {
   font-size: var(--body-font-size);
   color: var(--on-background-color);
   margin-bottom: 0.5rem;
-  line-height: 1.6;
+  line-height: var(--body-line-height, 1.6);
 }
 
 /* Sidebar-specific overrides (for two-column layout) */
@@ -256,8 +420,18 @@ export function getSemanticCSS(): string {
 }
 
 .sidebar .skill-category-name,
+.sidebar .skill-category-title,
 .sidebar .skill-list,
 .sidebar .skill-item,
+.sidebar .content-text {
+  color: var(--on-secondary-color, #4a3d2a);
+}
+
+.sidebar,
+.sidebar .section-content,
+.sidebar .entry-title,
+.sidebar .entry-company,
+.sidebar .entry-description,
 .sidebar .content-text {
   color: var(--on-secondary-color, #4a3d2a);
 }
@@ -270,13 +444,19 @@ export function getSemanticCSS(): string {
  */
 export function getTwoColumnHeaderCSS(): string {
   return `
-/* Section headers with background colors for two-column layout */
-.sidebar .cv-section > h2.section-header {
+/* ========================================
+   Two-Column Section Headers
+   Colored background style for sidebar/main
+   ======================================== */
+.sidebar .cv-section > h2.section-header,
+.sidebar .sidebar-section > h2.section-header {
+  font-family: var(--heading-font-family);
   font-size: var(--h3-font-size);
   font-weight: bold;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   margin-bottom: 12px;
+  margin-top: 8px;
   padding: 4px 12px;
   border-radius: 4px;
   border-bottom: none;
@@ -285,16 +465,158 @@ export function getTwoColumnHeaderCSS(): string {
 }
 
 .main-content .cv-section > h2.section-header {
+  font-family: var(--heading-font-family);
   font-size: var(--h3-font-size);
   font-weight: bold;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   margin-bottom: 12px;
+  margin-top: 12px;
   padding: 4px 12px;
   border-radius: 4px;
   border-bottom: none;
   color: var(--on-primary-color, #ffffff);
   background-color: var(--primary-color);
 }
+
+.main-content .cv-section:first-of-type > h2.section-header {
+  margin-top: 0;
+}
 `
+}
+
+/**
+ * Generate CSS for two-column page layout
+ * Handles sidebar and main content column positioning
+ */
+export function getTwoColumnLayoutCSS(): string {
+  return `
+/* ========================================
+   Two-Column Page Layout
+   ======================================== */
+.cv-content {
+  display: flex;
+  width: 210mm;
+  min-height: 100vh;
+  position: relative;
+  z-index: 1;
+}
+
+.two-column-layout {
+  display: flex;
+  width: 210mm;
+  min-height: 100%;
+}
+
+.sidebar {
+  width: 84mm;
+  min-width: 84mm;
+  max-width: 84mm;
+  padding: var(--page-margin-top, 20mm) 6mm var(--page-margin-bottom, 20mm) var(--page-margin-left, 6mm);
+  flex-shrink: 0;
+}
+
+.main-content {
+  width: 126mm;
+  min-width: 126mm;
+  max-width: 126mm;
+  padding: var(--page-margin-top, 20mm) var(--page-margin-right, 8mm) var(--page-margin-bottom, 20mm) 8mm;
+}
+
+/* Single column layout */
+.single-column-layout {
+  padding: var(--page-margin-top, 20mm) var(--page-margin-right, 15mm) var(--page-margin-bottom, 20mm) var(--page-margin-left, 15mm);
+}
+`
+}
+
+/**
+ * Generate CSS for fixed background columns (PDF overlay technique)
+ * These create full-height colored columns that repeat on each printed page
+ */
+export function getFixedBackgroundCSS(sidebarColor: string, mainColor: string): string {
+  return `
+/* ========================================
+   Fixed Background Columns
+   For PDF overlay rendering technique
+   ======================================== */
+.bg-sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 84mm;
+  height: 100%;
+  background-color: ${sidebarColor};
+  z-index: -2;
+  -webkit-print-color-adjust: exact !important;
+  print-color-adjust: exact !important;
+}
+
+.bg-main {
+  position: fixed;
+  top: 0;
+  left: 84mm;
+  width: 126mm;
+  height: 100%;
+  background-color: ${mainColor};
+  z-index: -2;
+  -webkit-print-color-adjust: exact !important;
+  print-color-adjust: exact !important;
+}
+
+/* Alternative naming */
+.sidebar-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 84mm;
+  height: 100%;
+  background-color: ${sidebarColor};
+  z-index: -2;
+  -webkit-print-color-adjust: exact !important;
+  print-color-adjust: exact !important;
+}
+
+.main-background {
+  position: fixed;
+  top: 0;
+  left: 84mm;
+  width: 126mm;
+  height: 100%;
+  background-color: ${mainColor};
+  z-index: -2;
+  -webkit-print-color-adjust: exact !important;
+  print-color-adjust: exact !important;
+}
+`
+}
+
+/**
+ * Generate all CSS for a complete CV document
+ * Combines all style modules into a single stylesheet
+ */
+export function getAllSemanticCSS(options?: {
+  includeTwoColumn?: boolean
+  sidebarColor?: string
+  mainColor?: string
+}): string {
+  const {
+    includeTwoColumn = true,
+    sidebarColor = 'var(--surface-color)',
+    mainColor = 'var(--background-color)'
+  } = options || {}
+
+  let css = getBaseCSS()
+  css += getPhotoCSS()
+  css += getContactCSS()
+  css += getNameHeaderCSS()
+  css += getSemanticCSS()
+
+  if (includeTwoColumn) {
+    css += getTwoColumnHeaderCSS()
+    css += getTwoColumnLayoutCSS()
+    css += getFixedBackgroundCSS(sidebarColor, mainColor)
+  }
+
+  return css
 }

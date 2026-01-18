@@ -850,18 +850,32 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
               }}
             >
               <div className="relative z-10" style={{ padding: `${templateStyles['--page-margin-top'] || '20mm'} 6mm ${templateStyles['--page-margin-bottom'] || '20mm'} ${templateStyles['--page-margin-left'] || '6mm'}` }}>
-                {/* Profile Photo */}
-                <div className="mb-6 flex justify-center">
+                {/* Profile Photo - uses CSS variables for consistent styling with PDF */}
+                <div className="mb-4 flex justify-center photo-container">
                   {photoUrl ? (
                     <img
                       src={photoUrl}
                       alt="Profile"
-                      className="rounded-full object-cover"
-                      style={{ width: '200px', height: '200px' }}
+                      className="profile-photo"
+                      style={{
+                        width: templateStyles['--profile-photo-size'] || '160px',
+                        height: templateStyles['--profile-photo-size'] || '160px',
+                        borderRadius: templateStyles['--profile-photo-border-radius'] || '50%',
+                        border: templateStyles['--profile-photo-border'] || '3px solid #e2e8f0',
+                        objectFit: 'cover'
+                      }}
                     />
                   ) : (
-                    <div className="rounded-full flex items-center justify-center overflow-hidden"
-                         style={{ width: '200px', height: '200px', backgroundColor: 'var(--muted-color)' }}>
+                    <div
+                      className="profile-photo-placeholder"
+                      style={{
+                        width: templateStyles['--profile-photo-size'] || '160px',
+                        height: templateStyles['--profile-photo-size'] || '160px',
+                        borderRadius: templateStyles['--profile-photo-border-radius'] || '50%',
+                        border: templateStyles['--profile-photo-border'] || '3px solid #e2e8f0',
+                        backgroundColor: 'var(--muted-color)'
+                      }}
+                    >
                       <span style={{ fontSize: 'var(--tiny-font-size)', color: 'var(--on-muted-color)' }}>Photo</span>
                     </div>
                   )}
@@ -938,17 +952,23 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
             {/* Sidebar Sections (Skills, Languages, etc.) */}
             {sidebarSections.map((section, index) => (
               <div key={index} className="mb-8 keep-together" style={{ pageBreakInside: 'avoid', breakInside: 'avoid' }}>
-                {/* Section Header matching PDF style */}
-                <h3
-                  className="text-sm font-bold uppercase tracking-wide mb-3 px-3 py-1 rounded"
+                {/* Section Header matching PDF style - uses h2 with section-header class like PDF */}
+                <h2
+                  className="font-bold uppercase tracking-wide rounded section-header"
                   style={{
                     fontFamily: templateStyles['--heading-font-family'],
+                    fontSize: templateStyles['--h3-font-size'] || '1rem',
                     color: 'var(--on-tertiary-color)',
-                    backgroundColor: templateStyles['--accent-color'] as string || '#c4956c'
+                    backgroundColor: templateStyles['--accent-color'] as string || '#c4956c',
+                    padding: '4px 12px',
+                    marginBottom: '12px',
+                    marginTop: '8px',
+                    letterSpacing: '0.05em',
+                    borderBottom: 'none'
                   }}
                 >
                   {section.title}
-                </h3>
+                </h2>
 
                 {/* Section Content - use shared renderer for consistent web/PDF output */}
                 <div className="space-y-3 sidebar">
@@ -997,19 +1017,22 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
             {/* Main Content Sections */}
             {mainSections.map((section, index) => (
               <section key={index} className="mb-8 keep-together" style={{ pageBreakInside: 'avoid', breakInside: 'avoid' }}>
-                {/* Section Header matching PDF style */}
+                {/* Section Header matching PDF style exactly */}
                 <h2
-                  className="text-base font-bold uppercase tracking-wide mb-3 px-3 py-1 rounded"
+                  className="font-bold uppercase tracking-wide rounded section-header"
                   style={{
                     fontFamily: templateStyles['--heading-font-family'],
-                    fontSize: templateStyles['--section-header-font-size'],
-                    fontWeight: templateStyles['--section-header-font-weight'],
+                    fontSize: templateStyles['--h3-font-size'] || '1rem',
+                    fontWeight: 'bold',
                     color: 'var(--on-primary-color)',
-                    textTransform: templateStyles['--section-header-text-transform'] as any,
-                    letterSpacing: templateStyles['--section-header-letter-spacing'],
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.05em',
                     backgroundColor: templateStyles['--primary-color'] as string || '#a8956b',
-                    marginTop: templateStyles['--section-header-margin-top'],
-                    marginBottom: templateStyles['--section-header-margin-bottom']
+                    padding: '4px 12px',
+                    marginTop: index === 0 ? '0' : '12px',
+                    marginBottom: '12px',
+                    borderRadius: '4px',
+                    borderBottom: 'none'
                   }}
                 >
                   {section.title}

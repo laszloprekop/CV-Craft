@@ -270,12 +270,68 @@ Added ~180 lines of CSS rules for semantic classes:
 
 ---
 
+## ✅ Phase 5: Unified Style Pipeline (COMPLETED)
+
+**Date:** 2026-01-18
+**Version:** 1.14.0
+
+### What Was Built
+
+Created a complete unified style pipeline where both web preview and PDF export use the same CSS and HTML generation code.
+
+**New Shared Utilities:**
+
+| File | Purpose |
+|------|---------|
+| `shared/utils/semanticCSS.ts` | Modular CSS generators: `getPhotoCSS()`, `getContactCSS()`, `getSemanticCSS()`, `getTwoColumnHeaderCSS()`, etc. |
+| `shared/utils/paginationCSS.ts` | Page break rules: `getPaginationCSS()`, `getPageMarkersCSS()`, `getPageRuleCSS()` |
+| `shared/utils/layoutRenderer.ts` | Unified HTML generator: `generateCVDocument()`, `generateColumnHTML()`, `generateBackgroundHTML()` |
+| `shared/utils/contactRenderer.ts` | Contact info with SVG icons: `renderContactInfo()`, `CONTACT_ICONS` |
+| `shared/utils/photoRenderer.ts` | Profile photo HTML: `renderPhoto()`, `renderProfilePhoto()` |
+
+**Key Refactoring:**
+
+- **pdf-generator**: Reduced from ~3468 lines to ~570 lines
+  - Removed all duplicate CSS template strings
+  - Removed duplicate `renderSkillsSection()` method
+  - Now imports and uses shared `generateColumnHTML()` and `generateBackgroundHTML()`
+  - Keeps only: Puppeteer logic, PDF merging, file I/O
+
+- **CVPreview**: Updated to use CSS variables consistently
+  - Photo uses `--profile-photo-size` and `--profile-photo-border`
+  - Section headers use `--h3-font-size` instead of Tailwind classes
+  - Injected CSS now includes all shared modules
+
+### Architecture Achieved
+
+```
+TemplateConfig
+     │
+     ▼
+generateCSSVariables(config) → CSS Variables
+     │
+     ├── semanticCSS → Element styles (photo, contact, entries, skills)
+     ├── paginationCSS → Page break rules
+     └── layoutRenderer → HTML structure
+           │
+           ├── CVPreview (columnBreaks: 'css')
+           └── pdf-generator (columnBreaks: 'actual')
+```
+
+### Issues Fixed
+
+1. **Photo size mismatch** - Both use `--profile-photo-size` (160px default)
+2. **Photo border mismatch** - Both use `--profile-photo-border` (3px solid #e2e8f0)
+3. **CSS selector mismatch** - PDF now uses `main-content` class (was `main`)
+4. **Sidebar header font size** - Web uses CSS variable instead of Tailwind
+
+---
+
 ## 🚀 Future Improvements
 
-1. **Extend shared renderer for skills** - Add tag style support (pill/inline) to `sectionRenderer.ts`
-2. **Full HTML generation** - Consider generating full layout HTML in shared renderer
-3. **Performance testing** - Monitor `dangerouslySetInnerHTML` impact on React reconciliation
-4. **E2E tests** - Add visual regression tests comparing web/PDF output
+1. **Full JSX replacement** - Replace remaining CVPreview JSX with shared renderer output
+2. **Performance testing** - Monitor `dangerouslySetInnerHTML` impact on React reconciliation
+3. **E2E tests** - Add visual regression tests comparing web/PDF output
 
 ---
 
