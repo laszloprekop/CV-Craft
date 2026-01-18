@@ -16,6 +16,7 @@ import {
   ColorPairControl,
   CollapsibleSection,
   SemanticColorControl,
+  SemanticElementEditor,
 } from './controls';
 
 interface TemplateConfigPanelProps {
@@ -25,7 +26,7 @@ interface TemplateConfigPanelProps {
   onClose: () => void;
 }
 
-type TabType = 'fonts' | 'colors' | 'typography' | 'layout' | 'components' | 'pdf' | 'advanced';
+type TabType = 'colors' | 'styles' | 'layout' | 'pdf' | 'advanced';
 
 export const TemplateConfigPanel: React.FC<TemplateConfigPanelProps> = ({
   config,
@@ -67,11 +68,9 @@ export const TemplateConfigPanel: React.FC<TemplateConfigPanelProps> = ({
   }, []); // Empty deps - only run on mount/unmount
 
   const tabs: { id: TabType; label: string }[] = [
-    { id: 'fonts', label: 'Fonts' },
     { id: 'colors', label: 'Colors' },
-    { id: 'typography', label: 'Typography' },
+    { id: 'styles', label: 'Styles' },
     { id: 'layout', label: 'Layout' },
-    { id: 'components', label: 'Components' },
     { id: 'pdf', label: 'PDF' },
     { id: 'advanced', label: 'Advanced' },
   ];
@@ -158,69 +157,6 @@ export const TemplateConfigPanel: React.FC<TemplateConfigPanelProps> = ({
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto">
-        {activeTab === 'fonts' && (
-          <div>
-            <h4 className="text-xs font-semibold text-text-primary mb-2">Font Library</h4>
-            <p className="text-[10px] text-text-secondary mb-3">
-              Add Google Fonts to your library. Only fonts you add will appear in font selectors throughout the app.
-            </p>
-
-            <FontManager
-              availableFonts={config.typography.availableFonts || []}
-              onAdd={(fontFamily) => {
-                const currentFonts = config.typography.availableFonts || [];
-                updateConfig('typography', {
-                  availableFonts: [...currentFonts, fontFamily],
-                });
-              }}
-              onRemove={(fontFamily) => {
-                const currentFonts = config.typography.availableFonts || [];
-                updateConfig('typography', {
-                  availableFonts: currentFonts.filter(f => f !== fontFamily),
-                });
-              }}
-            />
-
-            <h4 className="text-xs font-semibold text-text-primary mb-2 mt-4">Active Fonts</h4>
-            <FontSelector
-              label="Heading Font"
-              value={config.typography.fontFamily.heading}
-              onChange={(value) =>
-                updateConfig('typography', {
-                  fontFamily: { ...config.typography.fontFamily, heading: value },
-                })
-              }
-              fontType="heading"
-              description="Font used for headings and titles"
-              availableFonts={config.typography.availableFonts}
-            />
-            <FontSelector
-              label="Body Font"
-              value={config.typography.fontFamily.body}
-              onChange={(value) =>
-                updateConfig('typography', {
-                  fontFamily: { ...config.typography.fontFamily, body: value },
-                })
-              }
-              fontType="body"
-              description="Font used for body text and descriptions"
-              availableFonts={config.typography.availableFonts}
-            />
-            <FontSelector
-              label="Monospace Font"
-              value={config.typography.fontFamily.monospace}
-              onChange={(value) =>
-                updateConfig('typography', {
-                  fontFamily: { ...config.typography.fontFamily, monospace: value },
-                })
-              }
-              fontType="monospace"
-              description="Font used for code and technical content"
-              availableFonts={config.typography.availableFonts}
-            />
-          </div>
-        )}
-
         {activeTab === 'colors' && (
           <div>
             <h4 className="text-xs font-semibold text-text-primary mb-1.5">Main Colors</h4>
@@ -351,218 +287,12 @@ export const TemplateConfigPanel: React.FC<TemplateConfigPanelProps> = ({
           </div>
         )}
 
-        {activeTab === 'typography' && (
-          <div>
-            <h4 className="text-xs font-semibold text-text-primary mb-1.5">Font Families</h4>
-            <FontSelector
-              label="Heading Font"
-              value={config.typography.fontFamily.heading}
-              onChange={(value) =>
-                updateConfig('typography', {
-                  fontFamily: { ...config.typography.fontFamily, heading: value },
-                })
-              }
-              fontType="heading"
-              description="Font used for headings and titles"
-            />
-            <FontSelector
-              label="Body Font"
-              value={config.typography.fontFamily.body}
-              onChange={(value) =>
-                updateConfig('typography', {
-                  fontFamily: { ...config.typography.fontFamily, body: value },
-                })
-              }
-              fontType="body"
-              description="Font used for body text and descriptions"
-            />
-
-            <h4 className="text-xs font-semibold text-text-primary mb-1.5 mt-3">Font Sizes</h4>
-            <SpacingControl
-              label="Base Font Size"
-              value={config.typography.baseFontSize}
-              onChange={(value) =>
-                updateConfig('typography', { baseFontSize: value })
-              }
-              units={['pt', 'px', 'rem']}
-              description="Base size - all other sizes scale relative to this"
-            />
-
-            <h4 className="text-xs font-semibold text-text-primary mb-1.5 mt-2">Font Scale (relative to base)</h4>
-            {config.typography.fontScale && (
-              <>
-                <NumberControl
-                  label="H1 Scale"
-                  value={config.typography.fontScale.h1}
-                  onChange={(value) =>
-                    updateConfig('typography', {
-                      fontScale: { ...config.typography.fontScale, h1: value },
-                    })
-                  }
-                  min={1}
-                  max={5}
-                  step={0.1}
-                  description={`${(parseFloat(config.typography.baseFontSize) * config.typography.fontScale.h1).toFixed(1)}${config.typography.baseFontSize.replace(/[0-9.]/g, '')}`}
-                />
-                <NumberControl
-                  label="H2 Scale"
-                  value={config.typography.fontScale.h2}
-                  onChange={(value) =>
-                    updateConfig('typography', {
-                      fontScale: { ...config.typography.fontScale, h2: value },
-                    })
-                  }
-                  min={1}
-                  max={4}
-                  step={0.1}
-                  description={`${(parseFloat(config.typography.baseFontSize) * config.typography.fontScale.h2).toFixed(1)}${config.typography.baseFontSize.replace(/[0-9.]/g, '')}`}
-                />
-                <NumberControl
-                  label="H3 Scale"
-                  value={config.typography.fontScale.h3}
-                  onChange={(value) =>
-                    updateConfig('typography', {
-                      fontScale: { ...config.typography.fontScale, h3: value },
-                    })
-                  }
-                  min={1}
-                  max={3}
-                  step={0.1}
-                  description={`${(parseFloat(config.typography.baseFontSize) * config.typography.fontScale.h3).toFixed(1)}${config.typography.baseFontSize.replace(/[0-9.]/g, '')}`}
-                />
-                <NumberControl
-                  label="Body Scale"
-                  value={config.typography.fontScale.body}
-                  onChange={(value) =>
-                    updateConfig('typography', {
-                      fontScale: { ...config.typography.fontScale, body: value },
-                    })
-                  }
-                  min={0.8}
-                  max={2}
-                  step={0.1}
-                  description={`${(parseFloat(config.typography.baseFontSize) * config.typography.fontScale.body).toFixed(1)}${config.typography.baseFontSize.replace(/[0-9.]/g, '')}`}
-                />
-                <NumberControl
-                  label="Small Scale"
-                  value={config.typography.fontScale.small}
-                  onChange={(value) =>
-                    updateConfig('typography', {
-                      fontScale: { ...config.typography.fontScale, small: value },
-                    })
-                  }
-                  min={0.6}
-                  max={1.5}
-                  step={0.1}
-                  description={`${(parseFloat(config.typography.baseFontSize) * config.typography.fontScale.small).toFixed(1)}${config.typography.baseFontSize.replace(/[0-9.]/g, '')}`}
-                />
-                <NumberControl
-                  label="Tiny Scale"
-                  value={config.typography.fontScale.tiny}
-                  onChange={(value) =>
-                    updateConfig('typography', {
-                      fontScale: { ...config.typography.fontScale, tiny: value },
-                    })
-                  }
-                  min={0.5}
-                  max={1.2}
-                  step={0.1}
-                  description={`${(parseFloat(config.typography.baseFontSize) * config.typography.fontScale.tiny).toFixed(1)}${config.typography.baseFontSize.replace(/[0-9.]/g, '')}`}
-                />
-                <NumberControl
-                  label="Tag Scale"
-                  value={config.typography.fontScale.tag || 1.3}
-                  onChange={(value) =>
-                    updateConfig('typography', {
-                      fontScale: { ...config.typography.fontScale, tag: value },
-                    })
-                  }
-                  min={0.5}
-                  max={2}
-                  step={0.1}
-                  description={`${(parseFloat(config.typography.baseFontSize) * (config.typography.fontScale.tag || 1.3)).toFixed(1)}${config.typography.baseFontSize.replace(/[0-9.]/g, '')} (skill tags)`}
-                />
-                <NumberControl
-                  label="Date Line Scale"
-                  value={config.typography.fontScale.dateLine || 1.3}
-                  onChange={(value) =>
-                    updateConfig('typography', {
-                      fontScale: { ...config.typography.fontScale, dateLine: value },
-                    })
-                  }
-                  min={0.5}
-                  max={2}
-                  step={0.1}
-                  description={`${(parseFloat(config.typography.baseFontSize) * (config.typography.fontScale.dateLine || 1.3)).toFixed(1)}${config.typography.baseFontSize.replace(/[0-9.]/g, '')} (date ranges)`}
-                />
-                <NumberControl
-                  label="Inline Code Scale"
-                  value={config.typography.fontScale.inlineCode || 1.2}
-                  onChange={(value) =>
-                    updateConfig('typography', {
-                      fontScale: { ...config.typography.fontScale, inlineCode: value },
-                    })
-                  }
-                  min={0.5}
-                  max={1.5}
-                  step={0.1}
-                  description={`${(parseFloat(config.typography.baseFontSize) * (config.typography.fontScale.inlineCode || 1.2)).toFixed(1)}${config.typography.baseFontSize.replace(/[0-9.]/g, '')} (code snippets)`}
-                />
-              </>
-            )}
-
-            <h4 className="text-xs font-semibold text-text-primary mb-1.5 mt-3">Font Weights</h4>
-            <NumberControl
-              label="Heading Weight"
-              value={config.typography.fontWeight.heading}
-              onChange={(value) =>
-                updateConfig('typography', {
-                  fontWeight: { ...config.typography.fontWeight, heading: value },
-                })
-              }
-              min={100}
-              max={900}
-              step={100}
-            />
-            <NumberControl
-              label="Body Weight"
-              value={config.typography.fontWeight.body}
-              onChange={(value) =>
-                updateConfig('typography', {
-                  fontWeight: { ...config.typography.fontWeight, body: value },
-                })
-              }
-              min={100}
-              max={900}
-              step={100}
-            />
-
-            <h4 className="text-xs font-semibold text-text-primary mb-1.5 mt-3">Line Height</h4>
-            <NumberControl
-              label="Heading Line Height"
-              value={config.typography.lineHeight.heading}
-              onChange={(value) =>
-                updateConfig('typography', {
-                  lineHeight: { ...config.typography.lineHeight, heading: value },
-                })
-              }
-              min={1}
-              max={3}
-              step={0.1}
-            />
-            <NumberControl
-              label="Body Line Height"
-              value={config.typography.lineHeight.body}
-              onChange={(value) =>
-                updateConfig('typography', {
-                  lineHeight: { ...config.typography.lineHeight, body: value },
-                })
-              }
-              min={1}
-              max={3}
-              step={0.1}
-            />
-          </div>
+        {activeTab === 'styles' && (
+          <SemanticElementEditor
+            config={config}
+            onChange={updateConfig}
+            onCommit={commitConfig}
+          />
         )}
 
         {activeTab === 'layout' && (
@@ -573,13 +303,14 @@ export const TemplateConfigPanel: React.FC<TemplateConfigPanelProps> = ({
               onChange={(value) => updateConfig('layout', { templateType: value })}
             />
 
-            {/* Sidebar Width (for sidebar layouts) */}
-            {(config.layout.templateType === 'sidebar-left' || config.layout.templateType === 'sidebar-right') && (
+            {/* Sidebar Width (for two-column layouts) */}
+            {(config.layout.templateType === 'two-column' || config.layout.templateType === 'sidebar-left' || config.layout.templateType === 'sidebar-right') && (
               <SpacingControl
                 label="Sidebar Width"
-                value={config.layout.sidebarWidth || '35%'}
+                value={config.layout.sidebarWidth || '84mm'}
                 onChange={(value) => updateConfig('layout', { sidebarWidth: value })}
-                units={['%', 'px', 'rem']}
+                units={['mm', '%', 'px']}
+                description="Width of the sidebar column in two-column layouts"
               />
             )}
 
@@ -617,443 +348,9 @@ export const TemplateConfigPanel: React.FC<TemplateConfigPanelProps> = ({
                 updateConfig('layout', { paragraphSpacing: value })
               }
             />
-
-            <h4 className="text-xs font-semibold text-text-primary mb-1.5 mt-3">Columns</h4>
-            <ToggleControl
-              label="Enable Columns"
-              value={config.layout.columns?.enabled || false}
-              onChange={(value) =>
-                updateConfig('layout', {
-                  columns: { ...config.layout.columns, enabled: value } as any,
-                })
-              }
-            />
-            {config.layout.columns?.enabled && (
-              <>
-                <SpacingControl
-                  label="Column Gap"
-                  value={config.layout.columns.gap || '24px'}
-                  onChange={(value) =>
-                    updateConfig('layout', {
-                      columns: { ...config.layout.columns, gap: value } as any,
-                    })
-                  }
-                />
-                <SelectControl
-                  label="Column Ratio"
-                  value={config.layout.columns.ratio || '1:1'}
-                  onChange={(value) =>
-                    updateConfig('layout', {
-                      columns: { ...config.layout.columns, ratio: value } as any,
-                    })
-                  }
-                  options={[
-                    { value: '1:1', label: '1:1 (Equal)' },
-                    { value: '1:2', label: '1:2 (Sidebar Left)' },
-                    { value: '2:1', label: '2:1 (Sidebar Right)' },
-                    { value: '1:3', label: '1:3 (Narrow Left)' },
-                    { value: '3:1', label: '3:1 (Narrow Right)' },
-                  ]}
-                />
-              </>
-            )}
           </div>
         )}
 
-        {activeTab === 'components' && (
-          <div>
-            {/* Name (H1) */}
-            <CollapsibleSection id="components-name" label="Name (H1)" defaultOpen={true}>
-              <TextStyleControl
-                label="Name Styling"
-                value={{
-                  fontSize: config.components.name?.fontSize || '32px',
-                  fontWeight: config.components.name?.fontWeight || config.typography.fontWeight.heading,
-                  colorKey: config.components.name?.colorKey || 'text-primary',
-                  colorOpacity: config.components.name?.colorOpacity ?? 1.0,
-                  letterSpacing: config.components.name?.letterSpacing || '0px',
-                  textTransform: config.components.name?.textTransform || 'none',
-                }}
-                onChange={(value) =>
-                  updateConfig('components', {
-                    name: { ...config.components.name, ...value },
-                  })
-                }
-                onChangeComplete={(value) =>
-                  commitConfig('components', {
-                    name: { ...config.components.name, ...value },
-                  })
-                }
-                showLetterSpacing={true}
-                showAlignment={true}
-              />
-            </CollapsibleSection>
-
-            {/* Section Headers (H2) */}
-            <CollapsibleSection id="components-section-headers" label="Section Headers (H2)" defaultOpen={true}>
-              <TextStyleControl
-                label="Section Header Styling"
-                value={{
-                  fontSize: config.components.sectionHeader?.fontSize || '20px',
-                  fontWeight: config.components.sectionHeader?.fontWeight || config.typography.fontWeight.heading,
-                  colorKey: config.components.sectionHeader?.colorKey || 'primary',
-                  colorOpacity: config.components.sectionHeader?.colorOpacity ?? 1.0,
-                  letterSpacing: config.components.sectionHeader?.letterSpacing || '0px',
-                  textTransform: config.components.sectionHeader?.textTransform || 'none',
-                }}
-                onChange={(value) =>
-                  updateConfig('components', {
-                    sectionHeader: { ...config.components.sectionHeader, ...value },
-                  })
-                }
-                onChangeComplete={(value) =>
-                  commitConfig('components', {
-                    sectionHeader: { ...config.components.sectionHeader, ...value },
-                  })
-                }
-                showLetterSpacing={true}
-              />
-              <SelectControl
-                label="Divider Style"
-                value={config.components.sectionHeader?.dividerStyle || 'underline'}
-                onChange={(value) =>
-                  updateConfig('components', {
-                    sectionHeader: { ...config.components.sectionHeader, dividerStyle: value as any },
-                  })
-                }
-                options={[
-                  { value: 'none', label: 'None' },
-                  { value: 'underline', label: 'Underline' },
-                  { value: 'full-width', label: 'Full Width' },
-                  { value: 'accent-bar', label: 'Accent Bar' },
-                ]}
-              />
-              {config.components.sectionHeader?.dividerStyle && config.components.sectionHeader.dividerStyle !== 'none' && (
-                <>
-                  <SemanticColorControl
-                    label="Divider Color"
-                    colorKey={config.components.sectionHeader?.dividerColorKey || 'primary'}
-                    opacity={config.components.sectionHeader?.dividerColorOpacity ?? 1.0}
-                    onColorChange={(value) =>
-                      updateConfig('components', {
-                        sectionHeader: { ...config.components.sectionHeader, dividerColorKey: value },
-                      })
-                    }
-                    onOpacityChange={(value) =>
-                      updateConfig('components', {
-                        sectionHeader: { ...config.components.sectionHeader, dividerColorOpacity: value },
-                      })
-                    }
-                    onChangeComplete={() =>
-                      commitConfig('components', {
-                        sectionHeader: {
-                          ...config.components.sectionHeader,
-                          dividerColorKey: config.components.sectionHeader?.dividerColorKey || 'primary',
-                          dividerColorOpacity: config.components.sectionHeader?.dividerColorOpacity ?? 1.0,
-                        },
-                      })
-                    }
-                    showOpacity={true}
-                  />
-                  <SpacingControl
-                    label="Divider Width"
-                    value={config.components.sectionHeader?.dividerWidth || '2px'}
-                    onChange={(value) =>
-                      updateConfig('components', {
-                        sectionHeader: { ...config.components.sectionHeader, dividerWidth: value },
-                      })
-                    }
-                    units={['px', 'pt']}
-                  />
-                </>
-              )}
-              <SpacingControl
-                label="Margin Top"
-                value={config.components.sectionHeader?.marginTop || '16px'}
-                onChange={(value) =>
-                  updateConfig('components', {
-                    sectionHeader: { ...config.components.sectionHeader, marginTop: value },
-                  })
-                }
-                units={['px', 'rem', 'em']}
-              />
-              <SpacingControl
-                label="Margin Bottom"
-                value={config.components.sectionHeader?.marginBottom || '8px'}
-                onChange={(value) =>
-                  updateConfig('components', {
-                    sectionHeader: { ...config.components.sectionHeader, marginBottom: value },
-                  })
-                }
-                units={['px', 'rem', 'em']}
-              />
-            </CollapsibleSection>
-
-            {/* Header Section Alignment */}
-            <CollapsibleSection id="components-header" label="Header Section" defaultOpen={false}>
-              <SelectControl
-                label="Alignment"
-                value={config.components.header.alignment}
-                onChange={(value) =>
-                  updateConfig('components', {
-                    header: { ...config.components.header, alignment: value as any },
-                  })
-                }
-                options={[
-                  { value: 'left', label: 'Left' },
-                  { value: 'center', label: 'Center' },
-                  { value: 'right', label: 'Right' },
-                ]}
-              />
-            </CollapsibleSection>
-
-            {/* Tags/Skills */}
-            <CollapsibleSection id="components-tags" label="Tags/Skills" defaultOpen={false}>
-              <ColorPairControl
-                label="Tag Colors"
-                colorPair={config.components.tags.colorPair || 'tertiary'}
-                backgroundOpacity={config.components.tags.backgroundOpacity ?? 0.2}
-                textOpacity={config.components.tags.textOpacity ?? 1.0}
-                onColorPairChange={(value) =>
-                  updateConfig('components', {
-                    tags: { ...config.components.tags, colorPair: value },
-                  })
-                }
-                onBackgroundOpacityChange={(value) =>
-                  updateConfig('components', {
-                    tags: { ...config.components.tags, backgroundOpacity: value },
-                  })
-                }
-                onTextOpacityChange={(value) =>
-                  updateConfig('components', {
-                    tags: { ...config.components.tags, textOpacity: value },
-                  })
-                }
-                onChangeComplete={() =>
-                  commitConfig('components', {
-                    tags: {
-                      ...config.components.tags,
-                      colorPair: config.components.tags.colorPair || 'tertiary',
-                      backgroundOpacity: config.components.tags.backgroundOpacity ?? 0.2,
-                      textOpacity: config.components.tags.textOpacity ?? 1.0,
-                    },
-                  })
-                }
-              />
-              <SpacingControl
-                label="Border Radius"
-                value={config.components.tags.borderRadius}
-                onChange={(value) =>
-                  updateConfig('components', {
-                    tags: { ...config.components.tags, borderRadius: value },
-                  })
-                }
-                units={['px', 'rem', '%']}
-              />
-              <SelectControl
-                label="Tag Style"
-                value={config.components.tags.style || 'pill'}
-                onChange={(value) =>
-                  updateConfig('components', {
-                    tags: { ...config.components.tags, style: value as 'pill' | 'inline' },
-                  })
-                }
-                options={[
-                  { value: 'pill', label: 'Pill (rounded tags)' },
-                  { value: 'inline', label: 'Inline (separated text)' }
-                ]}
-                description="Choose between pill-style tags or inline separated text"
-              />
-              {config.components.tags.style === 'inline' && (
-                <SelectControl
-                  label="Separator Character"
-                  value={config.components.tags.separator || '·'}
-                  onChange={(value) =>
-                    updateConfig('components', {
-                      tags: { ...config.components.tags, separator: value as '·' | '|' | '•' | ',' | 'none' },
-                    })
-                  }
-                  options={[
-                    { value: '·', label: '· (middle dot)' },
-                    { value: '|', label: '| (vertical bar)' },
-                    { value: '•', label: '• (bullet)' },
-                    { value: ',', label: ', (comma)' },
-                    { value: 'none', label: 'None (space only)' }
-                  ]}
-                  description="Character used to separate skills in inline mode"
-                />
-              )}
-            </CollapsibleSection>
-
-            {/* Dates */}
-            <CollapsibleSection id="components-dates" label="Dates" defaultOpen={false}>
-              <SemanticColorControl
-                label="Color"
-                colorKey={config.components.dateLine.colorKey || 'text-secondary'}
-                opacity={config.components.dateLine.colorOpacity ?? 1.0}
-                onColorChange={(value) =>
-                  updateConfig('components', {
-                    dateLine: { ...config.components.dateLine, colorKey: value },
-                  })
-                }
-                onOpacityChange={(value) =>
-                  updateConfig('components', {
-                    dateLine: { ...config.components.dateLine, colorOpacity: value },
-                  })
-                }
-                onChangeComplete={() =>
-                  commitConfig('components', {
-                    dateLine: {
-                      ...config.components.dateLine,
-                      colorKey: config.components.dateLine.colorKey || 'text-secondary',
-                      colorOpacity: config.components.dateLine.colorOpacity ?? 1.0,
-                    },
-                  })
-                }
-                showOpacity={true}
-              />
-              <SelectControl
-                label="Font Style"
-                value={config.components.dateLine.fontStyle}
-                onChange={(value) =>
-                  updateConfig('components', {
-                    dateLine: { ...config.components.dateLine, fontStyle: value as any },
-                  })
-                }
-                options={[
-                  { value: 'normal', label: 'Normal' },
-                  { value: 'italic', label: 'Italic' },
-                ]}
-              />
-              <SelectControl
-                label="Alignment"
-                value={config.components.dateLine.alignment}
-                onChange={(value) =>
-                  updateConfig('components', {
-                    dateLine: { ...config.components.dateLine, alignment: value as any },
-                  })
-                }
-                options={[
-                  { value: 'left', label: 'Left' },
-                  { value: 'right', label: 'Right' },
-                ]}
-              />
-              <SelectControl
-                label="Format"
-                value={config.components.dateLine.format || 'short'}
-                onChange={(value) =>
-                  updateConfig('components', {
-                    dateLine: { ...config.components.dateLine, format: value as any },
-                  })
-                }
-                options={[
-                  { value: 'full', label: 'Full (Month Year)' },
-                  { value: 'short', label: 'Short (MM/YY)' },
-                  { value: 'year-only', label: 'Year Only' },
-                ]}
-              />
-            </CollapsibleSection>
-
-            {/* Links */}
-            <CollapsibleSection id="components-links" label="Links" defaultOpen={false}>
-              <SemanticColorControl
-                label="Link Color"
-                colorKey={config.components.links.colorKey || 'primary'}
-                opacity={config.components.links.colorOpacity ?? 1.0}
-                onColorChange={(value) =>
-                  updateConfig('components', {
-                    links: { ...config.components.links, colorKey: value },
-                  })
-                }
-                onOpacityChange={(value) =>
-                  updateConfig('components', {
-                    links: { ...config.components.links, colorOpacity: value },
-                  })
-                }
-                onChangeComplete={() =>
-                  commitConfig('components', {
-                    links: {
-                      ...config.components.links,
-                      colorKey: config.components.links.colorKey || 'primary',
-                      colorOpacity: config.components.links.colorOpacity ?? 1.0,
-                    },
-                  })
-                }
-                showOpacity={true}
-              />
-              <SemanticColorControl
-                label="Hover Color"
-                colorKey={config.components.links.hoverColorKey || 'secondary'}
-                opacity={config.components.links.hoverColorOpacity ?? 1.0}
-                onColorChange={(value) =>
-                  updateConfig('components', {
-                    links: { ...config.components.links, hoverColorKey: value },
-                  })
-                }
-                onOpacityChange={(value) =>
-                  updateConfig('components', {
-                    links: { ...config.components.links, hoverColorOpacity: value },
-                  })
-                }
-                onChangeComplete={() =>
-                  commitConfig('components', {
-                    links: {
-                      ...config.components.links,
-                      hoverColorKey: config.components.links.hoverColorKey || 'secondary',
-                      hoverColorOpacity: config.components.links.hoverColorOpacity ?? 1.0,
-                    },
-                  })
-                }
-                showOpacity={true}
-              />
-              <SelectControl
-                label="Underline Style"
-                value={config.components.links.underlineStyle || (config.components.links.underline ? 'always' : 'none')}
-                onChange={(value) =>
-                  updateConfig('components', {
-                    links: { ...config.components.links, underlineStyle: value as any },
-                  })
-                }
-                options={[
-                  { value: 'none', label: 'None' },
-                  { value: 'always', label: 'Always' },
-                  { value: 'hover', label: 'On Hover' },
-                ]}
-              />
-              <NumberControl
-                label="Font Weight"
-                value={config.components.links.fontWeight || config.typography.fontWeight.body}
-                onChange={(value) =>
-                  updateConfig('components', {
-                    links: { ...config.components.links, fontWeight: value },
-                  })
-                }
-                min={100}
-                max={900}
-                step={100}
-              />
-            </CollapsibleSection>
-
-            {/* Lists */}
-            <CollapsibleSection id="components-lists" label="Lists" defaultOpen={false}>
-              <MultiLevelBulletPicker
-                level1={config.components.list.level1}
-                level2={config.components.list.level2}
-                level3={config.components.list.level3}
-                onChange={(updates) =>
-                  updateConfig('components', {
-                    list: { ...config.components.list, ...updates },
-                  })
-                }
-                onChangeComplete={(updates) =>
-                  commitConfig('components', {
-                    list: { ...config.components.list, ...updates },
-                  })
-                }
-              />
-            </CollapsibleSection>
-          </div>
-        )}
 
         {activeTab === 'pdf' && (
           <div>
@@ -1098,6 +395,7 @@ export const TemplateConfigPanel: React.FC<TemplateConfigPanelProps> = ({
                   pageNumbers: { ...config.pdf.pageNumbers, enabled: value },
                 })
               }
+              description="Appears in PDF export only"
             />
             {config.pdf.pageNumbers.enabled && (
               <SelectControl
@@ -1123,6 +421,67 @@ export const TemplateConfigPanel: React.FC<TemplateConfigPanelProps> = ({
 
         {activeTab === 'advanced' && (
           <div>
+            {/* Font Library moved from Fonts tab */}
+            <CollapsibleSection id="advanced-font-library" label="Font Library" defaultOpen={false}>
+              <p className="text-[10px] text-text-secondary mb-3">
+                Add Google Fonts to your library. Only fonts you add will appear in font selectors.
+              </p>
+
+              <FontManager
+                availableFonts={config.typography.availableFonts || []}
+                onAdd={(fontFamily) => {
+                  const currentFonts = config.typography.availableFonts || [];
+                  updateConfig('typography', {
+                    availableFonts: [...currentFonts, fontFamily],
+                  });
+                }}
+                onRemove={(fontFamily) => {
+                  const currentFonts = config.typography.availableFonts || [];
+                  updateConfig('typography', {
+                    availableFonts: currentFonts.filter(f => f !== fontFamily),
+                  });
+                }}
+              />
+
+              <h4 className="text-xs font-semibold text-text-primary mb-2 mt-4">Active Fonts</h4>
+              <FontSelector
+                label="Heading Font"
+                value={config.typography.fontFamily.heading}
+                onChange={(value) =>
+                  updateConfig('typography', {
+                    fontFamily: { ...config.typography.fontFamily, heading: value },
+                  })
+                }
+                fontType="heading"
+                description="Font used for headings and titles"
+                availableFonts={config.typography.availableFonts}
+              />
+              <FontSelector
+                label="Body Font"
+                value={config.typography.fontFamily.body}
+                onChange={(value) =>
+                  updateConfig('typography', {
+                    fontFamily: { ...config.typography.fontFamily, body: value },
+                  })
+                }
+                fontType="body"
+                description="Font used for body text and descriptions"
+                availableFonts={config.typography.availableFonts}
+              />
+              <FontSelector
+                label="Monospace Font"
+                value={config.typography.fontFamily.monospace}
+                onChange={(value) =>
+                  updateConfig('typography', {
+                    fontFamily: { ...config.typography.fontFamily, monospace: value },
+                  })
+                }
+                fontType="monospace"
+                description="Font used for code and technical content"
+                availableFonts={config.typography.availableFonts}
+              />
+            </CollapsibleSection>
+
             <SelectControl
               label="Icon Set"
               value={config.advanced?.iconSet || 'phosphor'}

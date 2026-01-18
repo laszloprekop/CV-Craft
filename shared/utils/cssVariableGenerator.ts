@@ -36,6 +36,31 @@ function ensureMarginUnits(value: string | number | undefined, defaultValue: str
   return strValue;
 }
 
+/**
+ * Calculate main content width from page width minus sidebar width
+ * Supports mm units; percentages fall back to calc()
+ */
+function calculateMainWidth(pageWidth: string, sidebarWidth: string): string {
+  // Extract numeric values and units
+  const pageMatch = pageWidth.match(/^(\d+(?:\.\d+)?)(mm|px|rem|%)?$/);
+  const sidebarMatch = sidebarWidth.match(/^(\d+(?:\.\d+)?)(mm|px|rem|%)?$/);
+
+  if (pageMatch && sidebarMatch) {
+    const pageValue = parseFloat(pageMatch[1]);
+    const pageUnit = pageMatch[2] || 'mm';
+    const sidebarValue = parseFloat(sidebarMatch[1]);
+    const sidebarUnit = sidebarMatch[2] || 'mm';
+
+    // If both have the same unit, calculate directly
+    if (pageUnit === sidebarUnit && pageUnit !== '%') {
+      return `${pageValue - sidebarValue}${pageUnit}`;
+    }
+  }
+
+  // Fallback to CSS calc() for mixed units or percentages
+  return `calc(${pageWidth} - ${sidebarWidth})`;
+}
+
 export function generateCSSVariables(config: TemplateConfig): Record<string, string> {
   // Ensure layout and pageMargin exist with defaults
   const layout = config.layout || {};
@@ -135,6 +160,10 @@ export function generateCSSVariables(config: TemplateConfig): Record<string, str
     '--section-spacing': layout.sectionSpacing || '24px',
     '--paragraph-spacing': layout.paragraphSpacing || '12px',
 
+    // Two-column layout dimensions
+    '--sidebar-width': layout.sidebarWidth || '84mm',
+    '--main-width': calculateMainWidth(layout.pageWidth || '210mm', layout.sidebarWidth || '84mm'),
+
     // Tags - semantic color pairs with opacity
     '--tag-bg-color': hexToRgba(tagBaseColor, tagBgOpacity),
     '--tag-text-color': hexToRgba(tagOnColor, tagTextOpacity),
@@ -149,6 +178,8 @@ export function generateCSSVariables(config: TemplateConfig): Record<string, str
       config.components.dateLine.colorOpacity
     ),
     '--date-line-font-size-custom': config.components.dateLine?.fontSize || calculateFontSize(fontScale.dateLine || 1.3, baseFontSize),
+    '--date-line-font-style': config.components.dateLine?.fontStyle || 'normal',
+    '--date-line-alignment': config.components.dateLine?.alignment || 'left',
 
     // Name (H1)
     '--name-font-size': config.components.name?.fontSize || calculateFontSize(fontScale.h1, baseFontSize),
@@ -162,6 +193,9 @@ export function generateCSSVariables(config: TemplateConfig): Record<string, str
     '--name-text-transform': config.components.name?.textTransform || 'uppercase',
     '--name-alignment': config.components.name?.alignment || 'left',
     '--name-margin-bottom': config.components.name?.marginBottom || '8px',
+
+    // Header Section
+    '--header-alignment': config.components.header?.alignment || 'left',
 
     // Contact Info
     '--contact-layout': config.components.contactInfo?.layout || 'inline',
@@ -195,7 +229,7 @@ export function generateCSSVariables(config: TemplateConfig): Record<string, str
       config,
       config.components.sectionHeader?.dividerColorOpacity
     ) || config.components.sectionHeader?.dividerColor || config.components.sectionHeader?.borderColor || config.colors.primary,
-    '--section-header-padding': config.components.sectionHeader?.padding || '0 0 4px 0',
+    '--section-header-padding': config.components.sectionHeader?.padding || '4px 12px',
     '--section-header-margin-top': config.components.sectionHeader?.marginTop || '24px',
     '--section-header-margin-bottom': config.components.sectionHeader?.marginBottom || '12px',
     '--section-header-letter-spacing': config.components.sectionHeader?.letterSpacing || '0.05em',
@@ -235,11 +269,17 @@ export function generateCSSVariables(config: TemplateConfig): Record<string, str
     '--bullet-level1-indent': config.components.list?.level1?.indent || '20px',
     '--bullet-level2-indent': config.components.list?.level2?.indent || '40px',
     '--bullet-level3-indent': config.components.list?.level3?.indent || '60px',
+
+    // Advanced Effects
+    '--animation-duration': config.advanced?.animations ? '0.2s' : '0s',
+    '--shadow-default': config.advanced?.shadows ? '0 1px 3px rgba(0, 0, 0, 0.1)' : 'none',
+    '--shadow-hover': config.advanced?.shadows ? '0 4px 12px rgba(0, 0, 0, 0.15)' : 'none',
   };
 }
 
 /**
  * Generate Google Fonts URL for loading custom fonts
+ * Includes both regular and italic variants for proper font-style support
  * @param fonts - Array of font family names
  * @returns Google Fonts URL string
  */
@@ -248,14 +288,18 @@ export function generateGoogleFontsURL(fonts: string[]): string {
     return '';
   }
 
-  // Remove duplicates and format for Google Fonts
+  // Remove duplicates
   const uniqueFonts = [...new Set(fonts)];
-  const formattedFonts = uniqueFonts
-    .map(font => font.replace(/ /g, '+'))
-    .join('|');
 
-  // Include common weights for better rendering
+  // Build URL with both regular (0) and italic (1) variants
+  // Format: ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700
+  const weights = [400, 500, 600, 700];
+  const axisTuples: string[] = [];
+  weights.forEach(w => axisTuples.push(`0,${w}`));
+  weights.forEach(w => axisTuples.push(`1,${w}`));
+  const axisStr = axisTuples.join(';');
+
   return `https://fonts.googleapis.com/css2?${uniqueFonts.map(font =>
-    `family=${font.replace(/ /g, '+')}:wght@400;500;600;700`
+    `family=${font.replace(/ /g, '+')}:ital,wght@${axisStr}`
   ).join('&')}&display=swap`;
 }

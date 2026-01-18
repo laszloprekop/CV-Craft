@@ -99,7 +99,7 @@ export const DEFAULT_TEMPLATE_CONFIG: TemplateConfig = {
 
   layout: {
     templateType: 'two-column',
-    sidebarWidth: '35%',
+    sidebarWidth: '84mm', // 40% of A4 width (210mm) for two-column layout
     pageWidth: '210mm', // A4 width
     pageMargin: {
       top: '20mm',

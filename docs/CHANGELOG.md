@@ -2,6 +2,25 @@
 
 All notable changes to CV-Craft will be documented in this file.
 
+## [1.15.0] - 2026-01-18
+
+### Changed
+- **Unified Styles Tab** - Merged Typography and Components tabs into single "Styles" tab
+  - New `SemanticElementEditor` component with horizontal tag selector
+  - 7 semantic elements: Base, Name, Section, Date, Tag, Link, Contact
+  - Property editors organized in collapsible sections (Typography, Spacing, Border)
+  - Reduced TemplateConfigPanel from ~800 lines to ~400 lines
+
+### Fixed
+- **Italic Font Rendering** - Fixed faux-italic in HTML preview
+  - Google Fonts now load with italic variants using `ital,wght@0,400;...;1,400;...` syntax
+  - Added `font-synthesis: none` to prevent browser-generated faux styles
+  - Updated `GoogleFontsService.ts` and `cssVariableGenerator.ts` font loading
+
+### Technical Insights
+- **Google Fonts API v2 Italic Syntax**: To load true italic variants, use axis tuple format: `family=Inter:ital,wght@0,400;0,700;1,400;1,700` where `0` = regular, `1` = italic
+- **Semantic Element Pattern**: Group related UI controls by semantic meaning (what it styles) rather than property type (colors/spacing) for better discoverability
+
 ## [1.14.1] - 2026-01-18
 
 ### Fixed

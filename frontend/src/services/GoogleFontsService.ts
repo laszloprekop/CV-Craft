@@ -75,13 +75,39 @@ export function filterFontsByCategory(
 }
 
 /**
- * Load a font dynamically
+ * Load a font dynamically with both regular and italic variants
+ *
+ * Uses Google Fonts API v2 syntax: ital,wght@0,400;0,700;1,400;1,700
+ * where 0 = regular, 1 = italic
  */
-export function loadFont(fontFamily: string, weights: number[] = [400, 600, 700]): void {
-  const weightsStr = weights.join(';');
+export function loadFont(fontFamily: string, weights: number[] = [400, 500, 600, 700]): void {
+  // Build the axis tuples for both regular (0) and italic (1) variants
+  // Format: ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700
+  const axisTuples: string[] = [];
+
+  // Add regular variants (ital=0)
+  weights.forEach(w => axisTuples.push(`0,${w}`));
+  // Add italic variants (ital=1)
+  weights.forEach(w => axisTuples.push(`1,${w}`));
+
+  const axisStr = axisTuples.join(';');
+  const fontUrl = `https://fonts.googleapis.com/css2?family=${fontFamily.replace(/ /g, '+')}:ital,wght@${axisStr}&display=swap`;
+
+  // Check for existing font links - only skip if already has italic variants (ital,wght)
+  const existingLinks = document.querySelectorAll(`link[href*="${fontFamily.replace(/ /g, '+')}"]`);
+  for (const existing of existingLinks) {
+    const href = existing.getAttribute('href') || '';
+    // If existing link already has italic variants, skip
+    if (href.includes('ital,wght@')) {
+      return;
+    }
+    // Remove old link without italic variants so we can reload with italics
+    existing.remove();
+  }
+
   const link = document.createElement('link');
   link.rel = 'stylesheet';
-  link.href = `https://fonts.googleapis.com/css2?family=${fontFamily.replace(/ /g, '+')}:wght@${weightsStr}&display=swap`;
+  link.href = fontUrl;
   document.head.appendChild(link);
 }
 
@@ -93,11 +119,16 @@ export function loadFonts(fontFamilies: string[], weights: number[] = [400, 600,
 }
 
 /**
- * Get font URL for embedding
+ * Get font URL for embedding (includes both regular and italic variants)
  */
-export function getFontURL(fontFamily: string, weights: number[] = [400, 600, 700]): string {
-  const weightsStr = weights.join(';');
-  return `https://fonts.googleapis.com/css2?family=${fontFamily.replace(/ /g, '+')}:wght@${weightsStr}&display=swap`;
+export function getFontURL(fontFamily: string, weights: number[] = [400, 500, 600, 700]): string {
+  // Build the axis tuples for both regular (0) and italic (1) variants
+  const axisTuples: string[] = [];
+  weights.forEach(w => axisTuples.push(`0,${w}`));
+  weights.forEach(w => axisTuples.push(`1,${w}`));
+  const axisStr = axisTuples.join(';');
+
+  return `https://fonts.googleapis.com/css2?family=${fontFamily.replace(/ /g, '+')}:ital,wght@${axisStr}&display=swap`;
 }
 
 // ============================================================================

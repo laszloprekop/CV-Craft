@@ -257,8 +257,11 @@ export function getSemanticCSS(): string {
 }
 
 .entry-date {
-  font-size: var(--tiny-font-size);
-  color: var(--text-secondary);
+  font-size: var(--date-line-font-size-custom, var(--tiny-font-size));
+  color: var(--date-line-color, var(--text-secondary));
+  font-style: var(--date-line-font-style, normal);
+  text-align: var(--date-line-alignment, left);
+  font-synthesis: none; /* Prevent faux italic - use true italic font or normal */
 }
 
 .entry-location {
@@ -293,7 +296,35 @@ export function getSemanticCSS(): string {
 }
 
 .entry-bullets li::marker {
-  color: var(--bullet-level1-marker-color);
+  color: var(--bullet-level1-color, var(--primary-color));
+}
+
+/* Nested lists (level 2) */
+.entry-bullets ul,
+.entry-bullets ol {
+  list-style-type: circle;
+  margin-left: var(--bullet-level2-indent, 1.5rem);
+}
+
+.entry-bullets ul li::marker,
+.entry-bullets ol li::marker {
+  color: var(--bullet-level2-color, var(--text-secondary));
+}
+
+/* Level 3 nested lists */
+.entry-bullets ul ul,
+.entry-bullets ol ol,
+.entry-bullets ul ol,
+.entry-bullets ol ul {
+  list-style-type: square;
+  margin-left: var(--bullet-level3-indent, 1.5rem);
+}
+
+.entry-bullets ul ul li::marker,
+.entry-bullets ol ol li::marker,
+.entry-bullets ul ol li::marker,
+.entry-bullets ol ul li::marker {
+  color: var(--bullet-level3-color, var(--text-muted));
 }
 
 /* Skills styling */
@@ -468,12 +499,12 @@ export function getTwoColumnHeaderCSS(): string {
 .sidebar .sidebar-section > h2.section-header {
   font-family: var(--heading-font-family);
   font-size: var(--h3-font-size);
-  font-weight: bold;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-bottom: 12px;
-  margin-top: 8px;
-  padding: 4px 12px;
+  font-weight: var(--section-header-font-weight, bold);
+  text-transform: var(--section-header-text-transform, uppercase);
+  letter-spacing: var(--section-header-letter-spacing, 0.05em);
+  margin-bottom: var(--section-header-margin-bottom, 12px);
+  margin-top: var(--section-header-margin-top, 8px);
+  padding: var(--section-header-padding, 4px 12px);
   border-radius: 4px;
   border-bottom: none;
   color: var(--on-tertiary-color, #ffffff);
@@ -483,12 +514,12 @@ export function getTwoColumnHeaderCSS(): string {
 .main-content .cv-section > h2.section-header {
   font-family: var(--heading-font-family);
   font-size: var(--h3-font-size);
-  font-weight: bold;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-bottom: 12px;
+  font-weight: var(--section-header-font-weight, bold);
+  text-transform: var(--section-header-text-transform, uppercase);
+  letter-spacing: var(--section-header-letter-spacing, 0.05em);
+  margin-bottom: var(--section-header-margin-bottom, 12px);
   margin-top: 12px;
-  padding: 4px 12px;
+  padding: var(--section-header-padding, 4px 12px);
   border-radius: 4px;
   border-bottom: none;
   color: var(--on-primary-color, #ffffff);
@@ -524,13 +555,13 @@ export function getTwoColumnLayoutCSS(): string {
   min-height: 100%;
 }
 
-/* Sidebar container - fixed dimensions for PDF
+/* Sidebar container - configurable dimensions for PDF
    Note: Web preview uses Tailwind w-2/5 with inline padding,
    so this only applies in PDF/full document mode */
 .sidebar-container {
-  width: 84mm;
-  min-width: 84mm;
-  max-width: 84mm;
+  width: var(--sidebar-width, 84mm);
+  min-width: var(--sidebar-width, 84mm);
+  max-width: var(--sidebar-width, 84mm);
   padding: var(--page-margin-top, 20mm) 6mm var(--page-margin-bottom, 20mm) var(--page-margin-left, 6mm);
   flex-shrink: 0;
 }
@@ -550,9 +581,9 @@ export function getTwoColumnLayoutCSS(): string {
 }
 
 .main-content {
-  width: 126mm;
-  min-width: 126mm;
-  max-width: 126mm;
+  width: var(--main-width, 126mm);
+  min-width: var(--main-width, 126mm);
+  max-width: var(--main-width, 126mm);
   padding: var(--page-margin-top, 20mm) var(--page-margin-right, 8mm) var(--page-margin-bottom, 20mm) 8mm;
 }
 
@@ -577,7 +608,7 @@ export function getFixedBackgroundCSS(sidebarColor: string, mainColor: string): 
   position: fixed;
   top: 0;
   left: 0;
-  width: 84mm;
+  width: var(--sidebar-width, 84mm);
   height: 100%;
   background-color: ${sidebarColor};
   z-index: -2;
@@ -588,8 +619,8 @@ export function getFixedBackgroundCSS(sidebarColor: string, mainColor: string): 
 .bg-main {
   position: fixed;
   top: 0;
-  left: 84mm;
-  width: 126mm;
+  left: var(--sidebar-width, 84mm);
+  width: var(--main-width, 126mm);
   height: 100%;
   background-color: ${mainColor};
   z-index: -2;
@@ -602,7 +633,7 @@ export function getFixedBackgroundCSS(sidebarColor: string, mainColor: string): 
   position: fixed;
   top: 0;
   left: 0;
-  width: 84mm;
+  width: var(--sidebar-width, 84mm);
   height: 100%;
   background-color: ${sidebarColor};
   z-index: -2;
@@ -613,13 +644,72 @@ export function getFixedBackgroundCSS(sidebarColor: string, mainColor: string): 
 .main-background {
   position: fixed;
   top: 0;
-  left: 84mm;
-  width: 126mm;
+  left: var(--sidebar-width, 84mm);
+  width: var(--main-width, 126mm);
   height: 100%;
   background-color: ${mainColor};
   z-index: -2;
   -webkit-print-color-adjust: exact !important;
   print-color-adjust: exact !important;
+}
+`
+}
+
+/**
+ * Generate CSS for advanced visual effects (animations, shadows)
+ * These are applied via CSS variables that can be toggled
+ */
+export function getAdvancedEffectsCSS(): string {
+  return `
+/* ========================================
+   Advanced Visual Effects
+   Controlled by CSS variables from config
+   ======================================== */
+
+/* Shadow effects on skill tags */
+.skill-tag {
+  box-shadow: var(--shadow-default, none);
+  transition: box-shadow var(--animation-duration, 0s) ease,
+              transform var(--animation-duration, 0s) ease;
+}
+
+/* Entry cards can have subtle shadows */
+.entry {
+  transition: box-shadow var(--animation-duration, 0s) ease,
+              transform var(--animation-duration, 0s) ease;
+}
+
+/* Hover effects - only for screen (not print) */
+@media screen {
+  .skill-tag:hover {
+    box-shadow: var(--shadow-hover, none);
+    transform: translateY(calc(-1px * min(1, var(--animation-duration, 0s) / 1s)));
+  }
+
+  .entry:hover {
+    box-shadow: var(--shadow-hover, none);
+  }
+
+  /* Link hover transitions */
+  a {
+    transition: color var(--animation-duration, 0s) ease;
+  }
+
+  /* Section header transitions */
+  .section-header {
+    transition: background-color var(--animation-duration, 0s) ease,
+                color var(--animation-duration, 0s) ease;
+  }
+}
+
+/* Disable hover effects and shadows for print */
+@media print {
+  .skill-tag,
+  .entry {
+    box-shadow: none !important;
+    transform: none !important;
+    transition: none !important;
+  }
 }
 `
 }
@@ -632,11 +722,13 @@ export function getAllSemanticCSS(options?: {
   includeTwoColumn?: boolean
   sidebarColor?: string
   mainColor?: string
+  includeAdvancedEffects?: boolean
 }): string {
   const {
     includeTwoColumn = true,
     sidebarColor = 'var(--surface-color)',
-    mainColor = 'var(--background-color)'
+    mainColor = 'var(--background-color)',
+    includeAdvancedEffects = true
   } = options || {}
 
   let css = getBaseCSS()
@@ -649,6 +741,10 @@ export function getAllSemanticCSS(options?: {
     css += getTwoColumnHeaderCSS()
     css += getTwoColumnLayoutCSS()
     css += getFixedBackgroundCSS(sidebarColor, mainColor)
+  }
+
+  if (includeAdvancedEffects) {
+    css += getAdvancedEffectsCSS()
   }
 
   return css

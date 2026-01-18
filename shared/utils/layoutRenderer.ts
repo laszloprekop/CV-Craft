@@ -20,7 +20,8 @@ import {
   getSemanticCSS,
   getTwoColumnHeaderCSS,
   getTwoColumnLayoutCSS,
-  getFixedBackgroundCSS
+  getFixedBackgroundCSS,
+  getAdvancedEffectsCSS
 } from './semanticCSS'
 import { getAllPaginationCSS } from './paginationCSS'
 import { renderContactInfo, CONTACT_ICONS } from './contactRenderer'
@@ -258,6 +259,7 @@ export function generateCVCSS(
     includePageMarkers?: boolean
     marginTop?: string
     marginBottom?: string
+    includeCustomCSS?: boolean
   } = {}
 ): string {
   const {
@@ -266,7 +268,8 @@ export function generateCVCSS(
     mainColor,
     includePageMarkers = false,
     marginTop,
-    marginBottom
+    marginBottom,
+    includeCustomCSS = true
   } = options
 
   const cssVariables = generateCSSVariables(config)
@@ -304,6 +307,19 @@ export function generateCVCSS(
     css += getTwoColumnHeaderCSS()
     css += getTwoColumnLayoutCSS()
     css += getFixedBackgroundCSS(resolvedSidebarColor, resolvedMainColor)
+  }
+
+  // Include advanced visual effects (animations, shadows)
+  css += getAdvancedEffectsCSS()
+
+  // Append custom CSS from config if enabled
+  if (includeCustomCSS && config.advanced?.customCSS) {
+    css += `
+/* ========================================
+   Custom CSS from Template Config
+   ======================================== */
+${config.advanced.customCSS}
+`
   }
 
   return css

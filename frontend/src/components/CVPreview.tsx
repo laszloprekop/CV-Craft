@@ -138,11 +138,41 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
   // Load Google Fonts when config changes
   useEffect(() => {
     const activeConfig = config || template?.default_config
-    if (activeConfig?.typography.availableFonts && activeConfig.typography.availableFonts.length > 0) {
-      console.log('[CVPreview] Loading Google Fonts:', activeConfig.typography.availableFonts)
-      loadFonts(activeConfig.typography.availableFonts)
+    if (!activeConfig) return
+
+    // Collect all fonts that need to be loaded
+    const fontsToLoad: string[] = []
+
+    // Add fonts from availableFonts library
+    if (activeConfig.typography.availableFonts && activeConfig.typography.availableFonts.length > 0) {
+      fontsToLoad.push(...activeConfig.typography.availableFonts)
     }
-  }, [config?.typography.availableFonts, template?.default_config?.typography.availableFonts])
+
+    // Extract primary font from heading/body font stacks (first font before comma)
+    const extractPrimaryFont = (fontStack: string | undefined): string | null => {
+      if (!fontStack) return null
+      const firstFont = fontStack.split(',')[0]?.trim().replace(/['"]/g, '')
+      // Only return if it's not a system font
+      const systemFonts = ['system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif', 'serif', 'monospace', 'Georgia', 'Times New Roman', 'Arial', 'Helvetica']
+      return firstFont && !systemFonts.includes(firstFont) ? firstFont : null
+    }
+
+    // Add active heading and body fonts
+    const headingFont = extractPrimaryFont(activeConfig.typography.fontFamily?.heading)
+    const bodyFont = extractPrimaryFont(activeConfig.typography.fontFamily?.body)
+
+    if (headingFont && !fontsToLoad.includes(headingFont)) {
+      fontsToLoad.push(headingFont)
+    }
+    if (bodyFont && !fontsToLoad.includes(bodyFont)) {
+      fontsToLoad.push(bodyFont)
+    }
+
+    if (fontsToLoad.length > 0) {
+      console.log('[CVPreview] Loading Google Fonts (with italic variants):', fontsToLoad)
+      loadFonts(fontsToLoad)
+    }
+  }, [config?.typography.availableFonts, config?.typography.fontFamily, template?.default_config?.typography.availableFonts, template?.default_config?.typography.fontFamily])
 
   // Load photo from asset when cv.photo_asset_id changes
   useEffect(() => {
@@ -720,6 +750,12 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
     )
   }
 
+  // Get custom CSS from config if available
+  const customCSS = useMemo(() => {
+    const activeConfig = config || template?.default_config
+    return activeConfig?.advanced?.customCSS || ''
+  }, [config, template?.default_config])
+
   // Generate CV layout based on template and preview mode
   const renderCV = () => {
     // For exact-pdf mode, render the PDF viewer
@@ -732,9 +768,18 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
     const { frontmatter, sections } = parsedContent
     const styles = templateStyles
 
-    // Apply different layouts based on template
+    // Get layout type from config
+    const activeConfig = config || template?.default_config
+    const layoutType = activeConfig?.layout?.templateType || 'two-column'
+
+    // Determine layout based on type
+    const isSingleColumn = layoutType === 'single-column'
+    const isSidebarRight = layoutType === 'sidebar-right'
+    const isTwoColumn = layoutType === 'two-column' || layoutType === 'sidebar-left' || layoutType === 'sidebar-right'
+
+    // Legacy template name-based detection (fallback only)
     const useModernLayout = template?.name.includes('Modern') || template?.name.includes('Professional')
-    const useMinimalLayout = template?.name.includes('Minimal') || template?.name.includes('Clean')
+    const useMinimalLayout = isSingleColumn || (template?.name.includes('Minimal') || template?.name.includes('Clean'))
 
     // For web mode and page-markers mode, use continuous layouts
     // Separate sections into sidebar and main content
@@ -764,6 +809,8 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
             color: templateStyles['--text-color']
           }}
         >
+          {/* Custom CSS Injection */}
+          {customCSS && <style dangerouslySetInnerHTML={{ __html: customCSS }} />}
           {/* Minimal Single Column Layout */}
           <div className="p-8">
             {/* Header */}
@@ -797,7 +844,7 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
 
             {/* All sections in single column */}
             {sections.map((section, index) => (
-              <section key={index} className="mb-6">
+              <section key={index} style={{ marginBottom: templateStyles['--section-spacing'] || '24px' }}>
                 <h2 className="text-xl font-semibold mb-3 pb-1" style={{
                   fontFamily: templateStyles['--heading-font-family'],
                   fontSize: templateStyles['--section-header-font-size'],
@@ -808,12 +855,12 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
                   borderBottom: templateStyles['--section-header-border-bottom'],
                   borderColor: templateStyles['--section-header-border-color'],
                   padding: templateStyles['--section-header-padding'],
-                  marginTop: templateStyles['--section-header-margin-top'],
+                  marginTop: index === 0 ? '0' : templateStyles['--section-header-margin-top'],
                   marginBottom: templateStyles['--section-header-margin-bottom']
                 }}>
                   {section.title}
                 </h2>
-                <div className="space-y-3">
+                <div style={{ display: 'flex', flexDirection: 'column', gap: templateStyles['--paragraph-spacing'] }}>
                   {/* Use shared renderer for consistent web/PDF output */}
                   {renderSectionContent(section, false, false)}
                 </div>
@@ -837,14 +884,19 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
           color: templateStyles['--text-color']
         }}
       >
+        {/* Custom CSS Injection */}
+        {customCSS && <style dangerouslySetInnerHTML={{ __html: customCSS }} />}
         {/* Page Structure with proper margins */}
         <div className="relative" style={{ minHeight: 'auto' }}>
           {/* Two-column layout */}
-          <div className="flex h-full">
+          <div className="flex h-full" style={{ flexDirection: isSidebarRight ? 'row-reverse' : 'row' }}>
             {/* Left Sidebar - Contact & Skills */}
             <div
-              className="w-2/5 relative"
+              className="relative"
               style={{
+                width: templateStyles['--sidebar-width'] || '84mm',
+                minWidth: templateStyles['--sidebar-width'] || '84mm',
+                maxWidth: templateStyles['--sidebar-width'] || '84mm',
                 minHeight: 'auto',
                 backgroundColor: templateStyles['--surface-color'] as string || '#e6d7c3',
                 overflow: 'hidden'
@@ -885,7 +937,14 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
                 {/* Contact Information */}
                 {frontmatter && (
                   <div className="mb-8">
-                <div style={{ display: 'flex', flexDirection: 'column', gap: templateStyles['--contact-spacing'] }}>
+                {/* Contact layout: stacked (column), inline (row wrap), grid (2-column grid) */}
+                <div style={{
+                  display: templateStyles['--contact-layout'] === 'grid' ? 'grid' : 'flex',
+                  flexDirection: templateStyles['--contact-layout'] === 'inline' ? 'row' : 'column',
+                  flexWrap: templateStyles['--contact-layout'] === 'inline' ? 'wrap' : 'nowrap',
+                  gridTemplateColumns: templateStyles['--contact-layout'] === 'grid' ? 'repeat(2, 1fr)' : undefined,
+                  gap: templateStyles['--contact-spacing']
+                }}>
                   {frontmatter.phone && (
                     <div className="flex items-center text-sm" style={{
                       color: 'var(--on-secondary-color)',
@@ -952,19 +1011,20 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
 
             {/* Sidebar Sections (Skills, Languages, etc.) */}
             {sidebarSections.map((section, index) => (
-              <div key={index} className="mb-8 keep-together" style={{ pageBreakInside: 'avoid', breakInside: 'avoid' }}>
+              <div key={index} className="keep-together" style={{ pageBreakInside: 'avoid', breakInside: 'avoid', marginBottom: templateStyles['--section-spacing'] || '24px' }}>
                 {/* Section Header matching PDF style - uses h2 with section-header class like PDF */}
                 <h2
                   className="font-bold uppercase tracking-wide rounded section-header"
                   style={{
                     fontFamily: templateStyles['--heading-font-family'],
-                    fontSize: templateStyles['--h3-font-size'] || '1rem',
+                    fontSize: templateStyles['--section-header-font-size'],
+                    fontWeight: templateStyles['--section-header-font-weight'],
                     color: 'var(--on-tertiary-color)',
                     backgroundColor: templateStyles['--accent-color'] as string || '#c4956c',
-                    padding: '4px 12px',
-                    marginBottom: '12px',
-                    marginTop: '8px',
-                    letterSpacing: '0.05em',
+                    padding: templateStyles['--section-header-padding'],
+                    marginBottom: templateStyles['--section-header-margin-bottom'],
+                    marginTop: index === 0 ? '0' : templateStyles['--section-header-margin-top'],
+                    letterSpacing: templateStyles['--section-header-letter-spacing'],
                     borderBottom: 'none'
                   }}
                 >
@@ -972,7 +1032,7 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
                 </h2>
 
                 {/* Section Content - use shared renderer for consistent web/PDF output */}
-                <div className="space-y-3 sidebar">
+                <div className="sidebar" style={{ display: 'flex', flexDirection: 'column', gap: templateStyles['--paragraph-spacing'] }}>
                   {renderSectionContent(section, true, false)}
                 </div>
                 </div>
@@ -981,11 +1041,11 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
             </div>
 
             {/* Right Main Content */}
-            <div className="flex-1 relative" style={{ minHeight: 'auto', backgroundColor: templateStyles['--background-color'] as string || '#f7f5f3' }}>
+            <div className="relative" style={{ flex: 1, width: templateStyles['--main-width'], minHeight: 'auto', backgroundColor: templateStyles['--background-color'] as string || '#f7f5f3' }}>
               <div className="relative z-10" style={{ padding: `${templateStyles['--page-margin-top'] || '20mm'} ${templateStyles['--page-margin-right'] || '8mm'} ${templateStyles['--page-margin-bottom'] || '20mm'} 8mm` }}>
                 {/* Name and Title Header */}
                 {frontmatter && (
-                  <header className="mb-8">
+                  <header className="mb-8" style={{ textAlign: templateStyles['--header-alignment'] as any || 'left' }}>
                 <h1
                   className="font-bold uppercase tracking-wide mb-2"
                   style={{
@@ -1006,7 +1066,8 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
                     className="font-medium"
                     style={{
                       fontSize: templateStyles['--h3-font-size'],
-                      color: templateStyles['--accent-color'] || '#6b7280'
+                      color: templateStyles['--accent-color'] || '#6b7280',
+                      textAlign: templateStyles['--header-alignment'] as any || 'left'
                     }}
                   >
                     {frontmatter.title}
@@ -1017,21 +1078,21 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
 
             {/* Main Content Sections */}
             {mainSections.map((section, index) => (
-              <section key={index} className="mb-8 keep-together" style={{ pageBreakInside: 'avoid', breakInside: 'avoid' }}>
+              <section key={index} className="keep-together" style={{ pageBreakInside: 'avoid', breakInside: 'avoid', marginBottom: templateStyles['--section-spacing'] || '24px' }}>
                 {/* Section Header matching PDF style exactly */}
                 <h2
                   className="font-bold uppercase tracking-wide rounded section-header"
                   style={{
                     fontFamily: templateStyles['--heading-font-family'],
-                    fontSize: templateStyles['--h3-font-size'] || '1rem',
-                    fontWeight: 'bold',
+                    fontSize: templateStyles['--section-header-font-size'],
+                    fontWeight: templateStyles['--section-header-font-weight'],
                     color: 'var(--on-primary-color)',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.05em',
+                    textTransform: templateStyles['--section-header-text-transform'] as any,
+                    letterSpacing: templateStyles['--section-header-letter-spacing'],
                     backgroundColor: templateStyles['--primary-color'] as string || '#a8956b',
-                    padding: '4px 12px',
-                    marginTop: index === 0 ? '0' : '12px',
-                    marginBottom: '12px',
+                    padding: templateStyles['--section-header-padding'],
+                    marginTop: index === 0 ? '0' : templateStyles['--section-header-margin-top'],
+                    marginBottom: templateStyles['--section-header-margin-bottom'],
                     borderRadius: '4px',
                     borderBottom: 'none'
                   }}
@@ -1040,7 +1101,7 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
                 </h2>
 
                 {/* Section Content - Use shared renderer for consistent web/PDF output */}
-                <div className="space-y-4">
+                <div style={{ display: 'flex', flexDirection: 'column', gap: templateStyles['--paragraph-spacing'] }}>
                   {renderSectionContent(section, false, false)}
                 </div>
               </section>
