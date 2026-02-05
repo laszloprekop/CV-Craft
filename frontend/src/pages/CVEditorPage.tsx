@@ -447,7 +447,6 @@ export const CVEditorPage: React.FC = () => {
           config={effectiveConfig}
           onChange={handleConfigChange}
           onChangeComplete={handleConfigChangeComplete}
-          onClose={handleConfigToggle}
         />
       )}
     </EditorContainer>

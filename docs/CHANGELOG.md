@@ -2,6 +2,14 @@
 
 All notable changes to CV-Craft will be documented in this file.
 
+## [1.16.4] - 2026-02-05
+
+### Changed
+- **Config Panel Header Removed** - Removed redundant header from config panel
+  - "Template Config" title and close button removed (toggle is now in toolbar)
+  - Panel now starts directly with tabs for more vertical space
+  - Removed unused `onClose` prop from TemplateConfigPanel interface
+
 ## [1.16.3] - 2026-02-05
 
 ### Changed

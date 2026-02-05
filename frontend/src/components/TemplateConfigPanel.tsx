@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
 import {
-  IconX,
   IconPalette,
   IconTypography,
   IconFile,
@@ -38,7 +37,6 @@ interface TemplateConfigPanelProps {
   config: TemplateConfig;
   onChange: (config: Partial<TemplateConfig>) => void;
   onChangeComplete?: (config: Partial<TemplateConfig>) => void; // Called after user finishes editing
-  onClose: () => void;
 }
 
 type TabType = 'colors' | 'styles' | 'page' | 'advanced';
@@ -47,7 +45,6 @@ export const TemplateConfigPanel: React.FC<TemplateConfigPanelProps> = ({
   config,
   onChange,
   onChangeComplete,
-  onClose,
 }) => {
   const [activeTab, setActiveTab] = useState<TabType>('colors');
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -141,17 +138,6 @@ export const TemplateConfigPanel: React.FC<TemplateConfigPanelProps> = ({
 
   return (
     <div className="fixed right-0 top-0 bottom-0 w-[280px] bg-background border-l border-border overflow-hidden z-50 flex flex-col">
-      {/* Header */}
-      <div className="px-2 py-2 border-b border-border flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-text-primary">Template Config</h3>
-        <button
-          onClick={onClose}
-          className="bg-transparent border-none cursor-pointer p-1 hover:bg-surface rounded"
-        >
-          <IconX size={16} />
-        </button>
-      </div>
-
       {/* Tabs */}
       <div className="flex border-b border-border overflow-x-auto">
         {tabs.map((tab) => (
