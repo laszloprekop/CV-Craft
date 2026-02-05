@@ -2,6 +2,18 @@
 
 All notable changes to CV-Craft will be documented in this file.
 
+## [1.16.3] - 2026-02-05
+
+### Changed
+- **Config Panel Toggle** - Replaced Settings button with toggleable config panel
+  - Removed "Settings" button from center toolbar
+  - Added config panel toggle button on right side of toolbar (mirrors Editor toggle on left)
+  - Config panel visibility persists via localStorage (`cv-craft-config-panel-visible`)
+  - Panel opens by default on first visit
+
+### Technical Insights
+- **Symmetrical Panel Toggles**: Editor toggle (left sidebar) and Config toggle (right sidebar) now use the same visual pattern - highlighted when panel is visible, using mirrored `SidebarSimple` icons.
+
 ## [1.16.2] - 2026-01-18
 
 ### Fixed

@@ -43,12 +43,24 @@ export const CVEditorPage: React.FC = () => {
   // React 18 Concurrent Features for non-blocking updates
   const [isPending, startTransition] = useTransition()
   
+  // localStorage key for config panel visibility
+  const CONFIG_PANEL_KEY = 'cv-craft-config-panel-visible'
+
+  const getInitialConfigPanelVisible = (): boolean => {
+    if (typeof window === 'undefined') return true
+    const saved = localStorage.getItem(CONFIG_PANEL_KEY)
+    if (saved === 'true' || saved === 'false') {
+      return saved === 'true'
+    }
+    return true // Default to open
+  }
+
   // State
   const [paneWidth, setPaneWidth] = useState(35) // Left pane percentage
   const [isResizing, setIsResizing] = useState(false)
   const [zoomLevel, setZoomLevel] = useState<'fit-width' | 'fit-height' | 'actual-size' | 'custom'>('fit-width')
   const [zoomPercentage, setZoomPercentage] = useState(100)
-  const [showSettings, setShowSettings] = useState(false)
+  const [showConfig, setShowConfig] = useState(getInitialConfigPanelVisible)
   const [showEditor, setShowEditor] = useState(true)
 
   // Custom hooks
@@ -187,8 +199,12 @@ export const CVEditorPage: React.FC = () => {
     URL.revokeObjectURL(url)
   }, [cv, content])
 
-  const handleSettingsToggle = useCallback(() => {
-    setShowSettings(prev => !prev)
+  const handleConfigToggle = useCallback(() => {
+    setShowConfig(prev => {
+      const newValue = !prev
+      localStorage.setItem(CONFIG_PANEL_KEY, String(newValue))
+      return newValue
+    })
   }, [])
 
   // Note: No need for sync effect anymore
@@ -326,8 +342,8 @@ export const CVEditorPage: React.FC = () => {
     )
   }
 
-  // Calculate settings panel width (in pixels)
-  const settingsPanelWidth = 280 // Compact width
+  // Calculate config panel width (in pixels)
+  const configPanelWidth = 280
 
   return (
     <EditorContainer>
@@ -336,7 +352,7 @@ export const CVEditorPage: React.FC = () => {
         display: 'flex',
         flex: 1,
         overflow: 'hidden',
-        marginRight: showSettings ? `${settingsPanelWidth}px` : '0',
+        marginRight: showConfig ? `${configPanelWidth}px` : '0',
         transition: 'margin-right 0.3s ease'
       }}>
         {/* Left Pane - Markdown Editor */}
@@ -396,9 +412,9 @@ export const CVEditorPage: React.FC = () => {
             zoomLevel={zoomLevel}
             zoomPercentage={zoomPercentage}
             isSaving={saveStatus === 'saving'}
-            lastSaved={cv?.updated_at}
+            showEditor={showEditor}
+            showConfig={showConfig}
             onTemplateChange={handleTemplateChange}
-            onSettingsClick={handleSettingsToggle}
             onZoomChange={handleZoomChange}
             onZoomIn={handleZoomIn}
             onZoomOut={handleZoomOut}
@@ -406,7 +422,7 @@ export const CVEditorPage: React.FC = () => {
             onWebExport={() => exportCv('web_package')}
             onSave={saveCv}
             onToggleEditor={() => setShowEditor(!showEditor)}
-            showEditor={showEditor}
+            onToggleConfig={handleConfigToggle}
           />
 
           <div style={{ height: 'calc(100% - 44px)', overflow: 'hidden' }}>
@@ -425,13 +441,13 @@ export const CVEditorPage: React.FC = () => {
         </PreviewPane>
       </div>
 
-      {/* Settings Panel Overlay */}
-      {showSettings && (
+      {/* Config Panel */}
+      {showConfig && (
         <TemplateConfigPanel
           config={effectiveConfig}
           onChange={handleConfigChange}
           onChangeComplete={handleConfigChangeComplete}
-          onClose={() => setShowSettings(false)}
+          onClose={handleConfigToggle}
         />
       )}
     </EditorContainer>

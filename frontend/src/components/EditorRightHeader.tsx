@@ -1,12 +1,11 @@
 /**
  * Right Header for CV Preview
- * Contains: Template Selector, Settings, Zoom Controls, Export
+ * Contains: Editor Toggle, Template Selector, Zoom Controls, Export, Config Toggle
  * Note: Preview Mode is now managed within CVPreview component
  */
 
 import React from 'react'
 import {
-  Gear,
   ArrowsHorizontal,
   ArrowsVertical,
   MagnifyingGlass,
@@ -16,6 +15,7 @@ import {
   Minus,
   Plus,
   Sidebar,
+  SidebarSimple,
   CircleNotch
 } from '@phosphor-icons/react'
 
@@ -28,10 +28,9 @@ interface EditorRightHeaderProps {
   zoomLevel?: ZoomLevel
   zoomPercentage?: number
   isSaving?: boolean
-  lastSaved?: string
   showEditor?: boolean
+  showConfig?: boolean
   onTemplateChange?: (templateId: string) => void
-  onSettingsClick?: () => void
   onZoomChange?: (level: ZoomLevel) => void
   onZoomIn?: () => void
   onZoomOut?: () => void
@@ -39,6 +38,7 @@ interface EditorRightHeaderProps {
   onWebExport?: () => void
   onSave?: () => void
   onToggleEditor?: () => void
+  onToggleConfig?: () => void
 }
 
 export const EditorRightHeader: React.FC<EditorRightHeaderProps> = ({
@@ -47,30 +47,18 @@ export const EditorRightHeader: React.FC<EditorRightHeaderProps> = ({
   zoomLevel = 'fit-width',
   zoomPercentage = 100,
   isSaving = false,
-  lastSaved,
   showEditor = true,
+  showConfig = true,
   onTemplateChange,
-  onSettingsClick,
   onZoomChange,
   onZoomIn,
   onZoomOut,
   onPDFExport,
   onWebExport,
   onSave,
-  onToggleEditor
+  onToggleEditor,
+  onToggleConfig
 }) => {
-  const formatLastSaved = (timestamp?: string) => {
-    if (!timestamp) return ''
-    const date = new Date(timestamp)
-    const now = new Date()
-    const diffMs = now.getTime() - date.getTime()
-    
-    if (diffMs < 60000) return 'Just now'
-    if (diffMs < 3600000) return `${Math.floor(diffMs / 60000)}m ago`
-    if (diffMs < 86400000) return `${Math.floor(diffMs / 3600000)}h ago`
-    return date.toLocaleDateString()
-  }
-
   return (
     <div className="flex items-center justify-between px-3 py-2 border-b border-border bg-surface gap-3">
       {/* Left Section: Toggle Editor, Template & Settings */}
@@ -101,15 +89,6 @@ export const EditorRightHeader: React.FC<EditorRightHeaderProps> = ({
             </option>
           ))}
         </select>
-
-        <button
-          onClick={onSettingsClick}
-          title="Template settings"
-          className="flex items-center gap-1 px-1.5 py-1 text-xs border border-border rounded bg-transparent text-text-primary hover:bg-background hover:border-primary transition-all duration-150"
-        >
-          <Gear size={18} weight="bold" />
-          Settings
-        </button>
       </div>
 
       {/* Center Section: Zoom & Preview Mode */}
@@ -176,7 +155,7 @@ export const EditorRightHeader: React.FC<EditorRightHeaderProps> = ({
         </button>
       </div>
 
-      {/* Right Section: Save & Export */}
+      {/* Right Section: Save, Export & Config Toggle */}
       <div className="flex items-center gap-1">
         <button
           onClick={onSave}
@@ -208,6 +187,20 @@ export const EditorRightHeader: React.FC<EditorRightHeaderProps> = ({
         >
           <Package size={18} weight="bold" />
           Web
+        </button>
+
+        <div className="w-px h-4 bg-border mx-0.5" />
+
+        <button
+          onClick={onToggleConfig}
+          title={showConfig ? "Hide config panel" : "Show config panel"}
+          className={`flex items-center gap-0.5 px-1.5 py-1 text-xs border rounded transition-all duration-150 ${
+            showConfig
+              ? 'bg-primary text-text-inverse border-primary'
+              : 'bg-transparent text-text-primary border-border hover:bg-background hover:border-primary'
+          }`}
+        >
+          <SidebarSimple size={18} weight="bold" style={{ transform: 'scaleX(-1)' }} />
         </button>
       </div>
     </div>
