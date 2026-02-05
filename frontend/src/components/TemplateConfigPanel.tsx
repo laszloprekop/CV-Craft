@@ -47,7 +47,7 @@ export const TemplateConfigPanel: React.FC<TemplateConfigPanelProps> = ({
   onChangeComplete,
 }) => {
   const [activeTab, setActiveTab] = useState<TabType>('colors');
-  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pendingChangesRef = useRef<Partial<TemplateConfig> | null>(null);
   const onChangeCompleteRef = useRef(onChangeComplete);
 

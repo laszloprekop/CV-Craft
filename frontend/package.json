@@ -1,10 +1,11 @@
 {
   "name": "cv-craft-frontend",
-  "version": "1.16.4",
+  "version": "1.17.0",
   "type": "module",
   "description": "Frontend React app for CV Craft - Static CV Generator",
   "private": true,
   "dependencies": {
+    "@cv-craft/shared": "workspace:*",
     "@monaco-editor/react": "^4.6.0",
     "@phosphor-icons/react": "^2.1.10",
     "@tabler/icons-react": "^3.36.1",
@@ -51,7 +52,7 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "test": "vitest",
+    "test": "vitest run --passWithNoTests",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest --coverage",
     "lint": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0",

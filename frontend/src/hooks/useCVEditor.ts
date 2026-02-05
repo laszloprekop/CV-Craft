@@ -90,7 +90,7 @@ export function useCVEditor(cvId?: string): UseCVEditorReturn {
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle')
 
   // Auto-save timer
-  const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null)
+  const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const hasUnsavedChangesRef = useRef(false)
 
   // Load CV by ID

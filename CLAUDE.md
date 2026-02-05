@@ -10,33 +10,33 @@ CV-Craft is a TypeScript monorepo webapp for creating CVs from Markdown. Users e
 
 ## Development Commands
 
+**Monorepo (pnpm workspaces):**
 ```bash
-# Start both servers (backend must start first)
-./start-dev.sh                    # Or manually: cd backend && npm run dev, then cd frontend && npm run dev
-
-# Stop servers
-./stop-dev.sh
-
-# View logs
-./view-logs.sh
+pnpm dev             # Start both frontend and backend in parallel
+pnpm build           # Build all packages
+pnpm test            # Run all tests (Vitest)
+pnpm lint            # Lint all packages
 ```
 
-**Backend:**
+**Legacy scripts (still work):**
+```bash
+./start-dev.sh       # Start both servers
+./stop-dev.sh        # Stop servers
+./view-logs.sh       # View logs
+```
+
+**Package-specific:**
 ```bash
 cd backend
-npm run dev          # Dev server with hot reload
-npm test             # Run all tests
-npm test -- --testPathPattern="CVService"  # Run single test file
-npm run lint:fix     # Auto-fix lint issues
-```
+pnpm dev             # Dev server with hot reload
+pnpm test            # Run Vitest tests
+pnpm vitest -- CVService  # Run tests matching pattern
+pnpm lint:fix        # Auto-fix lint issues
 
-**Frontend:**
-```bash
 cd frontend
-npm run dev          # Vite dev server
-npm test             # Run Vitest tests
-npm test -- CVPreview  # Run tests matching pattern
-npm run lint:fix     # Auto-fix lint issues
+pnpm dev             # Vite dev server
+pnpm test            # Run Vitest tests
+pnpm lint:fix        # Auto-fix lint issues
 ```
 
 ## Key Files for Common Changes

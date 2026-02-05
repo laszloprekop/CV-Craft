@@ -1,7 +1,7 @@
 # CV-Craft Architecture Documentation
 
-**Version:** 1.7.2
-**Last Updated:** January 2026
+**Version:** 1.17.0
+**Last Updated:** February 2026
 
 ## Overview
 
@@ -9,9 +9,10 @@ CV-Craft is a full-stack CV/Resume generation application built as a TypeScript 
 
 ### Key Characteristics
 
-- **Architecture**: Monorepo with three layers (frontend, backend, shared)
+- **Architecture**: pnpm monorepo with three workspace packages (frontend, backend, @cv-craft/shared)
 - **Technology Stack**: React + TypeScript (frontend), Express + TypeScript (backend), SQLite (database)
-- **Build Tools**: Vite (frontend), TypeScript compiler (backend)
+- **Build Tools**: Vite (frontend), TypeScript compiler (backend), pnpm workspaces
+- **Testing**: Vitest (unified across frontend and backend)
 - **Core Features**: Markdown-based CV editing, real-time preview, PDF generation, template customization, semantic color system
 
 ---
@@ -20,6 +21,10 @@ CV-Craft is a full-stack CV/Resume generation application built as a TypeScript 
 
 ```
 CV-Craft/
+├── package.json                 # Root workspace config (pnpm)
+├── pnpm-workspace.yaml          # Workspace definition
+├── pnpm-lock.yaml               # Lockfile
+│
 ├── frontend/                    # React web application
 │   ├── src/
 │   │   ├── components/         # React components
@@ -29,7 +34,7 @@ CV-Craft/
 │   │   ├── styles/             # Styled-components & Tailwind
 │   │   ├── utils/              # Frontend utilities
 │   │   └── themes/             # Theme definitions
-│   ├── package.json
+│   ├── package.json            # Depends on @cv-craft/shared
 │   └── vite.config.ts
 │
 ├── backend/                     # Express API server
@@ -40,24 +45,27 @@ CV-Craft/
 │   │   ├── lib/                # Core libraries (parser, PDF generator)
 │   │   ├── database/           # Database setup & migrations
 │   │   └── middleware/         # Express middleware
-│   ├── package.json
+│   ├── package.json            # Depends on @cv-craft/shared
+│   ├── vitest.config.ts        # Test configuration
 │   └── cv-craft.db             # SQLite database
 │
-├── shared/                      # Shared code between frontend & backend
+├── shared/                      # @cv-craft/shared package
+│   ├── package.json            # Package exports for types & utils
 │   ├── types/                  # TypeScript interfaces & types
 │   └── utils/                  # Shared utilities
 │
 ├── docs/                        # Documentation
 ├── exports/                     # Generated PDFs & web packages
-├── start-dev.sh                # Development startup script
-├── stop-dev.sh                 # Development stop script
-└── view-logs.sh                # Log viewing script
+├── start-dev.sh                # Development startup script (legacy)
+├── stop-dev.sh                 # Development stop script (legacy)
+└── view-logs.sh                # Log viewing script (legacy)
 ```
 
 ### Monorepo Benefits
 
-- **Shared Types**: `shared/types/` defines all TypeScript interfaces used by both frontend and backend
-- **Shared Utilities**: `shared/utils/` contains color resolution and CSS generation logic used identically in web and PDF rendering
+- **pnpm Workspaces**: Single lockfile, efficient disk usage via symlinks, unified commands
+- **Shared Package**: `@cv-craft/shared` is a proper package with exports for types and utils
+- **Unified Testing**: Vitest across all packages (replaced Jest in backend)
 - **Single Source of Truth**: Templates and configurations are defined once and used consistently
 
 ---
@@ -361,17 +369,28 @@ Browser downloads PDF
 
 ## Development Setup
 
-### Quick Start
+### Quick Start (pnpm)
 
 ```bash
-# Start both frontend and backend
-./start-dev.sh
+# Install all dependencies
+pnpm install
 
-# View logs
-./view-logs.sh
+# Start both frontend and backend in parallel
+pnpm dev
 
-# Stop servers
-./stop-dev.sh
+# Build all packages
+pnpm build
+
+# Run all tests
+pnpm test
+```
+
+### Legacy Scripts (still work)
+
+```bash
+./start-dev.sh   # Start both servers
+./view-logs.sh   # View logs
+./stop-dev.sh    # Stop servers
 ```
 
 ### Manual Start
@@ -379,13 +398,11 @@ Browser downloads PDF
 ```bash
 # Terminal 1: Backend
 cd backend
-npm install
-npm run dev  # Port 3001
+pnpm dev  # Port 3001
 
 # Terminal 2: Frontend
 cd frontend
-npm install
-npm run dev  # Port 3000
+pnpm dev  # Port 3000
 ```
 
 ### Environment Variables

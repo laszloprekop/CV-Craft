@@ -1,5 +1,5 @@
-// Jest setup for backend tests
-import { beforeAll, afterAll, beforeEach } from '@jest/globals';
+// Vitest setup for backend tests
+import { beforeAll, afterAll, beforeEach } from 'vitest';
 import Database from 'better-sqlite3';
 import path from 'path';
 import fs from 'fs';

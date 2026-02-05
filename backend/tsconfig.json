@@ -10,8 +10,8 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
-    "declaration": true,
-    "declarationMap": true,
+    "declaration": false,
+    "declarationMap": false,
     "sourceMap": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
@@ -24,7 +24,8 @@
       "@/lib/*": ["./src/lib/*"],
       "@/api/*": ["./src/api/*"],
       "@/database/*": ["./src/database/*"],
-      "@/middleware/*": ["./src/middleware/*"]
+      "@/middleware/*": ["./src/middleware/*"],
+      "@cv-craft/shared/*": ["../shared/*"]
     }
   },
   "include": [
@@ -34,6 +35,7 @@
   "exclude": [
     "node_modules",
     "dist",
-    "tests"
+    "tests",
+    "src/**/*.test.ts"
   ]
 }

@@ -2,6 +2,29 @@
 
 All notable changes to CV-Craft will be documented in this file.
 
+## [1.17.0] - 2026-02-05
+
+### Changed
+- **pnpm Workspaces Migration** - Migrated from npm to pnpm workspaces for monorepo management
+  - Root `package.json` with workspace-wide scripts (`pnpm dev`, `pnpm build`, `pnpm test`)
+  - `shared/` is now a proper package: `@cv-craft/shared` with exports for types and utils
+  - Frontend and backend depend on `@cv-craft/shared: workspace:*`
+  - Single `pnpm-lock.yaml` replaces individual `package-lock.json` files
+
+- **Backend Testing Migration** - Replaced Jest with Vitest for unified testing
+  - Both frontend and backend now use Vitest
+  - Created `backend/vitest.config.ts` with globals, node environment, and setup file
+  - Updated `backend/tests/setup.ts` to import from `vitest` instead of `@jest/globals`
+  - Deleted `backend/jest.config.js`
+
+### Fixed
+- **TypeScript Portability** - Fixed `NodeJS.Timeout` type for cross-environment compatibility
+  - Changed to `ReturnType<typeof setTimeout>` in `TemplateConfigPanel.tsx` and `useCVEditor.ts`
+
+### Technical Insights
+- **pnpm Workspace Links**: Workspace packages are symlinked (e.g., `node_modules/@cv-craft/shared -> ../../../shared`), enabling direct TypeScript imports without build steps
+- **Vitest Globals**: With `globals: true` in vitest config, test files don't need explicit imports for `describe`, `test`, `expect`
+
 ## [1.16.4] - 2026-02-05
 
 ### Changed

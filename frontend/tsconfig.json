@@ -25,7 +25,8 @@
       "@/styles/*": ["./styles/*"],
       "@/themes/*": ["./themes/*"],
       "@/templates/*": ["./templates/*"],
-      "@/types/*": ["../shared/types/*"]
+      "@/types/*": ["../shared/types/*"],
+      "@cv-craft/shared/*": ["../shared/*"]
     }
   },
   "include": [
