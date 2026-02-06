@@ -27,6 +27,15 @@ export const DEFAULT_TEMPLATE_CONFIG: TemplateConfig = {
       default: '#2563eb',     // Blue-600
       hover: '#1d4ed8',       // Blue-700
     },
+    // Custom color pairs
+    custom1: '#8b5cf6',       // Violet-500
+    onCustom1: '#ffffff',     // White
+    custom2: '#ec4899',       // Pink-500
+    onCustom2: '#ffffff',     // White
+    custom3: '#14b8a6',       // Teal-500
+    onCustom3: '#ffffff',     // White
+    custom4: '#f97316',       // Orange-500
+    onCustom4: '#ffffff',     // White
     // Legacy support
     accent: '#f59e0b',        // Deprecated, use tertiary
     highlight: '#fef3c7',     // Amber-100

@@ -10,7 +10,7 @@ import { SelectControl } from './SelectControl';
 import { SpacingControl } from './SpacingControl';
 import { NumberControl } from './NumberControl';
 
-type SemanticColorKey = 'primary' | 'secondary' | 'tertiary' | 'muted' | 'text-primary' | 'text-secondary' | 'text-muted';
+type SemanticColorKey = 'primary' | 'secondary' | 'tertiary' | 'muted' | 'text-primary' | 'text-secondary' | 'text-muted' | 'custom1' | 'custom2' | 'custom3' | 'custom4';
 
 interface TextStyleConfig {
   fontSize?: string;

@@ -5,7 +5,6 @@ import {
   IconFile,
   IconSettings,
   IconColorSwatch,
-  IconBorderAll,
   IconDimensions,
   IconLayout,
   IconBoxMargin,
@@ -16,7 +15,7 @@ import {
 } from '@tabler/icons-react';
 import type { TemplateConfig } from '../../../shared/types';
 import {
-  ColorControl,
+  ColorRoleBlock,
   SelectControl,
   SpacingControl,
   ToggleControl,
@@ -161,81 +160,79 @@ export const TemplateConfigPanel: React.FC<TemplateConfigPanelProps> = ({
         {activeTab === 'colors' && (
           <div className="space-y-0">
             <CollapsibleSection id="colors-main" label="Main Colors" defaultOpen={true} icon={<IconColorSwatch size={14} />}>
-              {/* Primary & On Primary */}
-              <div className="grid grid-cols-2 gap-1">
-                <ColorControl
+              {/* Primary / Secondary / Tertiary — 3-column */}
+              <div className="grid grid-cols-3 gap-px rounded overflow-hidden mb-1">
+                <ColorRoleBlock
                   label="Primary"
                   value={config.colors.primary}
+                  textColor={config.colors.onPrimary}
                   onChange={(value) => updateConfig('colors', { primary: value })}
                   onChangeComplete={(value) => commitConfig('colors', { primary: value })}
                 />
-                <ColorControl
-                  label="On Primary"
-                  value={config.colors.onPrimary}
-                  onChange={(value) => updateConfig('colors', { onPrimary: value })}
-                  onChangeComplete={(value) => commitConfig('colors', { onPrimary: value })}
-                />
-              </div>
-
-              {/* Secondary & On Secondary */}
-              <div className="grid grid-cols-2 gap-1">
-                <ColorControl
+                <ColorRoleBlock
                   label="Secondary"
                   value={config.colors.secondary}
+                  textColor={config.colors.onSecondary}
                   onChange={(value) => updateConfig('colors', { secondary: value })}
                   onChangeComplete={(value) => commitConfig('colors', { secondary: value })}
                 />
-                <ColorControl
-                  label="On Secondary"
-                  value={config.colors.onSecondary}
-                  onChange={(value) => updateConfig('colors', { onSecondary: value })}
-                  onChangeComplete={(value) => commitConfig('colors', { onSecondary: value })}
-                />
-              </div>
-
-              {/* Tertiary & On Tertiary */}
-              <div className="grid grid-cols-2 gap-1">
-                <ColorControl
+                <ColorRoleBlock
                   label="Tertiary"
                   value={config.colors.tertiary}
+                  textColor={config.colors.onTertiary}
                   onChange={(value) => updateConfig('colors', { tertiary: value })}
                   onChangeComplete={(value) => commitConfig('colors', { tertiary: value })}
                 />
-                <ColorControl
+                <ColorRoleBlock
+                  label="On Primary"
+                  value={config.colors.onPrimary}
+                  textColor={config.colors.primary}
+                  onChange={(value) => updateConfig('colors', { onPrimary: value })}
+                  onChangeComplete={(value) => commitConfig('colors', { onPrimary: value })}
+                />
+                <ColorRoleBlock
+                  label="On Secondary"
+                  value={config.colors.onSecondary}
+                  textColor={config.colors.secondary}
+                  onChange={(value) => updateConfig('colors', { onSecondary: value })}
+                  onChangeComplete={(value) => commitConfig('colors', { onSecondary: value })}
+                />
+                <ColorRoleBlock
                   label="On Tertiary"
                   value={config.colors.onTertiary}
+                  textColor={config.colors.tertiary}
                   onChange={(value) => updateConfig('colors', { onTertiary: value })}
                   onChangeComplete={(value) => commitConfig('colors', { onTertiary: value })}
                 />
               </div>
 
-              {/* Muted & On Muted */}
-              <div className="grid grid-cols-2 gap-1">
-                <ColorControl
+              {/* Muted / Background — 2-column */}
+              <div className="grid grid-cols-2 gap-px rounded overflow-hidden mb-1">
+                <ColorRoleBlock
                   label="Muted"
                   value={config.colors.muted}
+                  textColor={config.colors.onMuted}
                   onChange={(value) => updateConfig('colors', { muted: value })}
                   onChangeComplete={(value) => commitConfig('colors', { muted: value })}
                 />
-                <ColorControl
-                  label="On Muted"
-                  value={config.colors.onMuted}
-                  onChange={(value) => updateConfig('colors', { onMuted: value })}
-                  onChangeComplete={(value) => commitConfig('colors', { onMuted: value })}
-                />
-              </div>
-
-              {/* Background & On Background */}
-              <div className="grid grid-cols-2 gap-1 mb-2">
-                <ColorControl
+                <ColorRoleBlock
                   label="Background"
                   value={config.colors.background}
+                  textColor={config.colors.text.primary}
                   onChange={(value) => updateConfig('colors', { background: value })}
                   onChangeComplete={(value) => commitConfig('colors', { background: value })}
                 />
-                <ColorControl
+                <ColorRoleBlock
+                  label="On Muted"
+                  value={config.colors.onMuted}
+                  textColor={config.colors.muted}
+                  onChange={(value) => updateConfig('colors', { onMuted: value })}
+                  onChangeComplete={(value) => commitConfig('colors', { onMuted: value })}
+                />
+                <ColorRoleBlock
                   label="On Background"
                   value={config.colors.text.primary}
+                  textColor={config.colors.background}
                   onChange={(value) =>
                     updateConfig('colors', {
                       text: { ...config.colors.text, primary: value },
@@ -248,43 +245,110 @@ export const TemplateConfigPanel: React.FC<TemplateConfigPanelProps> = ({
                   }
                 />
               </div>
+
+              {/* Border & Links — 3-column */}
+              <div className="grid grid-cols-3 gap-px rounded overflow-hidden mb-1">
+                <ColorRoleBlock
+                  label="Border"
+                  value={config.colors.borders}
+                  onChange={(value) => updateConfig('colors', { borders: value })}
+                  onChangeComplete={(value) => commitConfig('colors', { borders: value })}
+                />
+                <ColorRoleBlock
+                  label="Link"
+                  value={config.colors.links.default}
+                  onChange={(value) =>
+                    updateConfig('colors', {
+                      links: { ...config.colors.links, default: value },
+                    })
+                  }
+                  onChangeComplete={(value) =>
+                    commitConfig('colors', {
+                      links: { ...config.colors.links, default: value },
+                    })
+                  }
+                />
+                <ColorRoleBlock
+                  label="Link Hover"
+                  value={config.colors.links.hover}
+                  onChange={(value) =>
+                    updateConfig('colors', {
+                      links: { ...config.colors.links, hover: value },
+                    })
+                  }
+                  onChangeComplete={(value) =>
+                    commitConfig('colors', {
+                      links: { ...config.colors.links, hover: value },
+                    })
+                  }
+                />
+              </div>
             </CollapsibleSection>
 
-            <CollapsibleSection id="colors-borders" label="Border & Links" defaultOpen={true} icon={<IconBorderAll size={14} />}>
-              <ColorControl
-                label="Borders"
-                value={config.colors.borders}
-                onChange={(value) => updateConfig('colors', { borders: value })}
-                onChangeComplete={(value) => commitConfig('colors', { borders: value })}
-              />
-              <ColorControl
-                label="Link (Default)"
-                value={config.colors.links.default}
-                onChange={(value) =>
-                  updateConfig('colors', {
-                    links: { ...config.colors.links, default: value },
-                  })
-                }
-                onChangeComplete={(value) =>
-                  commitConfig('colors', {
-                    links: { ...config.colors.links, default: value },
-                  })
-                }
-              />
-              <ColorControl
-                label="Link (Hover)"
-                value={config.colors.links.hover}
-                onChange={(value) =>
-                  updateConfig('colors', {
-                    links: { ...config.colors.links, hover: value },
-                  })
-                }
-                onChangeComplete={(value) =>
-                  commitConfig('colors', {
-                    links: { ...config.colors.links, hover: value },
-                  })
-                }
-              />
+            <CollapsibleSection id="colors-custom" label="Custom Colors" defaultOpen={true} icon={<IconPalette size={14} />}>
+              {/* Custom 1 & 2 */}
+              <div className="grid grid-cols-2 gap-px rounded overflow-hidden mb-1">
+                <ColorRoleBlock
+                  label="Custom 1"
+                  value={config.colors.custom1}
+                  textColor={config.colors.onCustom1}
+                  onChange={(value) => updateConfig('colors', { custom1: value })}
+                  onChangeComplete={(value) => commitConfig('colors', { custom1: value })}
+                />
+                <ColorRoleBlock
+                  label="Custom 2"
+                  value={config.colors.custom2}
+                  textColor={config.colors.onCustom2}
+                  onChange={(value) => updateConfig('colors', { custom2: value })}
+                  onChangeComplete={(value) => commitConfig('colors', { custom2: value })}
+                />
+                <ColorRoleBlock
+                  label="On Custom 1"
+                  value={config.colors.onCustom1}
+                  textColor={config.colors.custom1}
+                  onChange={(value) => updateConfig('colors', { onCustom1: value })}
+                  onChangeComplete={(value) => commitConfig('colors', { onCustom1: value })}
+                />
+                <ColorRoleBlock
+                  label="On Custom 2"
+                  value={config.colors.onCustom2}
+                  textColor={config.colors.custom2}
+                  onChange={(value) => updateConfig('colors', { onCustom2: value })}
+                  onChangeComplete={(value) => commitConfig('colors', { onCustom2: value })}
+                />
+              </div>
+
+              {/* Custom 3 & 4 */}
+              <div className="grid grid-cols-2 gap-px rounded overflow-hidden">
+                <ColorRoleBlock
+                  label="Custom 3"
+                  value={config.colors.custom3}
+                  textColor={config.colors.onCustom3}
+                  onChange={(value) => updateConfig('colors', { custom3: value })}
+                  onChangeComplete={(value) => commitConfig('colors', { custom3: value })}
+                />
+                <ColorRoleBlock
+                  label="Custom 4"
+                  value={config.colors.custom4}
+                  textColor={config.colors.onCustom4}
+                  onChange={(value) => updateConfig('colors', { custom4: value })}
+                  onChangeComplete={(value) => commitConfig('colors', { custom4: value })}
+                />
+                <ColorRoleBlock
+                  label="On Custom 3"
+                  value={config.colors.onCustom3}
+                  textColor={config.colors.custom3}
+                  onChange={(value) => updateConfig('colors', { onCustom3: value })}
+                  onChangeComplete={(value) => commitConfig('colors', { onCustom3: value })}
+                />
+                <ColorRoleBlock
+                  label="On Custom 4"
+                  value={config.colors.onCustom4}
+                  textColor={config.colors.custom4}
+                  onChange={(value) => updateConfig('colors', { onCustom4: value })}
+                  onChangeComplete={(value) => commitConfig('colors', { onCustom4: value })}
+                />
+              </div>
             </CollapsibleSection>
           </div>
         )}

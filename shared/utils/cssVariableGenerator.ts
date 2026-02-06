@@ -104,6 +104,16 @@ export function generateCSSVariables(config: TemplateConfig): Record<string, str
     '--background-color': config.colors.background,
     '--on-background-color': config.colors.text.primary,
 
+    // Custom color pairs
+    '--custom1-color': config.colors.custom1,
+    '--on-custom1-color': config.colors.onCustom1,
+    '--custom2-color': config.colors.custom2,
+    '--on-custom2-color': config.colors.onCustom2,
+    '--custom3-color': config.colors.custom3,
+    '--on-custom3-color': config.colors.onCustom3,
+    '--custom4-color': config.colors.custom4,
+    '--on-custom4-color': config.colors.onCustom4,
+
     // Legacy color variables for backward compatibility
     '--accent-color': config.colors.tertiary || config.colors.accent || '#f59e0b',
     '--surface-color': config.colors.secondary,

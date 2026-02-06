@@ -12,7 +12,11 @@ export type SemanticColorKey =
   | 'muted'
   | 'text-primary'
   | 'text-secondary'
-  | 'text-muted';
+  | 'text-muted'
+  | 'custom1'
+  | 'custom2'
+  | 'custom3'
+  | 'custom4';
 
 /**
  * Resolves a semantic color key to its actual hex color value from the theme
@@ -39,6 +43,10 @@ export function resolveSemanticColor(
     'text-primary': config.colors.text.primary,
     'text-secondary': config.colors.text.secondary,
     'text-muted': config.colors.text.muted,
+    'custom1': config.colors.custom1,
+    'custom2': config.colors.custom2,
+    'custom3': config.colors.custom3,
+    'custom4': config.colors.custom4,
   };
 
   const hexColor = colorMap[colorKey] || config.colors.text.primary;
@@ -75,14 +83,16 @@ export function hexToRgba(hex: string, opacity: number): string {
   return `rgba(${r}, ${g}, ${b}, ${opacity})`;
 }
 
+export type ColorPairKey = 'primary' | 'secondary' | 'tertiary' | 'muted' | 'custom1' | 'custom2' | 'custom3' | 'custom4';
+
 /**
- * Resolves a color pair (primary/secondary/tertiary/muted) to its base and on-color values
+ * Resolves a color pair (primary/secondary/tertiary/muted/custom1-4) to its base and on-color values
  * @param colorPair - The color pair key
  * @param config - The template configuration
  * @returns Object with baseColor and onColor
  */
 export function resolveColorPair(
-  colorPair: 'primary' | 'secondary' | 'tertiary' | 'muted',
+  colorPair: ColorPairKey,
   config: TemplateConfig
 ): { baseColor: string; onColor: string } {
   switch (colorPair) {
@@ -100,6 +110,14 @@ export function resolveColorPair(
         baseColor: config.colors.muted || '#f1f5f9',
         onColor: config.colors.onMuted || '#334155'
       };
+    case 'custom1':
+      return { baseColor: config.colors.custom1, onColor: config.colors.onCustom1 };
+    case 'custom2':
+      return { baseColor: config.colors.custom2, onColor: config.colors.onCustom2 };
+    case 'custom3':
+      return { baseColor: config.colors.custom3, onColor: config.colors.onCustom3 };
+    case 'custom4':
+      return { baseColor: config.colors.custom4, onColor: config.colors.onCustom4 };
     default:
       return {
         baseColor: config.colors.tertiary || config.colors.accent || '#f59e0b',

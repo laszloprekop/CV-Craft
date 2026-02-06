@@ -7,7 +7,7 @@
 
 import React from 'react';
 
-type SemanticColor = 'primary' | 'secondary' | 'tertiary' | 'muted' | 'text-primary' | 'text-secondary' | 'text-muted';
+type SemanticColor = 'primary' | 'secondary' | 'tertiary' | 'muted' | 'text-primary' | 'text-secondary' | 'text-muted' | 'custom1' | 'custom2' | 'custom3' | 'custom4';
 
 interface SemanticColorControlProps {
   label: string;
@@ -28,6 +28,10 @@ const COLOR_OPTIONS: Array<{ value: SemanticColor; label: string; description: s
   { value: 'text-primary', label: 'Text Primary', description: '--text-primary' },
   { value: 'text-secondary', label: 'Text Secondary', description: '--text-secondary' },
   { value: 'text-muted', label: 'Text Muted', description: '--text-muted' },
+  { value: 'custom1', label: 'Custom 1', description: '--custom1-color' },
+  { value: 'custom2', label: 'Custom 2', description: '--custom2-color' },
+  { value: 'custom3', label: 'Custom 3', description: '--custom3-color' },
+  { value: 'custom4', label: 'Custom 4', description: '--custom4-color' },
 ];
 
 export const SemanticColorControl: React.FC<SemanticColorControlProps> = ({

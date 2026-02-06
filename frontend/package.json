@@ -1,6 +1,6 @@
 {
   "name": "cv-craft-frontend",
-  "version": "1.17.0",
+  "version": "1.18.0",
   "type": "module",
   "description": "Frontend React app for CV Craft - Static CV Generator",
   "private": true,
@@ -17,6 +17,7 @@
     "postcss": "^8.5.6",
     "react": "^18.2.0",
     "react-color": "^2.19.3",
+    "react-colorful": "^5.6.1",
     "react-dom": "^18.2.0",
     "react-dropzone": "^14.2.3",
     "react-router-dom": "^6.20.1",

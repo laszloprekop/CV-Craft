@@ -1,4 +1,5 @@
 export { ColorControl } from './ColorControl';
+export { ColorRoleBlock } from './ColorRoleBlock';
 export { SelectControl } from './SelectControl';
 export { SpacingControl } from './SpacingControl';
 export { ToggleControl } from './ToggleControl';

@@ -2,6 +2,36 @@
 
 All notable changes to CV-Craft will be documented in this file.
 
+## [1.18.0] - 2026-02-06
+
+### Added
+- **Unified Color Picker Popup** — Custom color picker replacing native HTML5 input
+  - `react-colorful` saturation/hue mixer at the top
+  - Multi-model value input with dropdown selector (HEX, RGB, HSL, OKLCH)
+  - Collapsible Tailwind CSS swatch library (22 families × 11 shades)
+  - Portal-based rendering to avoid sidebar overflow clipping
+  - Viewport-aware positioning: flips above trigger when near bottom of screen
+
+- **Material Design Color Role Presentation** — Color palette displayed as labeled blocks
+  - Each role shown as a colored rectangle with its name overlaid in the contrasting "on" color
+  - Grouped layout: Primary/Secondary/Tertiary (3-col), Muted/Background (2-col), Border/Link/Link Hover (3-col)
+  - Replaced separate Border & Links section — now integrated into the role grid
+
+- **4 Custom Color Pairs** — `Custom 1–4` with corresponding `On Custom 1–4`
+  - Configurable in Colors tab under "Custom Colors" collapsible section
+  - Assignable in Styles panel via semantic color dropdowns on all elements
+  - Default values: Violet-500, Pink-500, Teal-500, Orange-500
+  - Full stack support: types, CSS variables (`--custom1-color` etc.), color resolver
+
+### Changed
+- `ColorControl` simplified to 30×30 color swatch trigger (no inline hex input)
+- Color picker popup extracted to shared `ColorPickerPopup` component used by both `ColorControl` and `ColorRoleBlock`
+
+### Technical Insights
+- **Portal positioning**: `ColorPickerPopup` uses `createPortal` to `document.body` to escape the sidebar's `overflow-hidden`/`overflow-y-auto`. Position computed from trigger's `getBoundingClientRect()`, dismissed on scroll/resize
+- **Color model conversions**: `colorConversions.ts` provides hex↔RGB↔HSL↔OKLCH with buffered editing (user types freely, parsed on blur/Enter)
+- **SemanticColorKey propagation**: Custom colors required updating the union type in `shared/types/index.ts` (~20 occurrences), `colorResolver.ts`, `SemanticColorControl.tsx`, `SemanticElementEditor.tsx`, and `TextStyleControl.tsx`
+
 ## [1.17.0] - 2026-02-05
 
 ### Changed

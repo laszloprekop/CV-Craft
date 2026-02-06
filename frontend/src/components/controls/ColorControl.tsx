@@ -1,10 +1,11 @@
 import React, { useState, useRef } from 'react';
+import { ColorPickerPopup } from './ColorPickerPopup';
 
 interface ColorControlProps {
   label: string;
   value: string;
   onChange: (value: string) => void;
-  onChangeComplete?: (value: string) => void; // Called when user finishes changing (mouse up, blur)
+  onChangeComplete?: (value: string) => void;
   description?: string;
 }
 
@@ -15,25 +16,9 @@ export const ColorControl: React.FC<ColorControlProps> = ({
   onChangeComplete,
   description
 }) => {
-  const [isDragging, setIsDragging] = useState(false);
-  const lastCommittedValue = useRef(value);
-
-  // Ensure value is always a valid color (HTML5 color input requires #rrggbb format)
+  const [isOpen, setIsOpen] = useState(false);
+  const triggerRef = useRef<HTMLButtonElement>(null);
   const safeValue = value || '#000000';
-
-  const handleChange = (newValue: string) => {
-    onChange(newValue);
-  };
-
-  const handleComplete = (newValue: string) => {
-    // Only trigger onChangeComplete if value actually changed
-    if (onChangeComplete && lastCommittedValue.current !== newValue) {
-      console.log(`[ColorControl] 💾 "${label}": ${lastCommittedValue.current} → ${newValue}`)
-      lastCommittedValue.current = newValue;
-      onChangeComplete(newValue);
-    }
-    setIsDragging(false);
-  };
 
   return (
     <div className="mb-3">
@@ -43,31 +28,29 @@ export const ColorControl: React.FC<ColorControlProps> = ({
       {description && (
         <p className="text-[10px] text-text-muted mb-1">{description}</p>
       )}
-      <div className="flex items-center gap-2">
-        <input
-          type="color"
-          value={safeValue}
-          onChange={(e) => handleChange(e.target.value)}
-          onMouseDown={() => setIsDragging(true)}
-          onMouseUp={(e) => handleComplete((e.target as HTMLInputElement).value)}
-          onBlur={(e) => handleComplete(e.target.value)}
-          className="w-7 h-7 border border-border/50 rounded cursor-pointer flex-shrink-0"
-          style={{ aspectRatio: '1/1' }}
-        />
-        <input
-          type="text"
-          value={safeValue}
-          onChange={(e) => handleChange(e.target.value)}
-          onBlur={(e) => handleComplete(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') {
-              handleComplete((e.target as HTMLInputElement).value);
-            }
-          }}
-          className="flex-1 px-2.5 py-1.5 text-[11px] border border-border/50 rounded bg-surface text-text-primary focus:outline-none focus:border-primary font-mono transition-colors"
-          placeholder="#000000"
-        />
-      </div>
+      <button
+        ref={triggerRef}
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className="block cursor-pointer rounded-sm flex-shrink-0"
+        style={{
+          width: 30,
+          height: 30,
+          backgroundColor: safeValue,
+          border: 'none',
+          padding: 0,
+          margin: 0,
+        }}
+        title={`${safeValue} — click to pick color`}
+      />
+      <ColorPickerPopup
+        value={safeValue}
+        onChange={onChange}
+        onChangeComplete={onChangeComplete}
+        triggerRef={triggerRef}
+        isOpen={isOpen}
+        onClose={() => setIsOpen(false)}
+      />
     </div>
   );
 };
