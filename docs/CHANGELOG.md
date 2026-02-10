@@ -2,6 +2,12 @@
 
 All notable changes to CV-Craft will be documented in this file.
 
+## [1.19.1] - 2026-02-10
+
+### Changed
+- **Dev server ports** — Frontend changed from 3000 → 4200, backend from 3001 → 4201 to avoid clashes with other local dev apps
+- Updated all port references across vite config, env files, API fallback, Express defaults, CORS origin, and legacy shell scripts
+
 ## [1.19.0] - 2026-02-10
 
 ### Added

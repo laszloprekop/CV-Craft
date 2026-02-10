@@ -1,6 +1,6 @@
 {
   "name": "cv-craft-backend",
-  "version": "1.19.0",
+  "version": "1.19.1",
   "description": "Backend API for CV Craft - Static CV Generator",
   "main": "dist/app.js",
   "scripts": {

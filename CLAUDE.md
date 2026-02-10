@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 CV-Craft is a TypeScript monorepo webapp for creating CVs from Markdown. Users edit in a Monaco editor with live preview, customize styling via a template config panel, and export to PDF.
 
-**Structure:** `frontend/` (React + Vite, port 3000) | `backend/` (Express + SQLite, port 3001) | `shared/` (types & utilities)
+**Structure:** `frontend/` (React + Vite, port 4200) | `backend/` (Express + SQLite, port 4201) | `shared/` (types & utilities)
 
 ## Development Commands
 

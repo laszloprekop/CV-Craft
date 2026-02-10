@@ -57,8 +57,8 @@ wait_for_server() {
 # Clean up function for graceful shutdown
 cleanup() {
     echo -e "\n${YELLOW}🛑 Shutting down servers...${NC}"
-    kill_port 3001
-    kill_port 3000
+    kill_port 4201
+    kill_port 4200
     echo -e "${GREEN}✅ Servers stopped${NC}"
     exit 0
 }
@@ -68,8 +68,8 @@ trap cleanup SIGINT SIGTERM
 
 # Step 1: Kill any existing processes
 echo -e "\n${YELLOW}Step 1: Checking for existing processes...${NC}"
-kill_port 3001
-kill_port 3000
+kill_port 4201
+kill_port 4200
 
 # Step 2: Check node_modules
 echo -e "\n${YELLOW}Step 2: Checking dependencies...${NC}"
@@ -87,28 +87,28 @@ fi
 echo -e "${GREEN}✅ Dependencies checked${NC}"
 
 # Step 3: Start Backend
-echo -e "\n${YELLOW}Step 3: Starting Backend (port 3001)...${NC}"
+echo -e "\n${YELLOW}Step 3: Starting Backend (port 4201)...${NC}"
 cd backend
 npm run dev > ../backend.log 2>&1 &
 BACKEND_PID=$!
 cd ..
 
 # Wait for backend to be ready
-if ! wait_for_server 3001 "Backend"; then
+if ! wait_for_server 4201 "Backend"; then
     echo -e "${RED}❌ Backend startup failed. Check backend.log for errors${NC}"
     tail -n 20 backend.log
     cleanup
 fi
 
 # Step 4: Start Frontend
-echo -e "\n${YELLOW}Step 4: Starting Frontend (port 3000)...${NC}"
+echo -e "\n${YELLOW}Step 4: Starting Frontend (port 4200)...${NC}"
 cd frontend
 npm run dev > ../frontend.log 2>&1 &
 FRONTEND_PID=$!
 cd ..
 
 # Wait for frontend to be ready
-if ! wait_for_server 3000 "Frontend"; then
+if ! wait_for_server 4200 "Frontend"; then
     echo -e "${RED}❌ Frontend startup failed. Check frontend.log for errors${NC}"
     tail -n 20 frontend.log
     cleanup
@@ -118,8 +118,8 @@ fi
 echo -e "\n${GREEN}======================================"
 echo -e "✅ CV-Craft is running!"
 echo -e "======================================${NC}"
-echo -e "${GREEN}📊 Backend:  http://localhost:3001${NC}"
-echo -e "${GREEN}🌐 Frontend: http://localhost:3000${NC}"
+echo -e "${GREEN}📊 Backend:  http://localhost:4201${NC}"
+echo -e "${GREEN}🌐 Frontend: http://localhost:4200${NC}"
 echo -e "\n${YELLOW}Logs:${NC}"
 echo -e "  Backend:  tail -f backend.log"
 echo -e "  Frontend: tail -f frontend.log"
