@@ -409,6 +409,27 @@ export const TemplateConfigPanel: React.FC<TemplateConfigPanelProps> = ({
               )}
             </CollapsibleSection>
 
+            {/* Column Colors - only for two-column layouts */}
+            {(config.layout.templateType === 'two-column' || config.layout.templateType === 'sidebar-left' || config.layout.templateType === 'sidebar-right' || !config.layout.templateType) && (
+              <CollapsibleSection id="column-colors" label="Column Colors" defaultOpen={false} icon={<IconColorSwatch size={14} />}>
+                <div className="grid grid-cols-2 gap-px rounded overflow-hidden mb-1">
+                  <ColorRoleBlock
+                    label="Sidebar"
+                    value={config.layout.sidebarBackground || config.colors.secondary}
+                    onChange={(value) => updateConfig('layout', { sidebarBackground: value })}
+                    onChangeComplete={(value) => commitConfig('layout', { sidebarBackground: value })}
+                  />
+                  <ColorRoleBlock
+                    label="Main"
+                    value={config.layout.mainBackground || config.colors.background}
+                    onChange={(value) => updateConfig('layout', { mainBackground: value })}
+                    onChangeComplete={(value) => commitConfig('layout', { mainBackground: value })}
+                  />
+                </div>
+                <p className="text-[9px] text-text-muted px-1">Override default column background colors</p>
+              </CollapsibleSection>
+            )}
+
             <CollapsibleSection id="page-margins" label="Page Margins" defaultOpen={false} icon={<IconBoxMargin size={14} />}>
               <BoxModelControl
                 label="Margins"

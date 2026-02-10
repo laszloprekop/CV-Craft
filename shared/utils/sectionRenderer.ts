@@ -12,15 +12,17 @@ export interface RenderOptions {
   pagination?: boolean
   /** CSS class prefix for scoping */
   classPrefix?: string
+  /** Separator between entry meta items (company, date, location) */
+  metaSeparator?: 'pipe' | 'dot' | 'bullet' | 'dash' | 'newline' | 'none'
 }
 
 /**
  * Render sections to semantic HTML
  */
 export function renderSections(sections: CVSection[], options: RenderOptions = {}): string {
-  const { pagination = false, classPrefix = '' } = options
+  const { pagination = false, classPrefix = '', metaSeparator = 'pipe' } = options
 
-  return sections.map(section => renderSection(section, pagination, classPrefix)).join('\n')
+  return sections.map(section => renderSection(section, pagination, classPrefix, metaSeparator)).join('\n')
 }
 
 /**
@@ -29,7 +31,7 @@ export function renderSections(sections: CVSection[], options: RenderOptions = {
  * Note: Sections themselves don't have keep-together; individual entries handle
  * pagination with smart groupings (entry-start, entry-bullet-bridge).
  */
-function renderSection(section: CVSection, pagination: boolean, prefix: string): string {
+function renderSection(section: CVSection, pagination: boolean, prefix: string, separator: string): string {
   const sectionClass = `${prefix}cv-section`
 
   return `
@@ -37,7 +39,7 @@ function renderSection(section: CVSection, pagination: boolean, prefix: string):
   <h2 class="${prefix}section-header">${escapeHtml(section.title || '')}</h2>
   <div class="${prefix}section-header-divider"></div>
   <div class="${prefix}section-content">
-    ${renderSectionContent(section, pagination, prefix)}
+    ${renderSectionContent(section, pagination, prefix, separator)}
   </div>
 </section>`.trim()
 }
@@ -45,12 +47,12 @@ function renderSection(section: CVSection, pagination: boolean, prefix: string):
 /**
  * Render section content based on type
  */
-function renderSectionContent(section: CVSection, pagination: boolean, prefix: string): string {
+function renderSectionContent(section: CVSection, pagination: boolean, prefix: string, separator: string = 'pipe'): string {
   const { type, content } = section
 
   // Handle string content
   if (typeof content === 'string') {
-    return `<p class="${prefix}content-text">${escapeHtml(content)}</p>`
+    return `<p class="${prefix}content-text">${renderInlineMarkdown(content)}</p>`
   }
 
   // Handle array content
@@ -60,7 +62,7 @@ function renderSectionContent(section: CVSection, pagination: boolean, prefix: s
 
   // Structured sections (experience, education, projects)
   if (type === 'experience' || type === 'education' || type === 'projects') {
-    return content.map(entry => renderEntry(entry, pagination, prefix)).join('\n')
+    return content.map(entry => renderEntry(entry, pagination, prefix, separator)).join('\n')
   }
 
   // Skills section
@@ -71,7 +73,7 @@ function renderSectionContent(section: CVSection, pagination: boolean, prefix: s
   // Simple list sections (languages, interests, etc.)
   return content.map(item => {
     if (typeof item === 'string') {
-      return `<p class="${prefix}content-text">${escapeHtml(item)}</p>`
+      return `<p class="${prefix}content-text">${renderInlineMarkdown(item)}</p>`
     }
     return ''
   }).join('\n')
@@ -84,9 +86,9 @@ function renderSectionContent(section: CVSection, pagination: boolean, prefix: s
  * - entry-start: keeps header + first 2 paragraphs together (prevents orphaned headers)
  * - entry-bullet-bridge: keeps last description paragraph + first bullet together
  */
-function renderEntry(entry: any, pagination: boolean, prefix: string): string {
+function renderEntry(entry: any, pagination: boolean, prefix: string, separator: string = 'pipe'): string {
   if (typeof entry !== 'object') {
-    return `<p class="${prefix}content-text">${escapeHtml(String(entry))}</p>`
+    return `<p class="${prefix}content-text">${renderInlineMarkdown(String(entry))}</p>`
   }
 
   const entryClass = `${prefix}entry`
@@ -98,7 +100,7 @@ function renderEntry(entry: any, pagination: boolean, prefix: string): string {
   ${entry.title ? `
   <div class="${prefix}entry-header">
     <h3 class="${prefix}entry-title">${escapeHtml(entry.title)}</h3>
-    ${renderEntryMeta(entry, prefix)}
+    ${renderEntryMeta(entry, prefix, separator)}
   </div>
   <div class="${prefix}entry-title-divider"></div>` : ''}
   ${entry.description ? `
@@ -108,14 +110,14 @@ function renderEntry(entry: any, pagination: boolean, prefix: string): string {
   ${entry.bullets && entry.bullets.length > 0 ? `
   <ul class="${prefix}entry-bullets">
     ${entry.bullets.map((bullet: any) =>
-      `<li>${escapeHtml(typeof bullet === 'string' ? bullet : bullet.text || '')}</li>`
+      `<li>${renderInlineMarkdown(typeof bullet === 'string' ? bullet : bullet.text || '')}</li>`
     ).join('\n    ')}
   </ul>` : ''}
 </article>`.trim()
   }
 
   // For pagination mode, create smart groupings
-  return renderEntryWithPagination(entry, prefix)
+  return renderEntryWithPagination(entry, prefix, separator)
 }
 
 /**
@@ -127,7 +129,7 @@ function renderEntry(entry: any, pagination: boolean, prefix: string): string {
  * - entry-bullet-bridge: last description paragraph + first bullet (keep together)
  * - entry-bullets-continue: remaining bullets (can break)
  */
-function renderEntryWithPagination(entry: any, prefix: string): string {
+function renderEntryWithPagination(entry: any, prefix: string, separator: string = 'pipe'): string {
   const entryClass = `${prefix}entry`
 
   // Parse description into paragraphs
@@ -162,7 +164,7 @@ function renderEntryWithPagination(entry: any, prefix: string): string {
   if (entry.title) {
     html += `    <div class="${prefix}entry-header">
       <h3 class="${prefix}entry-title">${escapeHtml(entry.title)}</h3>
-      ${renderEntryMeta(entry, prefix)}
+      ${renderEntryMeta(entry, prefix, separator)}
     </div>\n`
     html += `    <div class="${prefix}entry-title-divider"></div>\n`
   }
@@ -176,7 +178,7 @@ function renderEntryWithPagination(entry: any, prefix: string): string {
     if (paragraphsForStart.length > 0) {
       html += `    <div class="${prefix}entry-description">\n`
       paragraphsForStart.forEach((p: string) => {
-        html += `      <p>${escapeHtml(p)}</p>\n`
+        html += `      <p>${renderInlineMarkdown(p)}</p>\n`
       })
       html += `    </div>\n`
     }
@@ -188,7 +190,7 @@ function renderEntryWithPagination(entry: any, prefix: string): string {
   if (middleParagraphs.length > 0) {
     html += `  <div class="${prefix}entry-description ${prefix}entry-description-continue">\n`
     middleParagraphs.forEach((p: string) => {
-      html += `    <p>${escapeHtml(p)}</p>\n`
+      html += `    <p>${renderInlineMarkdown(p)}</p>\n`
     })
     html += `  </div>\n`
   }
@@ -199,12 +201,12 @@ function renderEntryWithPagination(entry: any, prefix: string): string {
 
     // Include last paragraph in bridge if we have multiple paragraphs
     if (bridgeParagraph && descParagraphs.length > 2) {
-      html += `    <p class="${prefix}entry-description-last">${escapeHtml(bridgeParagraph)}</p>\n`
+      html += `    <p class="${prefix}entry-description-last">${renderInlineMarkdown(bridgeParagraph)}</p>\n`
     }
 
     // First bullet
     html += `    <ul class="${prefix}entry-bullets">\n`
-    html += `      <li>${escapeHtml(typeof firstBullet === 'string' ? firstBullet : firstBullet.text || '')}</li>\n`
+    html += `      <li>${renderInlineMarkdown(typeof firstBullet === 'string' ? firstBullet : firstBullet.text || '')}</li>\n`
     html += `    </ul>\n`
 
     html += `  </div>\n` // Close entry-bullet-bridge
@@ -214,7 +216,7 @@ function renderEntryWithPagination(entry: any, prefix: string): string {
   if (remainingBullets.length > 0) {
     html += `  <ul class="${prefix}entry-bullets ${prefix}entry-bullets-continue">\n`
     remainingBullets.forEach((bullet: any) => {
-      html += `    <li>${escapeHtml(typeof bullet === 'string' ? bullet : bullet.text || '')}</li>\n`
+      html += `    <li>${renderInlineMarkdown(typeof bullet === 'string' ? bullet : bullet.text || '')}</li>\n`
     })
     html += `  </ul>\n`
   }
@@ -225,26 +227,49 @@ function renderEntryWithPagination(entry: any, prefix: string): string {
 }
 
 /**
- * Render entry metadata (company, date, location)
+ * Resolve separator key to display character
  */
-function renderEntryMeta(entry: any, prefix: string): string {
-  const parts: string[] = []
+function resolveSeparator(separator: string): string {
+  const map: Record<string, string> = {
+    pipe: ' | ',
+    dot: ' · ',
+    bullet: ' • ',
+    dash: ' — ',
+    none: ' ',
+  }
+  return map[separator] || ' | '
+}
+
+/**
+ * Render entry metadata (company, date, location)
+ *
+ * When separator is 'newline', each meta item is rendered as a separate
+ * paragraph element. Otherwise they are joined inline with the chosen separator.
+ */
+function renderEntryMeta(entry: any, prefix: string, separator: string = 'pipe'): string {
+  const parts: { html: string }[] = []
 
   if (entry.company) {
-    parts.push(`<span class="${prefix}entry-company">${escapeHtml(entry.company)}</span>`)
+    parts.push({ html: `<span class="${prefix}entry-company">${renderInlineMarkdown(entry.company)}</span>` })
   }
 
   if (entry.date) {
-    parts.push(`<span class="${prefix}entry-date">${escapeHtml(entry.date)}</span>`)
+    parts.push({ html: `<span class="${prefix}entry-date">${renderInlineMarkdown(entry.date)}</span>` })
   }
 
   if (entry.location) {
-    parts.push(`<span class="${prefix}entry-location">${escapeHtml(entry.location)}</span>`)
+    parts.push({ html: `<span class="${prefix}entry-location">${renderInlineMarkdown(entry.location)}</span>` })
   }
 
   if (parts.length === 0) return ''
 
-  return `<p class="${prefix}entry-meta">${parts.join(' | ')}</p>`
+  // Newline separator: render each meta item as its own paragraph
+  if (separator === 'newline') {
+    return parts.map(p => `<p class="${prefix}entry-meta">${p.html}</p>`).join('\n')
+  }
+
+  const sep = resolveSeparator(separator)
+  return `<p class="${prefix}entry-meta">${parts.map(p => p.html).join(sep)}</p>`
 }
 
 /**
@@ -257,11 +282,11 @@ function renderDescription(description: string, prefix: string): string {
   const paragraphs = description.split('\n\n').filter(p => p.trim())
 
   if (paragraphs.length === 1) {
-    return `<p>${escapeHtml(paragraphs[0])}</p>`
+    return `<p>${renderInlineMarkdown(paragraphs[0])}</p>`
   }
 
   return paragraphs.map(para =>
-    `<p>${escapeHtml(para)}</p>`
+    `<p>${renderInlineMarkdown(para)}</p>`
   ).join('\n')
 }
 
@@ -271,14 +296,14 @@ function renderDescription(description: string, prefix: string): string {
 function renderSkills(skills: any[], prefix: string): string {
   return skills.map(skill => {
     if (typeof skill === 'string') {
-      return `<p class="${prefix}skill-item">${escapeHtml(skill)}</p>`
+      return `<p class="${prefix}skill-item">${renderInlineMarkdown(skill)}</p>`
     }
 
     if (typeof skill === 'object' && skill.category) {
       return `
 <div class="${prefix}skill-category">
   <strong class="${prefix}skill-category-name">${escapeHtml(skill.category)}:</strong>
-  <span class="${prefix}skill-list">${skill.skills.map((s: string) => escapeHtml(s)).join(', ')}</span>
+  <span class="${prefix}skill-list">${skill.skills.map((s: string) => renderInlineMarkdown(s)).join(', ')}</span>
 </div>`.trim()
     }
 
@@ -317,4 +342,25 @@ function escapeHtml(text: string): string {
     "'": '&#039;'
   }
   return text.replace(/[&<>"']/g, m => map[m])
+}
+
+/**
+ * Render inline markdown formatting to HTML
+ * Escapes HTML first, then converts **bold**, *italic*, `code`, and [links](url)
+ */
+export function renderInlineMarkdown(text: string): string {
+  let result = escapeHtml(text)
+  // Convert line breaks to <br/> (for soft breaks within paragraphs)
+  result = result.replace(/\n/g, '<br/>')
+  // Bold: **text** or __text__
+  result = result.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+  result = result.replace(/__(.+?)__/g, '<strong>$1</strong>')
+  // Italic: *text* or _text_ (but not inside words for underscores)
+  result = result.replace(/\*(.+?)\*/g, '<em>$1</em>')
+  result = result.replace(/(?<!\w)_(.+?)_(?!\w)/g, '<em>$1</em>')
+  // Inline code: `code`
+  result = result.replace(/`(.+?)`/g, '<code>$1</code>')
+  // Links: [text](url)
+  result = result.replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2">$1</a>')
+  return result
 }

@@ -5,14 +5,14 @@ import {
   IconH2,
   IconH3,
   IconTag,
-  IconCalendar,
   IconLink,
-  IconUser,
   IconAddressBook,
   IconUserCircle,
   IconChevronDown,
   IconChevronUp,
   IconHash,
+  IconAlignLeft,
+  IconBuilding,
 } from '@tabler/icons-react';
 import type { TemplateConfig } from '../../../../shared/types';
 import { SpacingControl, NumberControl, SelectControl, SemanticColorControl, FontSelector, ColorControl, LinkedSpacingControl } from './index';
@@ -114,7 +114,8 @@ type SemanticElement =
   | 'name'
   | 'sectionHeader'
   | 'jobTitle'
-  | 'date'
+  | 'org'
+  | 'body'
   | 'tag'
   | 'link'
   | 'contact'
@@ -131,14 +132,25 @@ interface ElementDef {
 const ELEMENTS: ElementDef[] = [
   { id: 'base', label: 'Base', description: 'Default typography settings' },
   { id: 'name', label: 'Name', description: 'Your name (H1)' },
-  { id: 'sectionHeader', label: 'H2', description: 'Section headers' },
-  { id: 'jobTitle', label: 'H3', description: 'Job/education titles' },
-  { id: 'date', label: 'Date', description: 'Date ranges' },
+  { id: 'sectionHeader', label: 'Section', description: 'Section headers' },
+  { id: 'jobTitle', label: 'Entry', description: 'Job/education title (H3)' },
+  { id: 'org', label: 'Org/Date', description: 'Organization, date, separator' },
+  { id: 'body', label: 'Body', description: 'Body text' },
   { id: 'tag', label: 'Tag', description: 'Skill tags' },
   { id: 'link', label: 'Link', description: 'Hyperlinks' },
   { id: 'contact', label: 'Contact', description: 'Contact info' },
   { id: 'photo', label: 'Photo', description: 'Profile photo' },
   { id: 'pageNumber', label: 'Page #', description: 'Page numbers (PDF)' },
+];
+
+// Separator options for entry meta items
+const SEPARATOR_OPTIONS = [
+  { value: 'pipe', label: '|', title: 'Pipe' },
+  { value: 'dot', label: '·', title: 'Dot' },
+  { value: 'bullet', label: '•', title: 'Bullet' },
+  { value: 'dash', label: '—', title: 'Dash' },
+  { value: 'none', label: '⎵', title: 'Space' },
+  { value: 'newline', label: '↵', title: 'New line' },
 ];
 
 // Icons for elements
@@ -147,7 +159,8 @@ const ELEMENT_ICONS: Record<SemanticElement, React.ReactNode> = {
   name: <IconH1 size={14} />,
   sectionHeader: <IconH2 size={14} />,
   jobTitle: <IconH3 size={14} />,
-  date: <IconCalendar size={14} />,
+  org: <IconBuilding size={14} />,
+  body: <IconAlignLeft size={14} />,
   tag: <IconTag size={14} />,
   link: <IconLink size={14} />,
   contact: <IconAddressBook size={14} />,
@@ -299,6 +312,7 @@ const BackgroundSection: React.FC<{
       onOpacityChange={(v) => onUpdate('backgroundColorOpacity', v)}
       showOpacity={true}
       resolvedColors={resolvedColors}
+      mode="background"
     />
     <SpacingControl
       label="Border Radius"
@@ -571,6 +585,7 @@ const BorderSection: React.FC<{
           onOpacityChange={(v) => onUpdate('borderColorOpacity', v)}
           showOpacity={true}
           resolvedColors={resolvedColors}
+          mode="background"
         />
       </>
     )}
@@ -598,6 +613,7 @@ const BorderSection: React.FC<{
               onOpacityChange={(v) => onUpdate('dividerColorOpacity', v)}
               showOpacity={true}
               resolvedColors={resolvedColors}
+              mode="background"
             />
             <SpacingControl
               label="Divider Gap"
@@ -709,6 +725,7 @@ const TypographySection: React.FC<{
       onOpacityChange={(v) => onUpdate('colorOpacity', v)}
       showOpacity={true}
       resolvedColors={resolvedColors}
+      mode="text"
     />
     <SpacingControl
       label="Letter Spacing"
@@ -813,6 +830,7 @@ const IconSection: React.FC<{
       onOpacityChange={(v) => onUpdate('iconColorOpacity', v)}
       showOpacity={true}
       resolvedColors={resolvedColors}
+      mode="text"
     />
   </Section>
 );
@@ -840,6 +858,7 @@ const HoverStateSection: React.FC<{
       onOpacityChange={(v) => onUpdate('hoverColorOpacity', v)}
       showOpacity={true}
       resolvedColors={resolvedColors}
+      mode="background"
     />
   </Section>
 );
@@ -1054,6 +1073,7 @@ const TypographyControls: React.FC<{
         onOpacityChange={(v) => onUpdate('colorOpacity', v)}
         showOpacity={true}
         resolvedColors={resolvedColors}
+        mode="text"
       />
     )}
     {showLetterSpacing && (
@@ -1174,6 +1194,58 @@ export const SemanticElementEditor: React.FC<SemanticElementEditorProps> = ({
             onChange={(v) => onChange('typography', { lineHeight: { ...config.typography.lineHeight, heading: v } })}
             min={1}
             max={3}
+            step={0.1}
+          />
+        </div>
+      </Section>
+      <Section label="Font Scale">
+        <div className="grid grid-cols-2 gap-1">
+          <NumberControl
+            label="H1 Scale"
+            value={config.typography.fontScale.h1}
+            onChange={(v) => onChange('typography', { fontScale: { ...config.typography.fontScale, h1: v } })}
+            min={1}
+            max={5}
+            step={0.1}
+          />
+          <NumberControl
+            label="H2 Scale"
+            value={config.typography.fontScale.h2}
+            onChange={(v) => onChange('typography', { fontScale: { ...config.typography.fontScale, h2: v } })}
+            min={1}
+            max={4}
+            step={0.1}
+          />
+          <NumberControl
+            label="H3 Scale"
+            value={config.typography.fontScale.h3}
+            onChange={(v) => onChange('typography', { fontScale: { ...config.typography.fontScale, h3: v } })}
+            min={1}
+            max={3}
+            step={0.1}
+          />
+          <NumberControl
+            label="Body Scale"
+            value={config.typography.fontScale.body}
+            onChange={(v) => onChange('typography', { fontScale: { ...config.typography.fontScale, body: v } })}
+            min={1}
+            max={2.5}
+            step={0.1}
+          />
+          <NumberControl
+            label="Small Scale"
+            value={config.typography.fontScale.small}
+            onChange={(v) => onChange('typography', { fontScale: { ...config.typography.fontScale, small: v } })}
+            min={0.8}
+            max={2}
+            step={0.1}
+          />
+          <NumberControl
+            label="Tiny Scale"
+            value={config.typography.fontScale.tiny}
+            onChange={(v) => onChange('typography', { fontScale: { ...config.typography.fontScale, tiny: v } })}
+            min={0.8}
+            max={1.8}
             step={0.1}
           />
         </div>
@@ -1312,7 +1384,7 @@ export const SemanticElementEditor: React.FC<SemanticElementEditorProps> = ({
     padding: '4px 12px',
   });
 
-  // Render editor for job titles (H3)
+  // Render editor for entry header (title H3)
   const renderJobTitleEditor = () => renderHeadingEditor('jobTitle', {
     fontSize: '18px',
     fontWeight: 600,
@@ -1323,37 +1395,161 @@ export const SemanticElementEditor: React.FC<SemanticElementEditorProps> = ({
     padding: '0px',
   });
 
-  // Render editor for dates
-  const renderDateEditor = () => {
-    const dateLine = config.components.dateLine || {};
-    const updateDateLine = (key: string, value: any) => {
+  // Render editor for Org/Date (organization name, date, separator)
+  const renderOrgEditor = () => {
+    const orgComp = config.components.organizationName || {};
+    const dateComp = config.components.dateLine || {};
+    const currentSep = config.components.jobTitle?.metaSeparator || 'pipe';
+
+    const updateOrg = (key: string, value: any) => {
+      onChange('components', { organizationName: { ...config.components.organizationName, [key]: value } });
+    };
+    const updateDate = (key: string, value: any) => {
       onChange('components', { dateLine: { ...config.components.dateLine, [key]: value } });
     };
+    const updateSeparator = (value: string) => {
+      onChange('components', { jobTitle: { ...config.components.jobTitle, metaSeparator: value } });
+    };
+
     return (
-      <TypographySection
-        fontSize={dateLine.fontSize}
-        fontWeight={dateLine.fontWeight}
-        colorKey={dateLine.colorKey}
-        colorOpacity={dateLine.colorOpacity}
-        letterSpacing={dateLine.letterSpacing}
-        textTransform={dateLine.textTransform}
-        fontStyle={dateLine.fontStyle}
-        onUpdate={updateDateLine}
-        defaultFontSize="12px"
-        defaultFontWeight={400}
-        defaultColorKey="text-secondary"
-        defaultLetterSpacing="0em"
-        defaultTextTransform="none"
-        defaultFontStyle="italic"
-        resolvedColors={resolvedColors}
-      >
-        <SelectControl
-          label="Alignment"
-          value={dateLine.alignment || 'right'}
-          onChange={(v) => updateDateLine('alignment', v)}
-          options={ALIGNMENT_OPTIONS}
-        />
-      </TypographySection>
+      <>
+        <Section label="Separator">
+          <div className="flex flex-wrap gap-1">
+            {SEPARATOR_OPTIONS.map((opt) => (
+              <button
+                key={opt.value}
+                type="button"
+                title={opt.title}
+                onClick={() => updateSeparator(opt.value)}
+                className={`px-2.5 py-1 text-[12px] rounded border transition-colors cursor-pointer ${
+                  currentSep === opt.value
+                    ? 'bg-primary text-white border-primary font-semibold'
+                    : 'bg-surface border-border/50 text-text-secondary hover:bg-surface/80 hover:text-text-primary'
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+          <p className="text-[9px] text-text-muted mt-1">
+            {SEPARATOR_OPTIONS.find(o => o.value === currentSep)?.title || 'Pipe'} — between company, date, and location
+          </p>
+        </Section>
+        <Section label="Organization">
+          <FontSelector
+            label="Font"
+            value={orgComp.fontFamily || config.typography.fontFamily.body}
+            onChange={(v) => updateOrg('fontFamily', v)}
+            fontType="body"
+          />
+          <SpacingControl
+            label="Font Size"
+            value={orgComp.fontSize || '14px'}
+            onChange={(v) => updateOrg('fontSize', v)}
+            units={['px', 'pt', 'rem']}
+          />
+          <div className="grid grid-cols-2 gap-1">
+            <NumberControl
+              label="Weight"
+              value={orgComp.fontWeight || 500}
+              onChange={(v) => updateOrg('fontWeight', v)}
+              min={100}
+              max={900}
+              step={100}
+            />
+            <NumberControl
+              label="Line Height"
+              value={orgComp.lineHeight || 1.4}
+              onChange={(v) => updateOrg('lineHeight', v)}
+              min={0.8}
+              max={3}
+              step={0.1}
+            />
+          </div>
+          <SemanticColorControl
+            label="Color"
+            colorKey={orgComp.colorKey || 'on-secondary'}
+            opacity={orgComp.colorOpacity ?? 1}
+            onColorChange={(v) => updateOrg('colorKey', v)}
+            onOpacityChange={(v) => updateOrg('colorOpacity', v)}
+            showOpacity={true}
+            resolvedColors={resolvedColors}
+            mode="text"
+          />
+          <SpacingControl
+            label="Letter Spacing"
+            value={orgComp.letterSpacing || '0em'}
+            onChange={(v) => updateOrg('letterSpacing', v)}
+            units={['em', 'px']}
+          />
+          <div className="grid grid-cols-2 gap-1">
+            <SelectControl
+              label="Transform"
+              value={orgComp.textTransform || 'none'}
+              onChange={(v) => updateOrg('textTransform', v)}
+              options={TEXT_TRANSFORM_OPTIONS}
+            />
+            <SelectControl
+              label="Style"
+              value={orgComp.fontStyle || 'normal'}
+              onChange={(v) => updateOrg('fontStyle', v)}
+              options={FONT_STYLE_OPTIONS}
+            />
+          </div>
+        </Section>
+        <Section label="Date">
+          <FontSelector
+            label="Font"
+            value={dateComp.fontFamily || config.typography.fontFamily.body}
+            onChange={(v) => updateDate('fontFamily', v)}
+            fontType="body"
+          />
+          <SpacingControl
+            label="Font Size"
+            value={dateComp.fontSize || '12px'}
+            onChange={(v) => updateDate('fontSize', v)}
+            units={['px', 'pt', 'rem']}
+          />
+          <div className="grid grid-cols-2 gap-1">
+            <NumberControl
+              label="Weight"
+              value={dateComp.fontWeight || 400}
+              onChange={(v) => updateDate('fontWeight', v)}
+              min={100}
+              max={900}
+              step={100}
+            />
+            <SelectControl
+              label="Style"
+              value={dateComp.fontStyle || 'normal'}
+              onChange={(v) => updateDate('fontStyle', v)}
+              options={FONT_STYLE_OPTIONS}
+            />
+          </div>
+          <SemanticColorControl
+            label="Color"
+            colorKey={dateComp.colorKey || 'on-secondary'}
+            opacity={dateComp.colorOpacity ?? 1}
+            onColorChange={(v) => updateDate('colorKey', v)}
+            onOpacityChange={(v) => updateDate('colorOpacity', v)}
+            showOpacity={true}
+            resolvedColors={resolvedColors}
+            mode="text"
+          />
+          <SpacingControl
+            label="Letter Spacing"
+            value={dateComp.letterSpacing || '0em'}
+            onChange={(v) => updateDate('letterSpacing', v)}
+            units={['em', 'px']}
+          />
+          <SelectControl
+            label="Transform"
+            value={dateComp.textTransform || 'none'}
+            onChange={(v) => updateDate('textTransform', v)}
+            options={TEXT_TRANSFORM_OPTIONS}
+          />
+        </Section>
+      </>
     );
   };
 
@@ -1402,6 +1598,7 @@ export const SemanticElementEditor: React.FC<SemanticElementEditorProps> = ({
             onOpacityChange={(v) => updateTag('backgroundOpacity', v)}
             showOpacity={true}
             resolvedColors={resolvedColors}
+            mode="background"
           />
           <SpacingControl
             label="Border Radius"
@@ -1574,6 +1771,7 @@ export const SemanticElementEditor: React.FC<SemanticElementEditorProps> = ({
             onOpacityChange={(v) => updatePageNumbers('colorOpacity', v)}
             showOpacity={true}
             resolvedColors={resolvedColors}
+            mode="text"
           />
         </Section>
         <Section label="Position" defaultOpen={false}>
@@ -1597,6 +1795,56 @@ export const SemanticElementEditor: React.FC<SemanticElementEditorProps> = ({
     );
   };
 
+  // Render editor for body text
+  const renderBodyEditor = () => {
+    const bodyText = config.components.bodyText || {};
+    const updateBody = (key: string, value: any) => {
+      onChange('components', { bodyText: { ...config.components.bodyText, [key]: value } });
+    };
+    return (
+      <>
+        <Section label="Color">
+          <SemanticColorControl
+            label="Text Color"
+            colorKey={bodyText.colorKey || 'text-primary'}
+            opacity={bodyText.colorOpacity ?? 1}
+            onColorChange={(v) => updateBody('colorKey', v)}
+            onOpacityChange={(v) => updateBody('colorOpacity', v)}
+            showOpacity={true}
+            resolvedColors={resolvedColors}
+            mode="text"
+          />
+        </Section>
+        <Section label="Typography">
+          <div className="grid grid-cols-2 gap-1">
+            <NumberControl
+              label="Weight"
+              value={bodyText.fontWeight ?? config.typography.fontWeight.body}
+              onChange={(v) => updateBody('fontWeight', v)}
+              min={100}
+              max={900}
+              step={100}
+            />
+            <NumberControl
+              label="Line Height"
+              value={bodyText.lineHeight ?? config.typography.lineHeight.body}
+              onChange={(v) => updateBody('lineHeight', v)}
+              min={1}
+              max={3}
+              step={0.1}
+            />
+          </div>
+          <SelectControl
+            label="Text Align"
+            value={bodyText.textAlign || 'left'}
+            onChange={(v) => updateBody('textAlign', v)}
+            options={ALIGNMENT_OPTIONS}
+          />
+        </Section>
+      </>
+    );
+  };
+
   // Render the appropriate editor based on active element
   const renderEditor = () => {
     switch (activeElement) {
@@ -1608,8 +1856,10 @@ export const SemanticElementEditor: React.FC<SemanticElementEditorProps> = ({
         return renderSectionHeaderEditor();
       case 'jobTitle':
         return renderJobTitleEditor();
-      case 'date':
-        return renderDateEditor();
+      case 'org':
+        return renderOrgEditor();
+      case 'body':
+        return renderBodyEditor();
       case 'tag':
         return renderTagEditor();
       case 'link':

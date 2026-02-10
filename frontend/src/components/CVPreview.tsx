@@ -420,7 +420,12 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
    * @returns HTML string of the section content (inner content only, without section wrapper)
    */
   const renderSectionContentHTML = (section: CVSection, forPDF: boolean = false): string => {
-    const html = renderSections([section], { pagination: forPDF, classPrefix: '' })
+    const activeConfig = config || template?.default_config
+    const html = renderSections([section], {
+      pagination: forPDF,
+      classPrefix: '',
+      metaSeparator: activeConfig?.components?.jobTitle?.metaSeparator,
+    })
     return extractSectionInnerContent(html)
   }
 
@@ -1020,7 +1025,7 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
                       gap: templateStyles['--contact-spacing']
                     }}>
                       <Phone size={parseInt(templateStyles['--contact-icon-size'] as string) || 16} className="flex-shrink-0" style={{ color: templateStyles['--contact-icon-color'] }} />
-                      <span>{frontmatter.phone}</span>
+                      <a href={`tel:${frontmatter.phone.replace(/\s/g, '')}`} style={{ color: 'inherit', textDecoration: 'none' }}>{frontmatter.phone}</a>
                     </div>
                   )}
                   {frontmatter.email && (
@@ -1030,7 +1035,7 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
                       gap: templateStyles['--contact-spacing']
                     }}>
                       <Envelope size={parseInt(templateStyles['--contact-icon-size'] as string) || 16} className="flex-shrink-0" style={{ color: templateStyles['--contact-icon-color'] }} />
-                      <span className="break-all">{frontmatter.email}</span>
+                      <a href={`mailto:${frontmatter.email}`} className="break-all" style={{ color: 'inherit', textDecoration: 'none' }}>{frontmatter.email}</a>
                     </div>
                   )}
                   {frontmatter.linkedin && (
@@ -1040,7 +1045,7 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
                       gap: templateStyles['--contact-spacing']
                     }}>
                       <LinkedinLogo size={parseInt(templateStyles['--contact-icon-size'] as string) || 16} className="flex-shrink-0" style={{ color: templateStyles['--contact-icon-color'] }} />
-                      <span className="break-all">{frontmatter.linkedin.replace(/^https?:\/\//, '')}</span>
+                      <a href={frontmatter.linkedin} target="_blank" rel="noopener noreferrer" className="break-all" style={{ color: 'inherit', textDecoration: 'none' }}>{frontmatter.linkedin.replace(/^https?:\/\//, '')}</a>
                     </div>
                   )}
                   {frontmatter.github && (
@@ -1050,7 +1055,7 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
                       gap: templateStyles['--contact-spacing']
                     }}>
                       <GithubLogo size={parseInt(templateStyles['--contact-icon-size'] as string) || 16} className="flex-shrink-0" style={{ color: templateStyles['--contact-icon-color'] }} />
-                      <span className="break-all">{frontmatter.github.replace(/^https?:\/\//, '')}</span>
+                      <a href={frontmatter.github} target="_blank" rel="noopener noreferrer" className="break-all" style={{ color: 'inherit', textDecoration: 'none' }}>{frontmatter.github.replace(/^https?:\/\//, '')}</a>
                     </div>
                   )}
                   {frontmatter.website && (
@@ -1060,7 +1065,7 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
                       gap: templateStyles['--contact-spacing']
                     }}>
                       <Globe size={parseInt(templateStyles['--contact-icon-size'] as string) || 16} className="flex-shrink-0" style={{ color: templateStyles['--contact-icon-color'] }} />
-                      <span className="break-all">{frontmatter.website.replace(/^https?:\/\//, '')}</span>
+                      <a href={frontmatter.website} target="_blank" rel="noopener noreferrer" className="break-all" style={{ color: 'inherit', textDecoration: 'none' }}>{frontmatter.website.replace(/^https?:\/\//, '')}</a>
                     </div>
                   )}
                   {frontmatter.location && (

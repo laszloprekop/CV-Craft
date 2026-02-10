@@ -208,8 +208,17 @@ export const CVEditorPage: React.FC = () => {
     })
   }, [])
 
-  // Note: No need for sync effect anymore
-  // baseConfig automatically uses savedConfig || activeTemplate?.default_config || DEFAULT_TEMPLATE_CONFIG
+  // Ctrl+S / Cmd+S to save and re-parse
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault()
+        saveCv()
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [saveCv])
 
   // Zoom handlers
   const handleZoomIn = useCallback(() => {

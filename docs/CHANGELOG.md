@@ -2,6 +2,39 @@
 
 All notable changes to CV-Craft will be documented in this file.
 
+## [1.20.0] - 2026-02-10
+
+### Added
+- **Inline markdown rendering** — Bold (`**text**`), italic (`*text*`), inline code, and links now render in entry descriptions, bullets, skill items, and org/date meta lines via new `renderInlineMarkdown()` in `sectionRenderer.ts`
+- **Org/Date element editor** — New "Org/Date" element in Styles tab with:
+  - Separator radio buttons (pipe, dot, bullet, dash, none, newline) controlling meta item layout
+  - Independent Organization typography: font family, size, weight, color, letter spacing, text transform, font style, line height
+  - Independent Date typography: font family, size, weight, color, letter spacing, text transform, font style
+  - Newline separator renders each meta item as a separate paragraph
+- **Org/Date independent font family** — FontSelector controls for Organization and Date, with CSS variables `--org-name-font-family` and `--date-line-font-family`
+- **Body text element** — New "Body" element in Styles tab with color, font weight, line height, and text alignment controls
+- **Font scale controls** — Base tab now includes scale multiplier sliders for H1–H3, Body, Small, Tiny
+- **Column background colors** — Page tab "Column Colors" section for two-column layouts with independent sidebar/main background color overrides
+- **Clickable contact links** — Phone, email, LinkedIn, GitHub, and website links in web preview now use proper `<a>` tags with `tel:`, `mailto:`, and external URLs
+- **Phosphor regular-weight icons** — Contact icons (phone, email, LinkedIn, GitHub, globe, location) updated from fill/duotone to regular weight for consistency between web and PDF
+- **SemanticColorControl mode filtering** — New `mode` prop (`'text'` | `'background'`) filters dropdown groups: text pickers show only Text group, background pickers show only Surface + On Surface groups
+- **Text Custom colors in dropdown** — On-custom1–4 available as "Text Custom 1–4" entries in the Text group (no background, text-only preview)
+- **Page number CSS counters** — `getPageNumberCSS()` in `paginationCSS.ts` generates `@page` margin-box counters for single-column PDFs
+- **Ctrl+S / Cmd+S save shortcut** — Global keyboard shortcut triggers markdown save and re-parse
+
+### Fixed
+- **List duplication** — `walkTree()` in cv-parser now skips children of `list` nodes, preventing paragraph children from duplicating bullet text into `entry.description`
+- **Company name parsing** — 4-tier paragraph detection in cv-parser: `**Company** | Date`, standalone `**Company**`, plain `Company | Date`, date-only fallback; fixes trailing `**` asterisks in company names
+- **Entry header layout** — `--entry-layout` set to `column` (org below title, no gap) instead of `row`
+- **Double italic** — `--date-line-font-style` default changed from `italic` to `normal` to prevent double italic application
+- **On-color fallback** — On-color group entries in SemanticColorControl fall back to `#000000` background instead of light neutral `#f8f9fa`
+- **Swatch icon consistency** — Removed `brightness(0.9)` filter from dropdown swatch icons so they match the option row background exactly
+
+### Changed
+- Element labels renamed: H2 → "Section", H3 → "Entry" (in Styles tab element list)
+- Header Layout control removed from H3/Entry editor (redundant with Org/Date element)
+- Meta separator threaded through full rendering pipeline: `renderEntryMeta()` → `renderSections()` → `layoutRenderer` functions
+
 ## [1.19.2] - 2026-02-10
 
 ### Fixed

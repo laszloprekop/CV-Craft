@@ -90,6 +90,7 @@ export const TextStyleControl: React.FC<TextStyleControlProps> = ({
         onChangeComplete={() => commit({ colorKey: value.colorKey, colorOpacity: value.colorOpacity })}
         showOpacity={true}
         resolvedColors={resolvedColors}
+        mode="text"
       />
 
       {/* Text Transform */}

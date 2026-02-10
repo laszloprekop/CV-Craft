@@ -484,18 +484,56 @@ export class CVParser {
           if (currentSection) {
             const text = this.extractTextFromNode(node);
             if (text.trim()) {
-              // Check if it's a date line (often in bold or italic)
-              const dateMatch = text.match(/^[\*_]*(.*?[\d]{4}.*?)[\*_]*$/);
-
               if (currentEntry) {
-                // We're inside a structured entry - add to description
-                if (!currentEntry.description) {
-                  currentEntry.description = [];
+                // We're inside a structured entry
+
+                // 1) "**Company** | Date" or "**Company** · Date" pattern
+                //    e.g. "**ArrivalGuides AB** | August 2018 – April 2023"
+                const companyDateMatch = text.match(
+                  /^\*\*(.+?)\*\*\s*(?:\||·|•|—)\s*(.+)$/
+                );
+                if (companyDateMatch && companyDateMatch[2].match(/\d{4}/)) {
+                  if (!currentEntry.company) {
+                    currentEntry.company = companyDateMatch[1].trim();
+                  }
+                  if (!currentEntry.date) {
+                    currentEntry.date = companyDateMatch[2].trim();
+                  }
                 }
-                if (dateMatch && !currentEntry.date) {
-                  currentEntry.date = dateMatch[1].trim();
-                } else {
-                  currentEntry.description.push(text);
+                // 2) Standalone bold company: "**Company Name**"
+                else if (text.match(/^\*\*[^*]+\*\*$/) && !currentEntry.company) {
+                  currentEntry.company = text.replace(/^\*\*|\*\*$/g, '').trim();
+                }
+                // 3) Plain "Company | Date" (no bold)
+                else if (text.includes('|') && !currentEntry.company) {
+                  const pipeIdx = text.indexOf('|');
+                  const before = text.substring(0, pipeIdx).trim();
+                  const after = text.substring(pipeIdx + 1).trim();
+                  if (before && after.match(/\d{4}/)) {
+                    currentEntry.company = before;
+                    if (!currentEntry.date) {
+                      currentEntry.date = after;
+                    }
+                  } else {
+                    // Not a company|date line, treat as description
+                    if (!currentEntry.description) {
+                      currentEntry.description = [];
+                    }
+                    currentEntry.description.push(text);
+                  }
+                }
+                // 4) Date-only line (often in bold or italic)
+                else {
+                  const dateMatch = text.match(/^[\*_]*(.*?[\d]{4}.*?)[\*_]*$/);
+                  if (dateMatch && !currentEntry.date) {
+                    currentEntry.date = dateMatch[1].trim();
+                  } else {
+                    // Description text
+                    if (!currentEntry.description) {
+                      currentEntry.description = [];
+                    }
+                    currentEntry.description.push(text);
+                  }
                 }
               } else {
                 // Plain paragraph in section
@@ -529,7 +567,8 @@ export class CVParser {
               currentSection.content.push(...listItems);
             }
           }
-          break;
+          // Skip walking into list children - already processed via extractListItems
+          return false;
       }
     });
 
@@ -668,7 +707,9 @@ export class CVParser {
 
 
   /**
-   * Extract text content from AST node
+   * Extract text content from AST node, preserving inline markdown formatting.
+   * Reconstructs **bold**, *italic*, `code`, and [link](url) syntax from AST nodes
+   * so that downstream renderers (renderInlineMarkdown) can convert them to HTML.
    */
   private extractTextFromNode(node: any): string {
     if (node.type === 'text') {
@@ -680,11 +721,30 @@ export class CVParser {
       return '\n';
     }
 
-    if (node.children) {
-      return node.children.map((child: any) => this.extractTextFromNode(child)).join('');
+    // Inline code: preserve backtick syntax
+    if (node.type === 'inlineCode') {
+      return '`' + node.value + '`';
     }
 
-    return '';
+    // Get child text first
+    const childText = node.children
+      ? node.children.map((child: any) => this.extractTextFromNode(child)).join('')
+      : '';
+
+    // Reconstruct markdown syntax from AST node types
+    if (node.type === 'strong') {
+      return '**' + childText + '**';
+    }
+
+    if (node.type === 'emphasis') {
+      return '*' + childText + '*';
+    }
+
+    if (node.type === 'link') {
+      return '[' + childText + '](' + (node.url || '') + ')';
+    }
+
+    return childText;
   }
 
   /**
@@ -732,9 +792,11 @@ export class CVParser {
 
   /**
    * Walk AST tree recursively
+   * Callback can return false to skip walking children of current node
    */
-  private walkTree(node: any, callback: (node: any) => void) {
-    callback(node);
+  private walkTree(node: any, callback: (node: any) => boolean | void) {
+    const result = callback(node);
+    if (result === false) return; // Skip children
     if (node.children) {
       for (const child of node.children) {
         this.walkTree(child, callback);

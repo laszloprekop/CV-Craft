@@ -236,6 +236,52 @@ export function getColumnBreakCSS(): string {
 }
 
 /**
+ * Generate CSS for page numbers using CSS @page margin boxes
+ * Used for single-column PDF generation via Puppeteer
+ */
+export function getPageNumberCSS(config?: {
+  enabled?: boolean
+  position?: string
+  format?: string
+  fontSize?: string
+  fontWeight?: number
+  color?: string
+  margin?: string
+}): string {
+  if (!config?.enabled) return ''
+
+  const position = config.position || 'bottom-center'
+  const fontSize = config.fontSize || '10px'
+  const fontWeight = config.fontWeight || 400
+  const color = config.color || '#475569'
+
+  // Map position to @page margin box
+  const positionMap: Record<string, string> = {
+    'top-left': '@top-left',
+    'top-center': '@top-center',
+    'top-right': '@top-right',
+    'bottom-left': '@bottom-left',
+    'bottom-center': '@bottom-center',
+    'bottom-right': '@bottom-right',
+  }
+  const marginBox = positionMap[position] || '@bottom-center'
+
+  return `
+/* ========================================
+   Page Numbers (CSS @page counters)
+   ======================================== */
+@page {
+  ${marginBox} {
+    content: "Page " counter(page) " of " counter(pages);
+    font-size: ${fontSize};
+    font-weight: ${fontWeight};
+    color: ${color};
+  }
+}
+`
+}
+
+/**
  * Generate all pagination-related CSS
  */
 export function getAllPaginationCSS(options?: {
@@ -244,13 +290,23 @@ export function getAllPaginationCSS(options?: {
   marginBottom?: string
   marginLeft?: string
   marginRight?: string
+  pageNumbers?: {
+    enabled?: boolean
+    position?: string
+    format?: string
+    fontSize?: string
+    fontWeight?: number
+    color?: string
+    margin?: string
+  }
 }): string {
   const {
     includePageMarkers = false,
     marginTop,
     marginBottom,
     marginLeft,
-    marginRight
+    marginRight,
+    pageNumbers
   } = options || {}
 
   let css = getPageRuleCSS({ marginTop, marginBottom, marginLeft, marginRight })
@@ -259,6 +315,10 @@ export function getAllPaginationCSS(options?: {
 
   if (includePageMarkers) {
     css += getPageMarkersCSS()
+  }
+
+  if (pageNumbers?.enabled) {
+    css += getPageNumberCSS(pageNumbers)
   }
 
   return css

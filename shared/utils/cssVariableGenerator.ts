@@ -120,7 +120,7 @@ export function generateCSSVariables(config: TemplateConfig): Record<string, str
     '--on-tertiary-color': config.colors.onTertiary || '#ffffff',
     '--muted-color': config.colors.muted || '#f1f5f9',
     '--on-muted-color': config.colors.onMuted || '#334155',
-    '--background-color': config.colors.background,
+    '--background-color': config.layout.mainBackground || config.colors.background,
     '--on-background-color': config.colors.text.primary,
 
     // Custom color pairs
@@ -135,7 +135,7 @@ export function generateCSSVariables(config: TemplateConfig): Record<string, str
 
     // Legacy color variables for backward compatibility
     '--accent-color': config.colors.tertiary || config.colors.accent || '#f59e0b',
-    '--surface-color': config.colors.secondary,
+    '--surface-color': config.layout.sidebarBackground || config.colors.secondary,
     '--text-color': config.colors.text.primary,
     '--text-secondary': config.colors.text.secondary,
     '--text-muted': config.colors.text.muted,
@@ -217,9 +217,10 @@ export function generateCSSVariables(config: TemplateConfig): Record<string, str
       config,
       config.components.dateLine.colorOpacity
     ),
+    '--date-line-font-family': config.components.dateLine?.fontFamily || 'inherit',
     '--date-line-font-size-custom': config.components.dateLine?.fontSize || calculateFontSize(fontScale.dateLine || 1.3, baseFontSize),
     '--date-line-font-weight': String(config.components.dateLine?.fontWeight || 400),
-    '--date-line-font-style': config.components.dateLine?.fontStyle || 'italic',
+    '--date-line-font-style': config.components.dateLine?.fontStyle || 'normal',
     '--date-line-alignment': config.components.dateLine?.alignment || 'right',
     '--date-line-letter-spacing': config.components.dateLine?.letterSpacing || '0em',
     '--date-line-text-transform': config.components.dateLine?.textTransform || 'none',
@@ -511,11 +512,22 @@ export function generateCSSVariables(config: TemplateConfig): Record<string, str
       return shadowMap[shadow] || 'none';
     })(),
 
+    // Entry Layout
+    '--entry-layout': 'column',
+
     // Organization Names
+    '--org-name-font-family': config.components.organizationName?.fontFamily || 'inherit',
     '--org-name-font-size': config.components.organizationName?.fontSize || calculateFontSize(fontScale.body, baseFontSize),
     '--org-name-font-weight': String(config.components.organizationName?.fontWeight || 500),
-    '--org-name-color': config.components.organizationName?.color || config.colors.text.secondary,
+    '--org-name-color': resolveSemanticColor(
+      config.components.organizationName?.colorKey,
+      config,
+      config.components.organizationName?.colorOpacity
+    ) || config.components.organizationName?.color || config.colors.text.secondary,
     '--org-name-font-style': config.components.organizationName?.fontStyle || 'normal',
+    '--org-name-letter-spacing': config.components.organizationName?.letterSpacing || '0em',
+    '--org-name-text-transform': config.components.organizationName?.textTransform || 'none',
+    '--org-name-line-height': String(config.components.organizationName?.lineHeight || 1.4),
 
     // Key-Value Pairs
     '--key-value-label-color': config.components.keyValue?.labelColor || config.colors.text.primary,
@@ -536,6 +548,16 @@ export function generateCSSVariables(config: TemplateConfig): Record<string, str
     '--bullet-level1-indent': config.components.list?.level1?.indent || '20px',
     '--bullet-level2-indent': config.components.list?.level2?.indent || '40px',
     '--bullet-level3-indent': config.components.list?.level3?.indent || '60px',
+
+    // Body Text
+    '--body-text-color': resolveSemanticColor(
+      config.components.bodyText?.colorKey,
+      config,
+      config.components.bodyText?.colorOpacity
+    ) || config.colors.text.primary,
+    '--body-text-weight': String(config.components.bodyText?.fontWeight || config.typography.fontWeight.body || 400),
+    '--body-text-line-height': String(config.components.bodyText?.lineHeight || config.typography.lineHeight.body || 1.6),
+    '--body-text-align': config.components.bodyText?.textAlign || 'left',
 
     // Advanced Effects
     '--animation-duration': config.advanced?.animations ? '0.2s' : '0s',

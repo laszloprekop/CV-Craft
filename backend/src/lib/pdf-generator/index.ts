@@ -12,7 +12,7 @@
  */
 
 import puppeteer, { Browser } from "puppeteer"
-import { PDFDocument } from "pdf-lib"
+import { PDFDocument, PDFName, PDFArray, PDFDict, PDFString, PDFNumber, StandardFonts, rgb } from "pdf-lib"
 import type {
   CVInstance,
   Template,
@@ -54,6 +54,30 @@ export interface PDFGenerationResult {
   size: number
   pages: number
 }
+
+/** Link position extracted from Puppeteer page for PDF annotation */
+interface LinkInfo {
+  href: string
+  x: number
+  y: number
+  width: number
+  height: number
+  pageIndex: number
+}
+
+/** Result from rendering a column PDF */
+interface ColumnRenderResult {
+  pdfBytes: Uint8Array
+  links: LinkInfo[]
+}
+
+// A4 dimensions
+const A4_WIDTH_PT = 595.28
+const A4_HEIGHT_PT = 841.89
+const VIEWPORT_WIDTH = 794
+const VIEWPORT_HEIGHT = 1123
+// Scale from CSS pixels to PDF points
+const CSS_TO_PDF = A4_WIDTH_PT / VIEWPORT_WIDTH
 
 // Known Google Fonts (not system fonts)
 const GOOGLE_FONTS = new Set([
@@ -302,7 +326,7 @@ export class PDFGenerator {
     console.log(`[PDF] Main sections: ${mainSections.length}`)
 
     // Generate three separate PDFs using shared renderer
-    const [sidebarPdfBytes, mainPdfBytes, bgPdfBytes] = await Promise.all([
+    const [sidebarResult, mainResult, bgPdfBytes] = await Promise.all([
       this.renderColumnPDF(
         "sidebar",
         frontmatter,
@@ -329,8 +353,8 @@ export class PDFGenerator {
     ])
 
     // Load PDFs with pdf-lib
-    const sidebarPdf = await PDFDocument.load(sidebarPdfBytes)
-    const mainPdf = await PDFDocument.load(mainPdfBytes)
+    const sidebarPdf = await PDFDocument.load(sidebarResult.pdfBytes)
+    const mainPdf = await PDFDocument.load(mainResult.pdfBytes)
     const bgPdf = await PDFDocument.load(bgPdfBytes)
 
     const sidebarPages = sidebarPdf.getPageCount()
@@ -365,6 +389,13 @@ export class PDFGenerator {
       }
     }
 
+    // Add clickable link annotations from both columns
+    const allLinks = [...sidebarResult.links, ...mainResult.links]
+    this.addLinkAnnotations(mergedPdf, allLinks)
+
+    // Add page numbers if enabled
+    await this.addPageNumbers(mergedPdf, config, totalPages)
+
     // Save merged PDF
     const mergedPdfBytes = await mergedPdf.save()
     await fs.writeFile(outputPath, mergedPdfBytes)
@@ -394,7 +425,7 @@ export class PDFGenerator {
     marginTop: string,
     marginBottom: string,
     marginHorizontal: string,
-  ): Promise<Uint8Array> {
+  ): Promise<ColumnRenderResult> {
     if (!this.browser) {
       throw new Error("Browser not initialized")
     }
@@ -443,6 +474,25 @@ export class PDFGenerator {
       // Additional wait for rendering
       await new Promise((resolve) => setTimeout(resolve, 500))
 
+      // Extract link positions before generating PDF
+      // Uses string-based evaluate since backend TypeScript target lacks DOM types
+      const links: LinkInfo[] = await page.evaluate(`(function() {
+        var pageHeight = 1123;
+        var anchors = document.querySelectorAll('a[href]');
+        return Array.from(anchors).map(function(a) {
+          var rect = a.getBoundingClientRect();
+          var pageIndex = Math.floor(rect.top / pageHeight);
+          return {
+            href: a.getAttribute('href') || '',
+            x: rect.x,
+            y: rect.y % pageHeight,
+            width: rect.width,
+            height: rect.height,
+            pageIndex: pageIndex
+          };
+        }).filter(function(l) { return l.href && l.width > 0 && l.height > 0; });
+      })()`) as LinkInfo[]
+
       const pdfBuffer = await page.pdf({
         format: "A4",
         printBackground: true,
@@ -450,7 +500,7 @@ export class PDFGenerator {
         margin: { top: "0mm", right: "0mm", bottom: "0mm", left: "0mm" },
       })
 
-      return pdfBuffer
+      return { pdfBytes: pdfBuffer, links }
     } finally {
       await page.close()
     }
@@ -493,6 +543,122 @@ export class PDFGenerator {
    * Generate simple single-column PDF (for minimal layouts)
    * Uses shared generateCVDocument
    */
+  /**
+   * Add page numbers to a merged PDF document using pdf-lib text drawing
+   */
+  private async addPageNumbers(
+    pdfDoc: PDFDocument,
+    config: TemplateConfig,
+    totalPages: number,
+  ): Promise<void> {
+    const pageNumbers = config.pdf.pageNumbers
+    if (!pageNumbers?.enabled || totalPages <= 0) return
+
+    const font = await pdfDoc.embedFont(StandardFonts.Helvetica)
+    const fontSize = parseFloat(pageNumbers.fontSize || '10') || 10
+    const format = pageNumbers.format || 'Page {page} of {total}'
+    const position = pageNumbers.position || 'bottom-center'
+    const marginPt = (parseFloat(pageNumbers.margin || '10') || 10) * 2.835 // mm to points
+    const color = this.hexToRgb(config.colors.text.secondary)
+
+    const pages = pdfDoc.getPages()
+    for (let i = 0; i < pages.length; i++) {
+      const page = pages[i]
+      const { width, height } = page.getSize()
+      const text = format
+        .replace('{page}', String(i + 1))
+        .replace('{total}', String(totalPages))
+      const textWidth = font.widthOfTextAtSize(text, fontSize)
+
+      let x: number
+      let y: number
+
+      // Calculate position
+      if (position.includes('left')) {
+        x = marginPt
+      } else if (position.includes('right')) {
+        x = width - textWidth - marginPt
+      } else {
+        x = (width - textWidth) / 2
+      }
+
+      if (position.includes('top')) {
+        y = height - marginPt - fontSize
+      } else {
+        y = marginPt
+      }
+
+      page.drawText(text, {
+        x,
+        y,
+        size: fontSize,
+        font,
+        color,
+      })
+    }
+  }
+
+  /**
+   * Convert hex color string to pdf-lib rgb color
+   */
+  private hexToRgb(hex: string) {
+    const clean = hex.replace('#', '')
+    const r = parseInt(clean.substring(0, 2), 16) / 255
+    const g = parseInt(clean.substring(2, 4), 16) / 255
+    const b = parseInt(clean.substring(4, 6), 16) / 255
+    return rgb(r, g, b)
+  }
+
+  /**
+   * Add clickable link annotations to the merged PDF
+   * Converts CSS pixel positions from Puppeteer to PDF points
+   */
+  private addLinkAnnotations(
+    pdfDoc: PDFDocument,
+    links: LinkInfo[],
+  ): void {
+    const pages = pdfDoc.getPages()
+
+    for (const link of links) {
+      if (link.pageIndex >= pages.length) continue
+
+      const page = pages[link.pageIndex]
+
+      // Convert CSS pixels to PDF points
+      const x1 = link.x * CSS_TO_PDF
+      // PDF y-axis is bottom-up, CSS y-axis is top-down
+      const y2 = A4_HEIGHT_PT - (link.y * CSS_TO_PDF)
+      const x2 = x1 + (link.width * CSS_TO_PDF)
+      const y1 = y2 - (link.height * CSS_TO_PDF)
+
+      // Create the URI action dictionary
+      const actionDict = pdfDoc.context.obj({
+        Type: 'Action',
+        S: 'URI',
+        URI: PDFString.of(link.href),
+      })
+
+      // Create the link annotation dictionary
+      const annotDict = pdfDoc.context.obj({
+        Type: 'Annot',
+        Subtype: 'Link',
+        Rect: [x1, y1, x2, y2],
+        Border: [0, 0, 0],
+        A: actionDict,
+      })
+
+      // Register and add annotation to the page
+      const annotRef = pdfDoc.context.register(annotDict)
+      const existingAnnots = page.node.get(PDFName.of('Annots'))
+
+      if (existingAnnots instanceof PDFArray) {
+        existingAnnots.push(annotRef)
+      } else {
+        page.node.set(PDFName.of('Annots'), pdfDoc.context.obj([annotRef]))
+      }
+    }
+  }
+
   private async generateSimplePDF(
     cv: CVInstance,
     template: Template,

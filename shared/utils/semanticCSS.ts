@@ -275,10 +275,10 @@ export function getSemanticCSS(): string {
 
 .entry-header {
   display: flex;
+  flex-direction: var(--entry-layout, column);
   justify-content: space-between;
   align-items: flex-start;
   flex-wrap: wrap;
-  gap: 0.5rem;
   margin-bottom: 0.25rem;
 }
 
@@ -325,13 +325,18 @@ export function getSemanticCSS(): string {
 }
 
 .entry-company {
+  font-family: var(--org-name-font-family, inherit);
   font-size: var(--org-name-font-size);
   font-weight: var(--org-name-font-weight);
   color: var(--org-name-color);
   font-style: var(--org-name-font-style);
+  letter-spacing: var(--org-name-letter-spacing, 0);
+  text-transform: var(--org-name-text-transform, none);
+  line-height: var(--org-name-line-height, 1.4);
 }
 
 .entry-date {
+  font-family: var(--date-line-font-family, inherit);
   font-size: var(--date-line-font-size-custom, var(--tiny-font-size));
   color: var(--date-line-color, var(--text-secondary));
   font-style: var(--date-line-font-style, normal);
@@ -346,7 +351,9 @@ export function getSemanticCSS(): string {
 
 .entry-description {
   font-size: var(--small-font-size);
-  color: var(--on-background-color);
+  color: var(--body-text-color, var(--on-background-color));
+  font-weight: var(--body-text-weight, inherit);
+  text-align: var(--body-text-align, left);
   margin-bottom: 0.5rem;
 }
 
@@ -363,7 +370,7 @@ export function getSemanticCSS(): string {
   margin-left: var(--bullet-level1-indent, 1.5rem);
   padding-left: 0;
   font-size: var(--small-font-size);
-  color: var(--on-background-color);
+  color: var(--body-text-color, var(--on-background-color));
 }
 
 .entry-bullets li {
@@ -531,9 +538,11 @@ export function getSemanticCSS(): string {
 /* Content text */
 .content-text {
   font-size: var(--body-font-size);
-  color: var(--on-background-color);
+  color: var(--body-text-color, var(--on-background-color));
+  font-weight: var(--body-text-weight, var(--body-weight));
   margin-bottom: 0.5rem;
-  line-height: var(--body-line-height, 1.6);
+  line-height: var(--body-text-line-height, var(--body-line-height, 1.6));
+  text-align: var(--body-text-align, left);
 }
 
 /* Sidebar-specific overrides (for two-column layout) */

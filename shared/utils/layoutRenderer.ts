@@ -11,7 +11,7 @@
 
 import type { CVFrontmatter, CVSection, ParsedCVContent, TemplateConfig } from '../types'
 import { generateCSSVariables, generateGoogleFontsURL } from './cssVariableGenerator'
-import { renderSections, renderHeader } from './sectionRenderer'
+import { renderSections, renderHeader, renderInlineMarkdown } from './sectionRenderer'
 import {
   getBaseCSS,
   getPhotoCSS,
@@ -151,7 +151,7 @@ export function renderSkillsSection(
           skills = parsed.skills
         } else {
           // Plain text skill without category
-          skillsHTML += `<p class="skill-item">${escapeHtml(item)}</p>`
+          skillsHTML += `<p class="skill-item">${renderInlineMarkdown(item)}</p>`
           return
         }
       }
@@ -243,7 +243,7 @@ function renderSidebarSections(
       if (isSkillsSection) {
         return renderSkillsSection(section, config)
       }
-      return renderSections([section], { pagination })
+      return renderSections([section], { pagination, metaSeparator: config.components.jobTitle?.metaSeparator })
     })
     .join('\n')
 }
@@ -301,7 +301,15 @@ export function generateCVCSS(
   css += getAllPaginationCSS({
     includePageMarkers,
     marginTop: marginTop || cssVariables['--page-margin-top'],
-    marginBottom: marginBottom || cssVariables['--page-margin-bottom']
+    marginBottom: marginBottom || cssVariables['--page-margin-bottom'],
+    pageNumbers: config.pdf?.pageNumbers ? {
+      enabled: config.pdf.pageNumbers.enabled,
+      position: config.pdf.pageNumbers.position,
+      format: config.pdf.pageNumbers.format,
+      fontSize: cssVariables['--page-number-font-size'],
+      fontWeight: config.pdf.pageNumbers.fontWeight,
+      color: cssVariables['--page-number-color'],
+    } : undefined,
   })
 
   if (includeTwoColumn) {
@@ -356,7 +364,7 @@ export function generateTwoColumnBody(
   const sidebarHTML = renderSidebarSections(sidebarSections, config, pagination)
 
   // Main sections
-  const mainHTML = renderSections(mainSections, { pagination })
+  const mainHTML = renderSections(mainSections, { pagination, metaSeparator: config.components.jobTitle?.metaSeparator })
 
   return `
 <div class="cv-content">
@@ -389,7 +397,7 @@ export function generateSingleColumnBody(
   const { pagination = false } = options
 
   const headerHTML = renderHeader(frontmatter)
-  const contentHTML = renderSections(sections, { pagination })
+  const contentHTML = renderSections(sections, { pagination, metaSeparator: config.components.jobTitle?.metaSeparator })
 
   return `
 <div class="cv-content single-column-layout">
@@ -554,7 +562,7 @@ export function generateColumnHTML(options: ColumnRenderOptions): string {
     if (frontmatter.title) {
       contentHTML += `<p class="job-title">${escapeHtml(frontmatter.title)}</p>`
     }
-    contentHTML += renderSections(sections, { pagination: true })
+    contentHTML += renderSections(sections, { pagination: true, metaSeparator: config.components.jobTitle?.metaSeparator })
   }
 
   // Full CSS for column

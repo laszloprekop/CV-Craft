@@ -206,6 +206,9 @@ export interface TemplateConfig {
       gap: string;
       ratio?: string; // e.g., "1:2" for sidebar layouts
     };
+    // Column background color overrides (two-column layouts)
+    sidebarBackground?: string;
+    mainBackground?: string;
   };
 
   // Component-Specific Styling
@@ -376,6 +379,8 @@ export interface TemplateConfig {
       lineHeight?: number;
       textTransform?: 'none' | 'uppercase' | 'lowercase' | 'capitalize';
       fontStyle?: 'normal' | 'italic';
+      // Separator between meta items (company | date | location)
+      metaSeparator?: 'pipe' | 'dot' | 'bullet' | 'dash' | 'newline' | 'none';
       // Margin
       marginMode?: 'uniform' | 'individual';
       marginUniform?: string;
@@ -412,9 +417,15 @@ export interface TemplateConfig {
     // Organization/company names
     organizationName: {
       fontSize?: string;
+      fontFamily?: string;
       fontWeight?: number;
       color?: string;
+      colorKey?: 'primary' | 'secondary' | 'tertiary' | 'muted' | 'text-primary' | 'text-secondary' | 'text-muted' | 'custom1' | 'custom2' | 'custom3' | 'custom4' | 'on-primary' | 'on-secondary' | 'on-tertiary' | 'on-muted' | 'on-custom1' | 'on-custom2' | 'on-custom3' | 'on-custom4';
+      colorOpacity?: number;
       fontStyle?: 'normal' | 'italic';
+      letterSpacing?: string;
+      textTransform?: 'none' | 'uppercase' | 'lowercase' | 'capitalize';
+      lineHeight?: number;
     };
     // Key-value pairs (e.g., "Label: value")
     keyValue: {
@@ -453,6 +464,7 @@ export interface TemplateConfig {
       colorKey?: 'primary' | 'secondary' | 'tertiary' | 'muted' | 'text-primary' | 'text-secondary' | 'text-muted' | 'custom1' | 'custom2' | 'custom3' | 'custom4' | 'on-primary' | 'on-secondary' | 'on-tertiary' | 'on-muted' | 'on-custom1' | 'on-custom2' | 'on-custom3' | 'on-custom4';
       colorOpacity?: number;
       color?: string; // Legacy support
+      fontFamily?: string;
       fontStyle: 'normal' | 'italic';
       fontSize?: string; // Optional - falls back to calculated dateLine × baseFontSize
       fontWeight?: number;
@@ -502,6 +514,14 @@ export interface TemplateConfig {
       textTransform?: 'none' | 'uppercase' | 'lowercase' | 'capitalize';
       fontStyle?: 'normal' | 'italic';
       decoration?: 'none' | 'underline' | 'dotted' | 'dashed'; // Legacy support
+    };
+    // Body text customization
+    bodyText?: {
+      colorKey?: 'primary' | 'secondary' | 'tertiary' | 'muted' | 'text-primary' | 'text-secondary' | 'text-muted' | 'custom1' | 'custom2' | 'custom3' | 'custom4' | 'on-primary' | 'on-secondary' | 'on-tertiary' | 'on-muted' | 'on-custom1' | 'on-custom2' | 'on-custom3' | 'on-custom4';
+      colorOpacity?: number;
+      fontWeight?: number;
+      lineHeight?: number;
+      textAlign?: 'left' | 'center' | 'right' | 'justify';
     };
     divider: {
       style: 'solid' | 'dotted' | 'dashed' | 'double' | 'none';
