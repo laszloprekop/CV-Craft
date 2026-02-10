@@ -237,10 +237,34 @@ export function generateCSSVariables(config: TemplateConfig): Record<string, str
     '--name-alignment': config.components.name?.alignment || 'left',
     '--name-line-height': String(config.components.name?.lineHeight || 1.2),
     '--name-font-style': config.components.name?.fontStyle || 'normal',
-    // Name (H1) - Spacing
-    '--name-margin-top': config.components.name?.marginTop || '0px',
-    '--name-margin-bottom': config.components.name?.marginBottom || '8px',
-    '--name-padding': config.components.name?.padding || '0px',
+    // Name (H1) - Spacing (supports uniform/individual modes)
+    '--name-margin-top': (() => {
+      const comp = config.components.name;
+      if (comp?.marginMode === 'uniform' && comp.marginUniform) return comp.marginUniform;
+      return comp?.marginTop || '0px';
+    })(),
+    '--name-margin-bottom': (() => {
+      const comp = config.components.name;
+      if (comp?.marginMode === 'uniform' && comp.marginUniform) return comp.marginUniform;
+      return comp?.marginBottom || '8px';
+    })(),
+    '--name-margin-left': (() => {
+      const comp = config.components.name;
+      if (comp?.marginMode === 'uniform' && comp.marginUniform) return comp.marginUniform;
+      return comp?.marginLeft || '0px';
+    })(),
+    '--name-margin-right': (() => {
+      const comp = config.components.name;
+      if (comp?.marginMode === 'uniform' && comp.marginUniform) return comp.marginUniform;
+      return comp?.marginRight || '0px';
+    })(),
+    '--name-padding': (() => {
+      const comp = config.components.name;
+      if (comp?.paddingMode === 'individual') {
+        return `${comp.paddingTop || '0px'} ${comp.paddingRight || '0px'} ${comp.paddingBottom || '0px'} ${comp.paddingLeft || '0px'}`;
+      }
+      return comp?.paddingUniform || comp?.padding || '0px';
+    })(),
     // Name (H1) - Background
     '--name-background-color': config.components.name?.backgroundColorKey
       ? resolveSemanticColor(
@@ -347,10 +371,34 @@ export function generateCSSVariables(config: TemplateConfig): Record<string, str
     '--section-header-letter-spacing': config.components.sectionHeader?.letterSpacing || '0.05em',
     '--section-header-line-height': String(config.components.sectionHeader?.lineHeight || 1.2),
     '--section-header-font-style': config.components.sectionHeader?.fontStyle || 'normal',
-    // Section Headers (H2) - Spacing
-    '--section-header-margin-top': config.components.sectionHeader?.marginTop || '24px',
-    '--section-header-margin-bottom': config.components.sectionHeader?.marginBottom || '12px',
-    '--section-header-padding': config.components.sectionHeader?.padding || '4px 12px',
+    // Section Headers (H2) - Spacing (supports uniform/individual modes)
+    '--section-header-margin-top': (() => {
+      const comp = config.components.sectionHeader;
+      if (comp?.marginMode === 'uniform' && comp.marginUniform) return comp.marginUniform;
+      return comp?.marginTop || '24px';
+    })(),
+    '--section-header-margin-bottom': (() => {
+      const comp = config.components.sectionHeader;
+      if (comp?.marginMode === 'uniform' && comp.marginUniform) return comp.marginUniform;
+      return comp?.marginBottom || '12px';
+    })(),
+    '--section-header-margin-left': (() => {
+      const comp = config.components.sectionHeader;
+      if (comp?.marginMode === 'uniform' && comp.marginUniform) return comp.marginUniform;
+      return comp?.marginLeft || '0px';
+    })(),
+    '--section-header-margin-right': (() => {
+      const comp = config.components.sectionHeader;
+      if (comp?.marginMode === 'uniform' && comp.marginUniform) return comp.marginUniform;
+      return comp?.marginRight || '0px';
+    })(),
+    '--section-header-padding': (() => {
+      const comp = config.components.sectionHeader;
+      if (comp?.paddingMode === 'individual') {
+        return `${comp.paddingTop || '0px'} ${comp.paddingRight || '0px'} ${comp.paddingBottom || '0px'} ${comp.paddingLeft || '0px'}`;
+      }
+      return comp?.paddingUniform || comp?.padding || '4px 12px';
+    })(),
     // Section Headers (H2) - Background
     '--section-header-border-radius': config.components.sectionHeader?.borderRadius || '0px',
     // Section Headers (H2) - Border
@@ -396,10 +444,34 @@ export function generateCSSVariables(config: TemplateConfig): Record<string, str
     '--job-title-text-transform': config.components.jobTitle?.textTransform || 'none',
     '--job-title-line-height': String(config.components.jobTitle?.lineHeight || 1.3),
     '--job-title-font-style': config.components.jobTitle?.fontStyle || 'normal',
-    // Job Titles (H3) - Spacing
-    '--job-title-margin-top': config.components.jobTitle?.marginTop || '0px',
-    '--job-title-margin-bottom': config.components.jobTitle?.marginBottom || '4px',
-    '--job-title-padding': config.components.jobTitle?.padding || '0px',
+    // Job Titles (H3) - Spacing (supports uniform/individual modes)
+    '--job-title-margin-top': (() => {
+      const comp = config.components.jobTitle;
+      if (comp?.marginMode === 'uniform' && comp.marginUniform) return comp.marginUniform;
+      return comp?.marginTop || '0px';
+    })(),
+    '--job-title-margin-bottom': (() => {
+      const comp = config.components.jobTitle;
+      if (comp?.marginMode === 'uniform' && comp.marginUniform) return comp.marginUniform;
+      return comp?.marginBottom || '4px';
+    })(),
+    '--job-title-margin-left': (() => {
+      const comp = config.components.jobTitle;
+      if (comp?.marginMode === 'uniform' && comp.marginUniform) return comp.marginUniform;
+      return comp?.marginLeft || '0px';
+    })(),
+    '--job-title-margin-right': (() => {
+      const comp = config.components.jobTitle;
+      if (comp?.marginMode === 'uniform' && comp.marginUniform) return comp.marginUniform;
+      return comp?.marginRight || '0px';
+    })(),
+    '--job-title-padding': (() => {
+      const comp = config.components.jobTitle;
+      if (comp?.paddingMode === 'individual') {
+        return `${comp.paddingTop || '0px'} ${comp.paddingRight || '0px'} ${comp.paddingBottom || '0px'} ${comp.paddingLeft || '0px'}`;
+      }
+      return comp?.paddingUniform || comp?.padding || '0px';
+    })(),
     // Job Titles (H3) - Background
     '--job-title-background-color': config.components.jobTitle?.backgroundColorKey
       ? resolveSemanticColor(

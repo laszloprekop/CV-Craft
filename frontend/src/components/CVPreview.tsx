@@ -834,6 +834,8 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
                 // Spacing
                 marginTop: templateStyles['--name-margin-top'],
                 marginBottom: templateStyles['--name-margin-bottom'],
+                marginLeft: templateStyles['--name-margin-left'],
+                marginRight: templateStyles['--name-margin-right'],
                 padding: templateStyles['--name-padding'],
                 // Background
                 backgroundColor: templateStyles['--name-background-color'],
@@ -891,6 +893,8 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
                   padding: templateStyles['--section-header-padding'],
                   marginTop: index === 0 ? '0' : templateStyles['--section-header-margin-top'],
                   marginBottom: templateStyles['--section-header-margin-bottom'],
+                  marginLeft: templateStyles['--section-header-margin-left'],
+                  marginRight: templateStyles['--section-header-margin-right'],
                   // Background
                   backgroundColor: templateStyles['--section-header-background-color'] || 'transparent',
                   borderRadius: templateStyles['--section-header-border-radius'],
@@ -1093,6 +1097,8 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
                     padding: templateStyles['--section-header-padding'],
                     marginBottom: templateStyles['--section-header-margin-bottom'],
                     marginTop: index === 0 ? '0' : templateStyles['--section-header-margin-top'],
+                    marginLeft: templateStyles['--section-header-margin-left'],
+                    marginRight: templateStyles['--section-header-margin-right'],
                     // Background (sidebar uses accent color by default when no user override)
                     backgroundColor: templateStyles['--section-header-background-color']
                       ?? (templateStyles['--accent-color'] as string || '#c4956c'),
@@ -1149,6 +1155,8 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
                     // Spacing
                     marginTop: templateStyles['--name-margin-top'],
                     marginBottom: templateStyles['--name-margin-bottom'],
+                    marginLeft: templateStyles['--name-margin-left'],
+                    marginRight: templateStyles['--name-margin-right'],
                     padding: templateStyles['--name-padding'],
                     // Background
                     backgroundColor: templateStyles['--name-background-color'],
@@ -1208,6 +1216,8 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
                     padding: templateStyles['--section-header-padding'],
                     marginTop: index === 0 ? '0' : templateStyles['--section-header-margin-top'],
                     marginBottom: templateStyles['--section-header-margin-bottom'],
+                    marginLeft: templateStyles['--section-header-margin-left'],
+                    marginRight: templateStyles['--section-header-margin-right'],
                     // Background (main content uses primary color by default when no user override)
                     backgroundColor: templateStyles['--section-header-background-color']
                       ?? (templateStyles['--primary-color'] as string || '#a8956b'),

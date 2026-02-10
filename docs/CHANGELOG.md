@@ -2,6 +2,13 @@
 
 All notable changes to CV-Craft will be documented in this file.
 
+## [1.19.2] - 2026-02-10
+
+### Fixed
+- **H1/H2/H3 margin-left/right controls** — Individual margin left/right had no effect; CSS variables `--*-margin-left` and `--*-margin-right` are now generated and applied in both web preview (inline styles) and PDF (semantic CSS)
+- **H1/H2/H3 individual padding mode** — Switching to individual padding mode had no effect; padding values are now composed into a CSS shorthand when `paddingMode === 'individual'`
+- **Uniform margin mode** — When `marginMode === 'uniform'`, all four margin sides now correctly use `marginUniform` value
+
 ## [1.19.1] - 2026-02-10
 
 ### Changed

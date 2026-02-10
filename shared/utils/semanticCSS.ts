@@ -174,6 +174,8 @@ h1.cv-name,
   font-style: var(--name-font-style, normal);
   margin-top: var(--name-margin-top, 0);
   margin-bottom: var(--name-margin-bottom, 0.25rem);
+  margin-left: var(--name-margin-left, 0px);
+  margin-right: var(--name-margin-right, 0px);
   padding: var(--name-padding, 0);
   background-color: var(--name-background-color, transparent);
   border-radius: var(--name-border-radius, 0);
@@ -228,6 +230,8 @@ export function getSemanticCSS(): string {
   padding: var(--section-header-padding);
   margin-top: var(--section-header-margin-top);
   margin-bottom: var(--section-header-margin-bottom);
+  margin-left: var(--section-header-margin-left, 0px);
+  margin-right: var(--section-header-margin-right, 0px);
   -webkit-print-color-adjust: exact !important;
   print-color-adjust: exact !important;
 }
@@ -290,6 +294,8 @@ export function getSemanticCSS(): string {
   margin: 0;
   margin-top: var(--job-title-margin-top, 0);
   margin-bottom: var(--job-title-margin-bottom, 4px);
+  margin-left: var(--job-title-margin-left, 0px);
+  margin-right: var(--job-title-margin-right, 0px);
   padding: var(--job-title-padding, 0);
   background-color: var(--job-title-background-color, transparent);
   border-radius: var(--job-title-border-radius, 0);
@@ -478,6 +484,8 @@ export function getSemanticCSS(): string {
   font-style: var(--name-font-style, normal);
   margin-top: var(--name-margin-top, 0);
   margin-bottom: var(--name-margin-bottom);
+  margin-left: var(--name-margin-left, 0px);
+  margin-right: var(--name-margin-right, 0px);
   padding: var(--name-padding, 0);
   background-color: var(--name-background-color, transparent);
   border-radius: var(--name-border-radius, 0);
@@ -602,6 +610,8 @@ export function getTwoColumnHeaderCSS(): string {
   font-style: var(--section-header-font-style, normal);
   margin-bottom: var(--section-header-margin-bottom, 12px);
   margin-top: var(--section-header-margin-top, 16px);
+  margin-left: var(--section-header-margin-left, 0px);
+  margin-right: var(--section-header-margin-right, 0px);
   padding: var(--section-header-padding, 4px 12px);
   border-radius: var(--section-header-border-radius, 4px);
   border-bottom: none;
@@ -625,6 +635,8 @@ export function getTwoColumnHeaderCSS(): string {
   font-style: var(--section-header-font-style, normal);
   margin-bottom: var(--section-header-margin-bottom, 12px);
   margin-top: var(--section-header-margin-top, 16px);
+  margin-left: var(--section-header-margin-left, 0px);
+  margin-right: var(--section-header-margin-right, 0px);
   padding: var(--section-header-padding, 4px 12px);
   border-radius: var(--section-header-border-radius, 4px);
   border-bottom: none;
