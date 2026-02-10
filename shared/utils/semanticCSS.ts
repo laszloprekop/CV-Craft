@@ -169,7 +169,20 @@ h1.cv-name,
   color: var(--name-color, var(--primary-color));
   letter-spacing: var(--name-letter-spacing, 0);
   text-transform: var(--name-text-transform, none);
+  text-align: var(--name-alignment, left);
+  line-height: var(--name-line-height, 1.2);
+  font-style: var(--name-font-style, normal);
+  margin-top: var(--name-margin-top, 0);
   margin-bottom: var(--name-margin-bottom, 0.25rem);
+  padding: var(--name-padding, 0);
+  background-color: var(--name-background-color, transparent);
+  border-radius: var(--name-border-radius, 0);
+  border-style: var(--name-border-style, none);
+  border-width: var(--name-border-width, 0);
+  border-color: var(--name-border-color, transparent);
+  box-shadow: var(--name-shadow, none);
+  -webkit-print-color-adjust: exact !important;
+  print-color-adjust: exact !important;
 }
 
 .job-title,
@@ -201,14 +214,33 @@ export function getSemanticCSS(): string {
   font-family: var(--heading-font-family);
   font-size: var(--section-header-font-size);
   font-weight: var(--section-header-font-weight);
-  color: var(--section-header-color);
+  color: var(--section-header-color, var(--primary-color));
   text-transform: var(--section-header-text-transform);
   letter-spacing: var(--section-header-letter-spacing);
-  border-bottom: var(--section-header-border-bottom);
-  border-color: var(--section-header-border-color);
+  line-height: var(--section-header-line-height, 1.2);
+  font-style: var(--section-header-font-style, normal);
+  background-color: var(--section-header-background-color, transparent);
+  border-radius: var(--section-header-border-radius, 0);
+  border-style: var(--section-header-border-style, none);
+  border-width: var(--section-header-border-width, 0);
+  border-color: var(--section-header-border-color, transparent);
+  box-shadow: var(--section-header-shadow, none);
   padding: var(--section-header-padding);
   margin-top: var(--section-header-margin-top);
   margin-bottom: var(--section-header-margin-bottom);
+  -webkit-print-color-adjust: exact !important;
+  print-color-adjust: exact !important;
+}
+
+/* Section Header Divider */
+.section-header-divider {
+  display: var(--section-header-divider-display, none);
+  height: var(--section-header-divider-width, 2px);
+  background-color: var(--section-header-divider-color);
+  margin-top: var(--section-header-divider-gap, 0px);
+  margin-bottom: 8px;
+  -webkit-print-color-adjust: exact !important;
+  print-color-adjust: exact !important;
 }
 
 .section-content {
@@ -250,8 +282,34 @@ export function getSemanticCSS(): string {
   font-family: var(--heading-font-family);
   font-size: var(--job-title-font-size);
   font-weight: var(--job-title-font-weight);
-  color: var(--job-title-color);
+  color: var(--job-title-color, var(--text-color));
+  letter-spacing: var(--job-title-letter-spacing, 0);
+  text-transform: var(--job-title-text-transform, none);
+  line-height: var(--job-title-line-height, 1.3);
+  font-style: var(--job-title-font-style, normal);
   margin: 0;
+  margin-top: var(--job-title-margin-top, 0);
+  margin-bottom: var(--job-title-margin-bottom, 4px);
+  padding: var(--job-title-padding, 0);
+  background-color: var(--job-title-background-color, transparent);
+  border-radius: var(--job-title-border-radius, 0);
+  border-style: var(--job-title-border-style, none);
+  border-width: var(--job-title-border-width, 0);
+  border-color: var(--job-title-border-color, transparent);
+  box-shadow: var(--job-title-shadow, none);
+  -webkit-print-color-adjust: exact !important;
+  print-color-adjust: exact !important;
+}
+
+/* Job Title Divider */
+.entry-title-divider {
+  display: var(--job-title-divider-display, none);
+  height: var(--job-title-divider-width, 2px);
+  background-color: var(--job-title-divider-color);
+  margin-top: var(--job-title-divider-gap, 0px);
+  margin-bottom: 4px;
+  -webkit-print-color-adjust: exact !important;
+  print-color-adjust: exact !important;
 }
 
 .entry-meta {
@@ -412,10 +470,34 @@ export function getSemanticCSS(): string {
   font-family: var(--heading-font-family);
   font-size: var(--name-font-size);
   font-weight: var(--name-font-weight);
-  color: var(--name-color);
+  color: var(--name-color, var(--primary-color));
   letter-spacing: var(--name-letter-spacing);
   text-transform: var(--name-text-transform);
+  text-align: var(--name-alignment, left);
+  line-height: var(--name-line-height, 1.2);
+  font-style: var(--name-font-style, normal);
+  margin-top: var(--name-margin-top, 0);
   margin-bottom: var(--name-margin-bottom);
+  padding: var(--name-padding, 0);
+  background-color: var(--name-background-color, transparent);
+  border-radius: var(--name-border-radius, 0);
+  border-style: var(--name-border-style, none);
+  border-width: var(--name-border-width, 0);
+  border-color: var(--name-border-color, transparent);
+  box-shadow: var(--name-shadow, none);
+  -webkit-print-color-adjust: exact !important;
+  print-color-adjust: exact !important;
+}
+
+/* Name Divider */
+.name-divider {
+  display: var(--name-divider-display, none);
+  height: var(--name-divider-width, 2px);
+  background-color: var(--name-divider-color);
+  margin-top: var(--name-divider-gap, 4px);
+  margin-bottom: 8px;
+  -webkit-print-color-adjust: exact !important;
+  print-color-adjust: exact !important;
 }
 
 .cv-title {
@@ -506,6 +588,8 @@ export function getTwoColumnHeaderCSS(): string {
 /* ========================================
    Two-Column Section Headers
    Colored background style for sidebar/main
+   Uses --section-header-color/background-color when user has set a Color Pair,
+   falls back to layout-specific defaults (accent for sidebar, primary for main)
    ======================================== */
 .sidebar .cv-section > h2.section-header,
 .sidebar .sidebar-section > h2.section-header {
@@ -514,13 +598,21 @@ export function getTwoColumnHeaderCSS(): string {
   font-weight: var(--section-header-font-weight, bold);
   text-transform: var(--section-header-text-transform, uppercase);
   letter-spacing: var(--section-header-letter-spacing, 0.05em);
+  line-height: var(--section-header-line-height, 1.2);
+  font-style: var(--section-header-font-style, normal);
   margin-bottom: var(--section-header-margin-bottom, 12px);
   margin-top: var(--section-header-margin-top, 16px);
   padding: var(--section-header-padding, 4px 12px);
-  border-radius: 4px;
+  border-radius: var(--section-header-border-radius, 4px);
   border-bottom: none;
-  color: var(--on-tertiary-color, #ffffff);
-  background-color: var(--accent-color);
+  border-style: var(--section-header-border-style, none);
+  border-width: var(--section-header-border-width, 0);
+  border-color: var(--section-header-border-color, transparent);
+  box-shadow: var(--section-header-shadow, none);
+  color: var(--section-header-color, var(--on-tertiary-color, #ffffff));
+  background-color: var(--section-header-background-color, var(--accent-color));
+  -webkit-print-color-adjust: exact !important;
+  print-color-adjust: exact !important;
 }
 
 .main-content .cv-section > h2.section-header {
@@ -529,13 +621,21 @@ export function getTwoColumnHeaderCSS(): string {
   font-weight: var(--section-header-font-weight, bold);
   text-transform: var(--section-header-text-transform, uppercase);
   letter-spacing: var(--section-header-letter-spacing, 0.05em);
+  line-height: var(--section-header-line-height, 1.2);
+  font-style: var(--section-header-font-style, normal);
   margin-bottom: var(--section-header-margin-bottom, 12px);
   margin-top: var(--section-header-margin-top, 16px);
   padding: var(--section-header-padding, 4px 12px);
-  border-radius: 4px;
+  border-radius: var(--section-header-border-radius, 4px);
   border-bottom: none;
-  color: var(--on-primary-color, #ffffff);
-  background-color: var(--primary-color);
+  border-style: var(--section-header-border-style, none);
+  border-width: var(--section-header-border-width, 0);
+  border-color: var(--section-header-border-color, transparent);
+  box-shadow: var(--section-header-shadow, none);
+  color: var(--section-header-color, var(--on-primary-color, #ffffff));
+  background-color: var(--section-header-background-color, var(--primary-color));
+  -webkit-print-color-adjust: exact !important;
+  print-color-adjust: exact !important;
 }
 
 .main-content .cv-section:first-of-type > h2.section-header {

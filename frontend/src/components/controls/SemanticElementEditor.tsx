@@ -17,7 +17,7 @@ import {
 import type { TemplateConfig } from '../../../../shared/types';
 import { SpacingControl, NumberControl, SelectControl, SemanticColorControl, FontSelector, ColorControl, LinkedSpacingControl } from './index';
 
-type SemanticColor = 'primary' | 'secondary' | 'tertiary' | 'muted' | 'text-primary' | 'text-secondary' | 'text-muted' | 'custom1' | 'custom2' | 'custom3' | 'custom4';
+type SemanticColor = 'primary' | 'secondary' | 'tertiary' | 'muted' | 'text-primary' | 'text-secondary' | 'text-muted' | 'custom1' | 'custom2' | 'custom3' | 'custom4' | 'on-primary' | 'on-secondary' | 'on-tertiary' | 'on-muted' | 'on-custom1' | 'on-custom2' | 'on-custom3' | 'on-custom4';
 
 // ============================================
 // Common Select Options (DRY constants)
@@ -278,6 +278,7 @@ const BackgroundSection: React.FC<{
   defaultOpacity?: number;
   defaultBorderRadius?: string;
   defaultOpen?: boolean;
+  resolvedColors?: Record<string, string>;
 }> = ({
   backgroundColorKey,
   backgroundColorOpacity,
@@ -287,6 +288,7 @@ const BackgroundSection: React.FC<{
   defaultOpacity = 0,
   defaultBorderRadius = '0px',
   defaultOpen = false,
+  resolvedColors,
 }) => (
   <Section label="Background" defaultOpen={defaultOpen}>
     <SemanticColorControl
@@ -296,6 +298,7 @@ const BackgroundSection: React.FC<{
       onColorChange={(v) => onUpdate('backgroundColorKey', v)}
       onOpacityChange={(v) => onUpdate('backgroundColorOpacity', v)}
       showOpacity={true}
+      resolvedColors={resolvedColors}
     />
     <SpacingControl
       label="Border Radius"
@@ -305,6 +308,197 @@ const BackgroundSection: React.FC<{
     />
   </Section>
 );
+
+// Color pair options for linked color pair dropdown
+type ColorPairOption = 'primary' | 'secondary' | 'tertiary' | 'muted' | 'custom1' | 'custom2' | 'custom3' | 'custom4' | 'text-primary' | 'text-secondary' | 'text-muted';
+
+const COLOR_PAIR_OPTIONS: Array<{ value: ColorPairOption; label: string; isPair: boolean }> = [
+  { value: 'primary', label: 'Primary', isPair: true },
+  { value: 'secondary', label: 'Secondary', isPair: true },
+  { value: 'tertiary', label: 'Tertiary', isPair: true },
+  { value: 'muted', label: 'Muted', isPair: true },
+  { value: 'custom1', label: 'Custom 1', isPair: true },
+  { value: 'custom2', label: 'Custom 2', isPair: true },
+  { value: 'custom3', label: 'Custom 3', isPair: true },
+  { value: 'custom4', label: 'Custom 4', isPair: true },
+  { value: 'text-primary', label: 'Text Primary', isPair: false },
+  { value: 'text-secondary', label: 'Text Secondary', isPair: false },
+  { value: 'text-muted', label: 'Text Muted', isPair: false },
+];
+
+// Derive current color pair selection from colorKey + backgroundColorKey
+function deriveColorPairSelection(
+  colorKey?: string,
+  backgroundColorKey?: string,
+): ColorPairOption {
+  // If backgroundColorKey is a pair color, use it
+  const pairColors = ['primary', 'secondary', 'tertiary', 'muted', 'custom1', 'custom2', 'custom3', 'custom4'];
+  if (backgroundColorKey && pairColors.includes(backgroundColorKey)) {
+    return backgroundColorKey as ColorPairOption;
+  }
+  // If colorKey is a text color, use it
+  if (colorKey && (colorKey === 'text-primary' || colorKey === 'text-secondary' || colorKey === 'text-muted')) {
+    return colorKey as ColorPairOption;
+  }
+  // Default
+  return 'text-primary';
+}
+
+// Reusable Color Pair Section for heading editors
+const ColorPairSection: React.FC<{
+  colorKey?: SemanticColor;
+  colorOpacity?: number;
+  backgroundColorKey?: SemanticColor;
+  backgroundColorOpacity?: number;
+  onUpdate: (updates: Record<string, any>) => void;
+  resolvedColors?: Record<string, string>;
+  defaultOpen?: boolean;
+}> = ({
+  colorKey,
+  colorOpacity,
+  backgroundColorKey,
+  backgroundColorOpacity,
+  onUpdate,
+  resolvedColors,
+  defaultOpen = true,
+}) => {
+  const selected = deriveColorPairSelection(colorKey, backgroundColorKey);
+  const selectedOption = COLOR_PAIR_OPTIONS.find(o => o.value === selected) || COLOR_PAIR_OPTIONS[0];
+  const selectedHex = resolvedColors?.[selected];
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = React.useRef<HTMLDivElement>(null);
+  const triggerRef = React.useRef<HTMLButtonElement>(null);
+
+  // Close on outside click
+  React.useEffect(() => {
+    if (!isOpen) return;
+    const handleClick = (e: MouseEvent) => {
+      if (
+        dropdownRef.current && !dropdownRef.current.contains(e.target as Node) &&
+        triggerRef.current && !triggerRef.current.contains(e.target as Node)
+      ) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [isOpen]);
+
+  const handleSelect = (option: typeof COLOR_PAIR_OPTIONS[number]) => {
+    if (option.isPair) {
+      // Set background to the pair color, text to on-variant
+      const onKey = `on-${option.value}` as SemanticColor;
+      onUpdate({
+        backgroundColorKey: option.value,
+        colorKey: onKey,
+      });
+    } else {
+      // Text-only color, don't change background
+      onUpdate({
+        colorKey: option.value,
+      });
+    }
+    setIsOpen(false);
+  };
+
+  return (
+    <Section label="Color" defaultOpen={defaultOpen}>
+      <div className="mb-3">
+        <label className="block text-[11px] font-medium text-text-primary mb-1">
+          Color Pair
+        </label>
+        <div className="relative">
+          <button
+            ref={triggerRef}
+            type="button"
+            onClick={() => setIsOpen(!isOpen)}
+            className="w-full flex items-center gap-2 px-2 py-1.5 text-[11px] border border-border/50 rounded bg-surface text-text-primary focus:outline-none focus:border-primary transition-colors cursor-pointer mb-2"
+          >
+            {selectedHex && (
+              <span
+                className="w-4 h-4 rounded-sm flex-shrink-0 border border-black/10"
+                style={{ backgroundColor: selectedHex }}
+              />
+            )}
+            <span className="flex-1 text-left">{selectedOption.label}</span>
+            <svg width="10" height="10" viewBox="0 0 10 10" fill="none" className="flex-shrink-0 text-text-muted">
+              <path d="M2.5 4L5 6.5L7.5 4" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </button>
+          {isOpen && (
+            <div
+              ref={dropdownRef}
+              className="absolute left-0 right-0 top-full -mt-1 border border-border/50 rounded bg-surface shadow-lg overflow-y-auto"
+              style={{ zIndex: 60, maxHeight: 240 }}
+            >
+              {COLOR_PAIR_OPTIONS.map((option) => {
+                const hex = resolvedColors?.[option.value];
+                const isSelected = option.value === selected;
+                return (
+                  <button
+                    key={option.value}
+                    type="button"
+                    onClick={() => handleSelect(option)}
+                    className={`w-full flex items-center gap-2 px-2 py-1.5 text-[11px] text-left cursor-pointer transition-colors ${
+                      isSelected
+                        ? 'bg-primary/10 text-primary font-medium'
+                        : 'text-text-primary hover:bg-surface-hover'
+                    }`}
+                  >
+                    {hex ? (
+                      <span
+                        className="w-4 h-4 rounded-sm flex-shrink-0 border border-black/10"
+                        style={{ backgroundColor: hex }}
+                      />
+                    ) : (
+                      <span className="w-4 h-4 flex-shrink-0" />
+                    )}
+                    <span>{option.label}</span>
+                    {option.isPair && (
+                      <span className="text-[9px] text-text-muted ml-auto">pair</span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+      {/* Text Opacity slider */}
+      <div className="mb-3">
+        <div className="flex justify-between items-center mb-1">
+          <label className="text-[10px] font-medium text-text-primary">Text Opacity</label>
+          <span className="text-[10px] text-text-muted">{Math.round((colorOpacity ?? 1) * 100)}%</span>
+        </div>
+        <input
+          type="range"
+          min="0"
+          max="100"
+          value={Math.round((colorOpacity ?? 1) * 100)}
+          onChange={(e) => onUpdate({ colorOpacity: parseInt(e.target.value) / 100 })}
+          className="w-full h-2 bg-surface rounded-lg appearance-none cursor-pointer slider"
+          style={{ accentColor: 'var(--primary-color)' }}
+        />
+      </div>
+      {/* Background Opacity slider */}
+      <div>
+        <div className="flex justify-between items-center mb-1">
+          <label className="text-[10px] font-medium text-text-primary">Background Opacity</label>
+          <span className="text-[10px] text-text-muted">{Math.round((backgroundColorOpacity ?? 1) * 100)}%</span>
+        </div>
+        <input
+          type="range"
+          min="0"
+          max="100"
+          value={Math.round((backgroundColorOpacity ?? 1) * 100)}
+          onChange={(e) => onUpdate({ backgroundColorOpacity: parseInt(e.target.value) / 100 })}
+          className="w-full h-2 bg-surface rounded-lg appearance-none cursor-pointer slider"
+          style={{ accentColor: 'var(--primary-color)' }}
+        />
+      </div>
+    </Section>
+  );
+};
 
 // Reusable Border Section (includes divider)
 const BorderSection: React.FC<{
@@ -316,11 +510,16 @@ const BorderSection: React.FC<{
   dividerWidth?: string;
   dividerColorKey?: SemanticColor;
   dividerColorOpacity?: number;
+  dividerGap?: string;
   onUpdate: (key: string, value: any) => void;
   showDivider?: boolean;
+  showBorderRadius?: boolean;
+  borderRadius?: string;
   defaultBorderColorKey?: SemanticColor;
   defaultDividerColorKey?: SemanticColor;
+  defaultBorderRadius?: string;
   defaultOpen?: boolean;
+  resolvedColors?: Record<string, string>;
 }> = ({
   borderStyle,
   borderWidth,
@@ -330,13 +529,26 @@ const BorderSection: React.FC<{
   dividerWidth,
   dividerColorKey,
   dividerColorOpacity,
+  dividerGap,
   onUpdate,
   showDivider = true,
+  showBorderRadius = false,
+  borderRadius,
   defaultBorderColorKey = 'primary',
   defaultDividerColorKey = 'primary',
+  defaultBorderRadius = '0px',
   defaultOpen = false,
+  resolvedColors,
 }) => (
   <Section label="Border" defaultOpen={defaultOpen}>
+    {showBorderRadius && (
+      <SpacingControl
+        label="Border Radius"
+        value={borderRadius || defaultBorderRadius}
+        onChange={(v) => onUpdate('borderRadius', v)}
+        units={['px', 'rem']}
+      />
+    )}
     <SelectControl
       label="Border Style"
       value={borderStyle || 'none'}
@@ -358,6 +570,7 @@ const BorderSection: React.FC<{
           onColorChange={(v) => onUpdate('borderColorKey', v)}
           onOpacityChange={(v) => onUpdate('borderColorOpacity', v)}
           showOpacity={true}
+          resolvedColors={resolvedColors}
         />
       </>
     )}
@@ -372,7 +585,7 @@ const BorderSection: React.FC<{
         {dividerStyle && dividerStyle !== 'none' && (
           <>
             <SpacingControl
-              label="Divider Width"
+              label="Divider Thickness"
               value={dividerWidth || '2px'}
               onChange={(v) => onUpdate('dividerWidth', v)}
               units={['px', 'pt']}
@@ -384,6 +597,13 @@ const BorderSection: React.FC<{
               onColorChange={(v) => onUpdate('dividerColorKey', v)}
               onOpacityChange={(v) => onUpdate('dividerColorOpacity', v)}
               showOpacity={true}
+              resolvedColors={resolvedColors}
+            />
+            <SpacingControl
+              label="Divider Gap"
+              value={dividerGap || '0px'}
+              onChange={(v) => onUpdate('dividerGap', v)}
+              units={['px', 'pt']}
             />
           </>
         )}
@@ -433,6 +653,7 @@ const TypographySection: React.FC<{
   defaultTextTransform?: string;
   defaultFontStyle?: string;
   children?: React.ReactNode;
+  resolvedColors?: Record<string, string>;
 }> = ({
   fontSize,
   fontWeight,
@@ -451,6 +672,7 @@ const TypographySection: React.FC<{
   defaultTextTransform = 'none',
   defaultFontStyle = 'normal',
   children,
+  resolvedColors,
 }) => (
   <Section label="Typography">
     <SpacingControl
@@ -486,6 +708,7 @@ const TypographySection: React.FC<{
       onColorChange={(v) => onUpdate('colorKey', v)}
       onOpacityChange={(v) => onUpdate('colorOpacity', v)}
       showOpacity={true}
+      resolvedColors={resolvedColors}
     />
     <SpacingControl
       label="Letter Spacing"
@@ -566,12 +789,14 @@ const IconSection: React.FC<{
   iconColorOpacity?: number;
   onUpdate: (key: string, value: any) => void;
   defaultOpen?: boolean;
+  resolvedColors?: Record<string, string>;
 }> = ({
   iconSize,
   iconColorKey,
   iconColorOpacity,
   onUpdate,
   defaultOpen = false,
+  resolvedColors,
 }) => (
   <Section label="Icons" defaultOpen={defaultOpen}>
     <SpacingControl
@@ -587,6 +812,7 @@ const IconSection: React.FC<{
       onColorChange={(v) => onUpdate('iconColorKey', v)}
       onOpacityChange={(v) => onUpdate('iconColorOpacity', v)}
       showOpacity={true}
+      resolvedColors={resolvedColors}
     />
   </Section>
 );
@@ -597,11 +823,13 @@ const HoverStateSection: React.FC<{
   hoverColorOpacity?: number;
   onUpdate: (key: string, value: any) => void;
   defaultOpen?: boolean;
+  resolvedColors?: Record<string, string>;
 }> = ({
   hoverColorKey,
   hoverColorOpacity,
   onUpdate,
   defaultOpen = false,
+  resolvedColors,
 }) => (
   <Section label="Hover State" defaultOpen={defaultOpen}>
     <SemanticColorControl
@@ -611,6 +839,7 @@ const HoverStateSection: React.FC<{
       onColorChange={(v) => onUpdate('hoverColorKey', v)}
       onOpacityChange={(v) => onUpdate('hoverColorOpacity', v)}
       showOpacity={true}
+      resolvedColors={resolvedColors}
     />
   </Section>
 );
@@ -758,6 +987,7 @@ const TypographyControls: React.FC<{
   defaultLineHeight?: number;
   defaultTextTransform?: string;
   defaultFontStyle?: string;
+  resolvedColors?: Record<string, string>;
 }> = ({
   fontSize,
   fontWeight,
@@ -782,6 +1012,7 @@ const TypographyControls: React.FC<{
   defaultLineHeight = 1.4,
   defaultTextTransform = 'none',
   defaultFontStyle = 'normal',
+  resolvedColors,
 }) => (
   <>
     {showFontSize && (
@@ -822,6 +1053,7 @@ const TypographyControls: React.FC<{
         onColorChange={(v) => onUpdate('colorKey', v)}
         onOpacityChange={(v) => onUpdate('colorOpacity', v)}
         showOpacity={true}
+        resolvedColors={resolvedColors}
       />
     )}
     {showLetterSpacing && (
@@ -861,6 +1093,29 @@ export const SemanticElementEditor: React.FC<SemanticElementEditorProps> = ({
   const [activeElement, setActiveElement] = useState<SemanticElement>('base');
 
   const activeElementDef = ELEMENTS.find(e => e.id === activeElement)!;
+
+  // Resolved color map for swatch display in SemanticColorControl dropdowns
+  const resolvedColors: Record<string, string> = {
+    'primary': config.colors.primary,
+    'secondary': config.colors.secondary,
+    'tertiary': config.colors.tertiary,
+    'muted': config.colors.muted,
+    'text-primary': config.colors.text.primary,
+    'text-secondary': config.colors.text.secondary,
+    'text-muted': config.colors.text.muted,
+    'custom1': config.colors.custom1,
+    'custom2': config.colors.custom2,
+    'custom3': config.colors.custom3,
+    'custom4': config.colors.custom4,
+    'on-primary': config.colors.onPrimary,
+    'on-secondary': config.colors.onSecondary,
+    'on-tertiary': config.colors.onTertiary || '#ffffff',
+    'on-muted': config.colors.onMuted || '#334155',
+    'on-custom1': config.colors.onCustom1,
+    'on-custom2': config.colors.onCustom2,
+    'on-custom3': config.colors.onCustom3,
+    'on-custom4': config.colors.onCustom4,
+  };
 
   // Render editor for base typography
   const renderBaseEditor = () => (
@@ -958,8 +1213,20 @@ export const SemanticElementEditor: React.FC<SemanticElementEditorProps> = ({
     const update = (key: string, value: any) => {
       onChange('components', { [componentKey]: { ...config.components[componentKey], [key]: value } });
     };
+    // Batch update for color pair changes (sets multiple keys at once)
+    const batchUpdate = (updates: Record<string, any>) => {
+      onChange('components', { [componentKey]: { ...config.components[componentKey], ...updates } });
+    };
     return (
       <>
+        <ColorPairSection
+          colorKey={comp.colorKey as SemanticColor}
+          colorOpacity={comp.colorOpacity}
+          backgroundColorKey={comp.backgroundColorKey as SemanticColor}
+          backgroundColorOpacity={comp.backgroundColorOpacity}
+          onUpdate={batchUpdate}
+          resolvedColors={resolvedColors}
+        />
         <Section label="Typography">
           <TypographyControls
             fontSize={comp.fontSize}
@@ -972,11 +1239,13 @@ export const SemanticElementEditor: React.FC<SemanticElementEditorProps> = ({
             fontStyle={comp.fontStyle}
             onUpdate={update}
             showLineHeight={true}
+            showColor={false}
             defaultFontSize={defaults.fontSize}
             defaultFontWeight={defaults.fontWeight}
             defaultColorKey={defaults.colorKey}
             defaultLetterSpacing={defaults.letterSpacing}
             defaultTextTransform={defaults.textTransform}
+            resolvedColors={resolvedColors}
           />
         </Section>
         <SpacingSection
@@ -997,13 +1266,9 @@ export const SemanticElementEditor: React.FC<SemanticElementEditorProps> = ({
           defaultMarginValue={defaults.marginBottom || '8px'}
           defaultPaddingValue={defaults.padding || '0px'}
         />
-        <BackgroundSection
-          backgroundColorKey={comp.backgroundColorKey as SemanticColor}
-          backgroundColorOpacity={comp.backgroundColorOpacity}
-          borderRadius={comp.borderRadius}
-          onUpdate={update}
-        />
         <BorderSection
+          showBorderRadius={true}
+          borderRadius={comp.borderRadius}
           borderStyle={comp.borderStyle}
           borderWidth={comp.borderWidth}
           borderColorKey={comp.borderColorKey as SemanticColor}
@@ -1012,7 +1277,9 @@ export const SemanticElementEditor: React.FC<SemanticElementEditorProps> = ({
           dividerWidth={comp.dividerWidth}
           dividerColorKey={comp.dividerColorKey as SemanticColor}
           dividerColorOpacity={comp.dividerColorOpacity}
+          dividerGap={comp.dividerGap}
           onUpdate={update}
+          resolvedColors={resolvedColors}
         />
         <ShadowSection
           shadow={comp.shadow}
@@ -1078,6 +1345,7 @@ export const SemanticElementEditor: React.FC<SemanticElementEditorProps> = ({
         defaultLetterSpacing="0em"
         defaultTextTransform="none"
         defaultFontStyle="italic"
+        resolvedColors={resolvedColors}
       >
         <SelectControl
           label="Alignment"
@@ -1117,6 +1385,7 @@ export const SemanticElementEditor: React.FC<SemanticElementEditorProps> = ({
           defaultColorKey="text-primary"
           defaultLetterSpacing="0em"
           defaultTextTransform="none"
+          resolvedColors={resolvedColors}
         />
         <Section label="Appearance">
           <SelectControl
@@ -1132,6 +1401,7 @@ export const SemanticElementEditor: React.FC<SemanticElementEditorProps> = ({
             onColorChange={(v) => updateTag('colorPair', v)}
             onOpacityChange={(v) => updateTag('backgroundOpacity', v)}
             showOpacity={true}
+            resolvedColors={resolvedColors}
           />
           <SpacingControl
             label="Border Radius"
@@ -1176,11 +1446,13 @@ export const SemanticElementEditor: React.FC<SemanticElementEditorProps> = ({
           defaultColorKey="primary"
           defaultLetterSpacing="0em"
           defaultTextTransform="none"
+          resolvedColors={resolvedColors}
         />
         <HoverStateSection
           hoverColorKey={links.hoverColorKey}
           hoverColorOpacity={links.hoverColorOpacity}
           onUpdate={updateLink}
+          resolvedColors={resolvedColors}
         />
         <DecorationSection
           underlineStyle={links.underlineStyle}
@@ -1212,6 +1484,7 @@ export const SemanticElementEditor: React.FC<SemanticElementEditorProps> = ({
           defaultColorKey="text-secondary"
           defaultLetterSpacing="0em"
           defaultTextTransform="none"
+          resolvedColors={resolvedColors}
         />
         <LayoutSection
           layout={contactInfo.layout}
@@ -1223,6 +1496,7 @@ export const SemanticElementEditor: React.FC<SemanticElementEditorProps> = ({
           iconColorKey={contactInfo.iconColorKey}
           iconColorOpacity={contactInfo.iconColorOpacity}
           onUpdate={updateContact}
+          resolvedColors={resolvedColors}
         />
       </>
     );
@@ -1299,6 +1573,7 @@ export const SemanticElementEditor: React.FC<SemanticElementEditorProps> = ({
             onColorChange={(v) => updatePageNumbers('colorKey', v)}
             onOpacityChange={(v) => updatePageNumbers('colorOpacity', v)}
             showOpacity={true}
+            resolvedColors={resolvedColors}
           />
         </Section>
         <Section label="Position" defaultOpen={false}>

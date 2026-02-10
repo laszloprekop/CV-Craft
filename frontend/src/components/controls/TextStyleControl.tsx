@@ -10,7 +10,7 @@ import { SelectControl } from './SelectControl';
 import { SpacingControl } from './SpacingControl';
 import { NumberControl } from './NumberControl';
 
-type SemanticColorKey = 'primary' | 'secondary' | 'tertiary' | 'muted' | 'text-primary' | 'text-secondary' | 'text-muted' | 'custom1' | 'custom2' | 'custom3' | 'custom4';
+type SemanticColorKey = 'primary' | 'secondary' | 'tertiary' | 'muted' | 'text-primary' | 'text-secondary' | 'text-muted' | 'custom1' | 'custom2' | 'custom3' | 'custom4' | 'on-primary' | 'on-secondary' | 'on-tertiary' | 'on-muted' | 'on-custom1' | 'on-custom2' | 'on-custom3' | 'on-custom4';
 
 interface TextStyleConfig {
   fontSize?: string;
@@ -34,6 +34,7 @@ interface TextStyleControlProps {
   showMargin?: boolean;
   showLetterSpacing?: boolean;
   showFontStyle?: boolean;
+  resolvedColors?: Record<string, string>;
 }
 
 export const TextStyleControl: React.FC<TextStyleControlProps> = ({
@@ -45,6 +46,7 @@ export const TextStyleControl: React.FC<TextStyleControlProps> = ({
   showMargin = false,
   showLetterSpacing = false,
   showFontStyle = false,
+  resolvedColors,
 }) => {
   const update = (partial: Partial<TextStyleConfig>) => {
     onChange({ ...value, ...partial });
@@ -87,6 +89,7 @@ export const TextStyleControl: React.FC<TextStyleControlProps> = ({
         onOpacityChange={(val) => update({ colorOpacity: val })}
         onChangeComplete={() => commit({ colorKey: value.colorKey, colorOpacity: value.colorOpacity })}
         showOpacity={true}
+        resolvedColors={resolvedColors}
       />
 
       {/* Text Transform */}

@@ -35,6 +35,7 @@ function renderSection(section: CVSection, pagination: boolean, prefix: string):
   return `
 <section class="${sectionClass}" data-type="${section.type}">
   <h2 class="${prefix}section-header">${escapeHtml(section.title || '')}</h2>
+  <div class="${prefix}section-header-divider"></div>
   <div class="${prefix}section-content">
     ${renderSectionContent(section, pagination, prefix)}
   </div>
@@ -98,7 +99,8 @@ function renderEntry(entry: any, pagination: boolean, prefix: string): string {
   <div class="${prefix}entry-header">
     <h3 class="${prefix}entry-title">${escapeHtml(entry.title)}</h3>
     ${renderEntryMeta(entry, prefix)}
-  </div>` : ''}
+  </div>
+  <div class="${prefix}entry-title-divider"></div>` : ''}
   ${entry.description ? `
   <div class="${prefix}entry-description">
     ${renderDescription(entry.description, prefix)}
@@ -162,6 +164,7 @@ function renderEntryWithPagination(entry: any, prefix: string): string {
       <h3 class="${prefix}entry-title">${escapeHtml(entry.title)}</h3>
       ${renderEntryMeta(entry, prefix)}
     </div>\n`
+    html += `    <div class="${prefix}entry-title-divider"></div>\n`
   }
 
   if (startParagraphs.length > 0) {
@@ -290,6 +293,7 @@ export function renderHeader(frontmatter: CVFrontmatter, prefix: string = ''): s
   return `
 <header class="${prefix}cv-header">
   <h1 class="${prefix}cv-name">${escapeHtml(frontmatter.name || '')}</h1>
+  <div class="${prefix}name-divider"></div>
   ${frontmatter.title ? `<p class="${prefix}cv-title">${escapeHtml(frontmatter.title)}</p>` : ''}
   <div class="${prefix}cv-contact">
     ${frontmatter.email ? `<a href="mailto:${escapeHtml(frontmatter.email)}" class="${prefix}contact-email">${escapeHtml(frontmatter.email)}</a>` : ''}

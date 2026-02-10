@@ -221,17 +221,21 @@ router.post('/validate', asyncHandler(async (req, res) => {
 }));
 
 /**
- * GET /api/cvs/:id/preview-pdf - Get PDF preview for live viewing
+ * POST /api/cvs/:id/preview-pdf - Get PDF preview for live viewing
+ * Accepts optional config override in body to use the frontend's current config
  * Returns the PDF as a binary stream for display in an iframe
  */
-router.get('/:id/preview-pdf', validateUuid('id'), asyncHandler(async (req, res) => {
+router.post('/:id/preview-pdf', validateUuid('id'), asyncHandler(async (req, res) => {
   const { cvService } = getServices();
 
   try {
     console.log('[preview-pdf] Starting PDF generation for CV:', req.params.id);
 
+    // Use config from request body if provided (avoids stale DB config)
+    const configOverride = req.body?.config || undefined;
+
     // Export as PDF to a temporary location
-    const exportResult = await cvService.exportCV(req.params.id, 'pdf');
+    const exportResult = await cvService.exportCV(req.params.id, 'pdf', configOverride);
     console.log('[preview-pdf] Export result:', exportResult);
 
     // Get the file path and send it as a PDF

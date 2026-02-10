@@ -91,6 +91,25 @@ export function generateCSSVariables(config: TemplateConfig): Record<string, str
   const tagTextOpacity = config.components.tags?.textOpacity ?? 1.0;
   const { baseColor: tagBaseColor, onColor: tagOnColor } = resolveColorPair(tagColorPair, config);
 
+  // Section header color/background are conditionally generated:
+  // When explicitly set by user (via Color Pair), include them so they override two-column defaults.
+  // When not set, omit them so the two-column CSS can use layout-specific fallbacks (primary/accent).
+  const sectionHeaderColorOverrides: Record<string, string> = {};
+  if (config.components.sectionHeader?.colorKey) {
+    sectionHeaderColorOverrides['--section-header-color'] = resolveSemanticColor(
+      config.components.sectionHeader.colorKey,
+      config,
+      config.components.sectionHeader.colorOpacity
+    );
+  }
+  if (config.components.sectionHeader?.backgroundColorKey) {
+    sectionHeaderColorOverrides['--section-header-background-color'] = resolveSemanticColor(
+      config.components.sectionHeader.backgroundColorKey,
+      config,
+      config.components.sectionHeader.backgroundColorOpacity ?? 1
+    );
+  }
+
   return {
     // Main Color Pairs - Background colors and their text colors
     '--primary-color': config.colors.primary,
@@ -223,11 +242,13 @@ export function generateCSSVariables(config: TemplateConfig): Record<string, str
     '--name-margin-bottom': config.components.name?.marginBottom || '8px',
     '--name-padding': config.components.name?.padding || '0px',
     // Name (H1) - Background
-    '--name-background-color': resolveSemanticColor(
-      config.components.name?.backgroundColorKey,
-      config,
-      config.components.name?.backgroundColorOpacity ?? 0
-    ) || 'transparent',
+    '--name-background-color': config.components.name?.backgroundColorKey
+      ? resolveSemanticColor(
+          config.components.name.backgroundColorKey,
+          config,
+          config.components.name?.backgroundColorOpacity ?? 1
+        )
+      : 'transparent',
     '--name-border-radius': config.components.name?.borderRadius || '0px',
     // Name (H1) - Border
     '--name-border-style': config.components.name?.borderStyle || 'none',
@@ -245,6 +266,8 @@ export function generateCSSVariables(config: TemplateConfig): Record<string, str
       config,
       config.components.name?.dividerColorOpacity ?? 1
     ) || config.colors.primary,
+    '--name-divider-gap': config.components.name?.dividerGap || '4px',
+    '--name-divider-display': (config.components.name?.dividerStyle && config.components.name.dividerStyle !== 'none') ? 'block' : 'none',
     // Name (H1) - Shadow
     '--name-shadow': (() => {
       const shadow = config.components.name?.shadow || 'none';
@@ -317,11 +340,9 @@ export function generateCSSVariables(config: TemplateConfig): Record<string, str
     // Section Headers (H2) - Typography
     '--section-header-font-size': config.components.sectionHeader?.fontSize || calculateFontSize(fontScale.h2, baseFontSize),
     '--section-header-font-weight': String(config.components.sectionHeader?.fontWeight || 700),
-    '--section-header-color': resolveSemanticColor(
-      config.components.sectionHeader?.colorKey,
-      config,
-      config.components.sectionHeader?.colorOpacity
-    ) || config.components.sectionHeader?.color || config.colors.primary,
+    // Note: --section-header-color and --section-header-background-color are conditionally
+    // generated above (sectionHeaderColorOverrides) so two-column CSS fallbacks work correctly.
+    ...sectionHeaderColorOverrides,
     '--section-header-text-transform': config.components.sectionHeader?.textTransform || 'uppercase',
     '--section-header-letter-spacing': config.components.sectionHeader?.letterSpacing || '0.05em',
     '--section-header-line-height': String(config.components.sectionHeader?.lineHeight || 1.2),
@@ -331,11 +352,6 @@ export function generateCSSVariables(config: TemplateConfig): Record<string, str
     '--section-header-margin-bottom': config.components.sectionHeader?.marginBottom || '12px',
     '--section-header-padding': config.components.sectionHeader?.padding || '4px 12px',
     // Section Headers (H2) - Background
-    '--section-header-background-color': resolveSemanticColor(
-      config.components.sectionHeader?.backgroundColorKey,
-      config,
-      config.components.sectionHeader?.backgroundColorOpacity ?? 0
-    ) || 'transparent',
     '--section-header-border-radius': config.components.sectionHeader?.borderRadius || '0px',
     // Section Headers (H2) - Border
     '--section-header-border-style': config.components.sectionHeader?.borderStyle || 'none',
@@ -354,6 +370,8 @@ export function generateCSSVariables(config: TemplateConfig): Record<string, str
       config,
       config.components.sectionHeader?.dividerColorOpacity ?? 1
     ) || config.components.sectionHeader?.dividerColor || config.components.sectionHeader?.borderColor || config.colors.primary,
+    '--section-header-divider-gap': config.components.sectionHeader?.dividerGap || '0px',
+    '--section-header-divider-display': (config.components.sectionHeader?.dividerStyle && config.components.sectionHeader.dividerStyle !== 'none') ? 'block' : 'none',
     // Section Headers (H2) - Shadow
     '--section-header-shadow': (() => {
       const shadow = config.components.sectionHeader?.shadow || 'none';
@@ -383,11 +401,13 @@ export function generateCSSVariables(config: TemplateConfig): Record<string, str
     '--job-title-margin-bottom': config.components.jobTitle?.marginBottom || '4px',
     '--job-title-padding': config.components.jobTitle?.padding || '0px',
     // Job Titles (H3) - Background
-    '--job-title-background-color': resolveSemanticColor(
-      config.components.jobTitle?.backgroundColorKey,
-      config,
-      config.components.jobTitle?.backgroundColorOpacity ?? 0
-    ) || 'transparent',
+    '--job-title-background-color': config.components.jobTitle?.backgroundColorKey
+      ? resolveSemanticColor(
+          config.components.jobTitle.backgroundColorKey,
+          config,
+          config.components.jobTitle?.backgroundColorOpacity ?? 1
+        )
+      : 'transparent',
     '--job-title-border-radius': config.components.jobTitle?.borderRadius || '0px',
     // Job Titles (H3) - Border
     '--job-title-border-style': config.components.jobTitle?.borderStyle || 'none',
@@ -405,6 +425,8 @@ export function generateCSSVariables(config: TemplateConfig): Record<string, str
       config,
       config.components.jobTitle?.dividerColorOpacity ?? 1
     ) || config.colors.primary,
+    '--job-title-divider-gap': config.components.jobTitle?.dividerGap || '0px',
+    '--job-title-divider-display': (config.components.jobTitle?.dividerStyle && config.components.jobTitle.dividerStyle !== 'none') ? 'block' : 'none',
     // Job Titles (H3) - Shadow
     '--job-title-shadow': (() => {
       const shadow = config.components.jobTitle?.shadow || 'none';

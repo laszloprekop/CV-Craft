@@ -8,7 +8,7 @@
  */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import React, { useMemo, useState, useEffect, useCallback } from 'react'
+import React, { useMemo, useState, useEffect, useCallback, useRef } from 'react'
 import { Phone, Envelope, LinkedinLogo, GithubLogo, MapPin, Globe, Browser, FilePdf, ListDashes, Eye, EyeSlash } from '@phosphor-icons/react'
 import type { CVInstance, Template, TemplateSettings, TemplateConfig, Asset, CVFrontmatter, CVSection, ParsedCVContent } from '../../../shared/types'
 import { assetApi, cvApi } from '../services/api'
@@ -491,7 +491,12 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
     return null
   }, [cv?.parsed_content, liveContent])
 
+  // Keep a ref to the latest config so the PDF effect always sends the current config
+  const configRef = useRef(config)
+  configRef.current = config
+
   // Load PDF preview when in exact-pdf mode
+  // Sends the frontend's current config to avoid stale database config issues
   useEffect(() => {
     if (previewMode !== 'exact-pdf' || !cv?.id) {
       return
@@ -501,7 +506,7 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
     setPdfLoading(true)
     setPdfError(null)
 
-    cvApi.getPreviewPdf(cv.id)
+    cvApi.getPreviewPdf(cv.id, configRef.current)
       .then(url => {
         if (!cancelled) {
           // Revoke old URL to prevent memory leak
@@ -848,7 +853,7 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
                   height: templateStyles['--name-divider-width'] || '2px',
                   backgroundColor: templateStyles['--name-divider-color'],
                   width: templateStyles['--name-divider-style'] === 'full-width' ? '100%' : 'auto',
-                  marginTop: '4px',
+                  marginTop: templateStyles['--name-divider-gap'] || '4px',
                   marginBottom: '8px',
                   marginLeft: 'auto',
                   marginRight: 'auto',
@@ -877,7 +882,7 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
                   fontFamily: templateStyles['--heading-font-family'],
                   fontSize: templateStyles['--section-header-font-size'],
                   fontWeight: templateStyles['--section-header-font-weight'],
-                  color: templateStyles['--section-header-color'],
+                  color: templateStyles['--section-header-color'] || templateStyles['--primary-color'],
                   textTransform: templateStyles['--section-header-text-transform'] as any,
                   letterSpacing: templateStyles['--section-header-letter-spacing'],
                   lineHeight: templateStyles['--section-header-line-height'],
@@ -887,7 +892,7 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
                   marginTop: index === 0 ? '0' : templateStyles['--section-header-margin-top'],
                   marginBottom: templateStyles['--section-header-margin-bottom'],
                   // Background
-                  backgroundColor: templateStyles['--section-header-background-color'],
+                  backgroundColor: templateStyles['--section-header-background-color'] || 'transparent',
                   borderRadius: templateStyles['--section-header-border-radius'],
                   // Border
                   borderStyle: templateStyles['--section-header-border-style'] as any,
@@ -904,6 +909,7 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
                     height: templateStyles['--section-header-divider-width'] || '2px',
                     backgroundColor: templateStyles['--section-header-divider-color'],
                     width: templateStyles['--section-header-divider-style'] === 'full-width' ? '100%' : 'auto',
+                    marginTop: templateStyles['--section-header-divider-gap'] || '0px',
                     marginBottom: '8px',
                   }} />
                 )}
@@ -1078,7 +1084,7 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
                     fontFamily: templateStyles['--heading-font-family'],
                     fontSize: templateStyles['--section-header-font-size'],
                     fontWeight: templateStyles['--section-header-font-weight'],
-                    color: 'var(--on-tertiary-color)',
+                    color: templateStyles['--section-header-color'] || (templateStyles['--on-tertiary-color'] as string || '#ffffff'),
                     letterSpacing: templateStyles['--section-header-letter-spacing'],
                     textTransform: templateStyles['--section-header-text-transform'] as any,
                     lineHeight: templateStyles['--section-header-line-height'],
@@ -1087,10 +1093,9 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
                     padding: templateStyles['--section-header-padding'],
                     marginBottom: templateStyles['--section-header-margin-bottom'],
                     marginTop: index === 0 ? '0' : templateStyles['--section-header-margin-top'],
-                    // Background (sidebar uses accent color by default)
-                    backgroundColor: templateStyles['--section-header-background-color'] !== 'transparent'
-                      ? templateStyles['--section-header-background-color']
-                      : (templateStyles['--accent-color'] as string || '#c4956c'),
+                    // Background (sidebar uses accent color by default when no user override)
+                    backgroundColor: templateStyles['--section-header-background-color']
+                      ?? (templateStyles['--accent-color'] as string || '#c4956c'),
                     borderRadius: templateStyles['--section-header-border-radius'] || '4px',
                     // Border
                     borderStyle: templateStyles['--section-header-border-style'] as any,
@@ -1108,6 +1113,7 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
                     height: templateStyles['--section-header-divider-width'] || '2px',
                     backgroundColor: templateStyles['--section-header-divider-color'],
                     width: templateStyles['--section-header-divider-style'] === 'full-width' ? '100%' : 'auto',
+                    marginTop: templateStyles['--section-header-divider-gap'] || '0px',
                     marginBottom: '8px',
                   }} />
                 )}
@@ -1163,7 +1169,7 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
                     height: templateStyles['--name-divider-width'] || '2px',
                     backgroundColor: templateStyles['--name-divider-color'],
                     width: templateStyles['--name-divider-style'] === 'full-width' ? '100%' : 'auto',
-                    marginTop: '4px',
+                    marginTop: templateStyles['--name-divider-gap'] || '4px',
                     marginBottom: '8px',
                   }} />
                 )}
@@ -1193,7 +1199,7 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
                     fontFamily: templateStyles['--heading-font-family'],
                     fontSize: templateStyles['--section-header-font-size'],
                     fontWeight: templateStyles['--section-header-font-weight'],
-                    color: 'var(--on-primary-color)',
+                    color: templateStyles['--section-header-color'] || (templateStyles['--on-primary-color'] as string || '#ffffff'),
                     textTransform: templateStyles['--section-header-text-transform'] as any,
                     letterSpacing: templateStyles['--section-header-letter-spacing'],
                     lineHeight: templateStyles['--section-header-line-height'],
@@ -1202,10 +1208,9 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
                     padding: templateStyles['--section-header-padding'],
                     marginTop: index === 0 ? '0' : templateStyles['--section-header-margin-top'],
                     marginBottom: templateStyles['--section-header-margin-bottom'],
-                    // Background (main content uses primary color by default)
-                    backgroundColor: templateStyles['--section-header-background-color'] !== 'transparent'
-                      ? templateStyles['--section-header-background-color']
-                      : (templateStyles['--primary-color'] as string || '#a8956b'),
+                    // Background (main content uses primary color by default when no user override)
+                    backgroundColor: templateStyles['--section-header-background-color']
+                      ?? (templateStyles['--primary-color'] as string || '#a8956b'),
                     borderRadius: templateStyles['--section-header-border-radius'] || '4px',
                     // Border
                     borderStyle: templateStyles['--section-header-border-style'] as any,
@@ -1223,6 +1228,7 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
                     height: templateStyles['--section-header-divider-width'] || '2px',
                     backgroundColor: templateStyles['--section-header-divider-color'],
                     width: templateStyles['--section-header-divider-style'] === 'full-width' ? '100%' : 'auto',
+                    marginTop: templateStyles['--section-header-divider-gap'] || '0px',
                     marginBottom: '8px',
                   }} />
                 )}

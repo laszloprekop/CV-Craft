@@ -1,6 +1,6 @@
 # Unified Rendering Implementation Status
 
-**Last Updated:** 2026-01-16
+**Last Updated:** 2026-02-10
 **Goal:** Single source of truth for CV HTML rendering (web + PDF)
 **Status:** ✅ All phases complete
 
@@ -30,6 +30,7 @@ A shared HTML renderer that converts structured CV sections into semantic HTML w
 ```html
 <section class="cv-section" data-type="experience">
   <h2 class="section-header">Professional Experience</h2>
+  <div class="section-header-divider"></div>
   <div class="section-content">
     <article class="entry">
       <div class="entry-header">
@@ -39,6 +40,7 @@ A shared HTML renderer that converts structured CV sections into semantic HTML w
           <span class="entry-date">2023-2024</span>
         </p>
       </div>
+      <div class="entry-title-divider"></div>
       <div class="entry-description">
         <p>Description text</p>
       </div>
@@ -50,6 +52,8 @@ A shared HTML renderer that converts structured CV sections into semantic HTML w
   </div>
 </section>
 ```
+
+> **Note (v1.19.0):** Divider elements (`.section-header-divider`, `.entry-title-divider`, `.name-divider`) are always emitted in HTML but hidden by default via `display: var(--*-divider-display, none)`. Set to `block` when user enables a divider style.
 
 ---
 
@@ -342,3 +346,4 @@ generateCSSVariables(config) → CSS Variables
 - Skills sections intentionally bypass shared renderer to support configurable tag styles
 - CSS in `index.css` targets semantic classes with CSS variables for theming
 - This architecture achieves the "Unified Rendering" goal - single source of truth for CV content HTML
+- **Preview-pdf endpoint (v1.19.0)**: Changed from `GET` to `POST /api/cvs/:id/preview-pdf`. Frontend sends the current config in the request body to avoid stale database config issues. The backend uses `configOverride || cv.config || template.default_config`.

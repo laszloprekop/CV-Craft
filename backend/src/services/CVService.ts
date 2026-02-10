@@ -309,7 +309,7 @@ export class CVService {
   /**
    * Export CV to PDF or web package
    */
-  async exportCV(id: string, exportType: 'pdf' | 'web_package'): Promise<CVExportResult> {
+  async exportCV(id: string, exportType: 'pdf' | 'web_package', configOverride?: TemplateConfig): Promise<CVExportResult> {
     const cv = await this.getById(id);
 
     if (!cv.parsed_content) {
@@ -339,8 +339,8 @@ export class CVService {
       // Generate PDF using Puppeteer
       const pdfGenerator = getPDFGenerator();
 
-      // Use CV's config if available, otherwise fall back to template default
-      const config = cv.config || template.default_config;
+      // Use override config if provided, otherwise CV's config, otherwise template default
+      const config = configOverride || cv.config || template.default_config;
 
       const result = await pdfGenerator.generatePDF({
         cv,

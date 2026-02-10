@@ -5,7 +5,7 @@
  */
 
 import axios from 'axios'
-import type { CVInstance, Template, Asset, Export, TemplateSettings } from '../../../shared/types'
+import type { CVInstance, Template, Asset, Export, TemplateSettings, TemplateConfig } from '../../../shared/types'
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api'
 
@@ -97,8 +97,8 @@ export const cvApi = {
    * Get PDF preview for display in iframe
    * Returns a blob URL that can be used as iframe src
    */
-  async getPreviewPdf(cvId: string): Promise<string> {
-    const response = await api.get(`/cvs/${cvId}/preview-pdf`, {
+  async getPreviewPdf(cvId: string, config?: TemplateConfig): Promise<string> {
+    const response = await api.post(`/cvs/${cvId}/preview-pdf`, { config }, {
       responseType: 'blob'
     })
     return URL.createObjectURL(response.data)

@@ -22,7 +22,7 @@ export interface UseCVEditorReturn {
   updateContent: (content: string) => void
   updateSettings: (settings: Partial<TemplateSettings>) => void
   updateConfig: (config: Partial<TemplateConfig>) => void
-  saveCv: () => Promise<void>
+  saveCv: (configOverride?: TemplateConfig) => Promise<void>
   reloadCv: () => Promise<void>
   exportCv: (type: 'pdf' | 'web_package') => Promise<void>
 }
@@ -220,8 +220,10 @@ export function useCVEditor(cvId?: string): UseCVEditorReturn {
     setSaveStatus('idle')
   }, [])
 
-  const saveCv = useCallback(async () => {
+  const saveCv = useCallback(async (configOverride?: TemplateConfig) => {
     if (saveStatus === 'saving') return
+
+    const configToSave = configOverride || config
 
     try {
       setSaveStatus('saving')
@@ -230,16 +232,16 @@ export function useCVEditor(cvId?: string): UseCVEditorReturn {
       if (cv) {
         console.log('[useCVEditor] 💾 Saving to database:', {
           id: cv.id,
-          'config.colors.accent': config?.colors?.accent,
-          'config.typography.baseFontSize': config?.typography?.baseFontSize,
-          'config.typography.fontScale.h1': config?.typography?.fontScale?.h1,
+          'config.colors.accent': configToSave?.colors?.accent,
+          'config.typography.baseFontSize': configToSave?.typography?.baseFontSize,
+          'config.typography.fontScale.h1': configToSave?.typography?.fontScale?.h1,
           'settings.accentColor': settings?.accentColor,
         })
         // Update existing CV
         const response = await cvApi.update(cv.id, {
           content,
           settings: settings as TemplateSettings,
-          config
+          config: configToSave
         })
         setCv(response.data)
         console.log('[useCVEditor] ✅ CV saved successfully')

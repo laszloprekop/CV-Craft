@@ -187,6 +187,7 @@ export function renderSkillsSection(
   return `
   <section class="cv-section sidebar-section" data-type="skills">
     <h2 class="section-header">${escapeHtml(section.title || 'Skills')}</h2>
+    <div class="section-header-divider"></div>
     <div class="section-content">
       ${skillsHTML}
     </div>
@@ -365,7 +366,8 @@ export function generateTwoColumnBody(
     ${sidebarHTML}
   </div>
   <div class="main-content">
-    <h1>${escapeHtml(frontmatter.name || 'Your Name')}</h1>
+    <h1 class="cv-name">${escapeHtml(frontmatter.name || 'Your Name')}</h1>
+    <div class="name-divider"></div>
     ${frontmatter.title ? `<p class="job-title">${escapeHtml(frontmatter.title)}</p>` : ''}
     ${mainHTML}
   </div>
@@ -547,7 +549,8 @@ export function generateColumnHTML(options: ColumnRenderOptions): string {
     contentHTML += renderSidebarSections(sections, config, true)
   } else {
     // Main column
-    contentHTML += `<h1>${escapeHtml(frontmatter.name || 'Your Name')}</h1>`
+    contentHTML += `<h1 class="cv-name">${escapeHtml(frontmatter.name || 'Your Name')}</h1>`
+    contentHTML += `<div class="name-divider"></div>`
     if (frontmatter.title) {
       contentHTML += `<p class="job-title">${escapeHtml(frontmatter.title)}</p>`
     }

@@ -215,7 +215,7 @@ export interface TemplateConfig {
       fontFamily?: string; // Can override heading font
       fontSize?: string;
       fontWeight?: number;
-      colorKey?: 'primary' | 'secondary' | 'tertiary' | 'muted' | 'text-primary' | 'text-secondary' | 'text-muted' | 'custom1' | 'custom2' | 'custom3' | 'custom4';
+      colorKey?: 'primary' | 'secondary' | 'tertiary' | 'muted' | 'text-primary' | 'text-secondary' | 'text-muted' | 'custom1' | 'custom2' | 'custom3' | 'custom4' | 'on-primary' | 'on-secondary' | 'on-tertiary' | 'on-muted' | 'on-custom1' | 'on-custom2' | 'on-custom3' | 'on-custom4';
       colorOpacity?: number; // 0-1
       color?: string; // Legacy support
       letterSpacing?: string;
@@ -239,19 +239,20 @@ export interface TemplateConfig {
       paddingBottom?: string;
       paddingLeft?: string;
       // Background
-      backgroundColorKey?: 'primary' | 'secondary' | 'tertiary' | 'muted' | 'text-primary' | 'text-secondary' | 'text-muted' | 'custom1' | 'custom2' | 'custom3' | 'custom4';
+      backgroundColorKey?: 'primary' | 'secondary' | 'tertiary' | 'muted' | 'text-primary' | 'text-secondary' | 'text-muted' | 'custom1' | 'custom2' | 'custom3' | 'custom4' | 'on-primary' | 'on-secondary' | 'on-tertiary' | 'on-muted' | 'on-custom1' | 'on-custom2' | 'on-custom3' | 'on-custom4';
       backgroundColorOpacity?: number;
       borderRadius?: string;
       // Border
       borderStyle?: 'none' | 'solid' | 'dashed' | 'dotted';
       borderWidth?: string;
-      borderColorKey?: 'primary' | 'secondary' | 'tertiary' | 'muted' | 'text-primary' | 'text-secondary' | 'text-muted' | 'custom1' | 'custom2' | 'custom3' | 'custom4';
+      borderColorKey?: 'primary' | 'secondary' | 'tertiary' | 'muted' | 'text-primary' | 'text-secondary' | 'text-muted' | 'custom1' | 'custom2' | 'custom3' | 'custom4' | 'on-primary' | 'on-secondary' | 'on-tertiary' | 'on-muted' | 'on-custom1' | 'on-custom2' | 'on-custom3' | 'on-custom4';
       borderColorOpacity?: number;
       // Divider
       dividerStyle?: 'none' | 'underline' | 'full-width';
       dividerWidth?: string;
-      dividerColorKey?: 'primary' | 'secondary' | 'tertiary' | 'muted' | 'text-primary' | 'text-secondary' | 'text-muted' | 'custom1' | 'custom2' | 'custom3' | 'custom4';
+      dividerColorKey?: 'primary' | 'secondary' | 'tertiary' | 'muted' | 'text-primary' | 'text-secondary' | 'text-muted' | 'custom1' | 'custom2' | 'custom3' | 'custom4' | 'on-primary' | 'on-secondary' | 'on-tertiary' | 'on-muted' | 'on-custom1' | 'on-custom2' | 'on-custom3' | 'on-custom4';
       dividerColorOpacity?: number;
+      dividerGap?: string;
       // Shadow
       shadow?: 'none' | 'sm' | 'md' | 'lg';
     };
@@ -259,11 +260,11 @@ export interface TemplateConfig {
     contactInfo: {
       layout?: 'inline' | 'stacked' | 'grid';
       iconSize?: string;
-      iconColorKey?: 'primary' | 'secondary' | 'tertiary' | 'muted' | 'text-primary' | 'text-secondary' | 'text-muted' | 'custom1' | 'custom2' | 'custom3' | 'custom4';
+      iconColorKey?: 'primary' | 'secondary' | 'tertiary' | 'muted' | 'text-primary' | 'text-secondary' | 'text-muted' | 'custom1' | 'custom2' | 'custom3' | 'custom4' | 'on-primary' | 'on-secondary' | 'on-tertiary' | 'on-muted' | 'on-custom1' | 'on-custom2' | 'on-custom3' | 'on-custom4';
       iconColorOpacity?: number;
-      colorKey?: 'primary' | 'secondary' | 'tertiary' | 'muted' | 'text-primary' | 'text-secondary' | 'text-muted' | 'custom1' | 'custom2' | 'custom3' | 'custom4';
+      colorKey?: 'primary' | 'secondary' | 'tertiary' | 'muted' | 'text-primary' | 'text-secondary' | 'text-muted' | 'custom1' | 'custom2' | 'custom3' | 'custom4' | 'on-primary' | 'on-secondary' | 'on-tertiary' | 'on-muted' | 'on-custom1' | 'on-custom2' | 'on-custom3' | 'on-custom4';
       colorOpacity?: number;
-      textColorKey?: 'primary' | 'secondary' | 'tertiary' | 'muted' | 'text-primary' | 'text-secondary' | 'text-muted' | 'custom1' | 'custom2' | 'custom3' | 'custom4';
+      textColorKey?: 'primary' | 'secondary' | 'tertiary' | 'muted' | 'text-primary' | 'text-secondary' | 'text-muted' | 'custom1' | 'custom2' | 'custom3' | 'custom4' | 'on-primary' | 'on-secondary' | 'on-tertiary' | 'on-muted' | 'on-custom1' | 'on-custom2' | 'on-custom3' | 'on-custom4';
       textColorOpacity?: number;
       iconColor?: string; // Legacy support
       textColor?: string; // Legacy support
@@ -311,7 +312,7 @@ export interface TemplateConfig {
       fontFamily?: string;
       fontSize?: string;
       fontWeight?: number;
-      colorKey?: 'primary' | 'secondary' | 'tertiary' | 'muted' | 'text-primary' | 'text-secondary' | 'text-muted' | 'custom1' | 'custom2' | 'custom3' | 'custom4';
+      colorKey?: 'primary' | 'secondary' | 'tertiary' | 'muted' | 'text-primary' | 'text-secondary' | 'text-muted' | 'custom1' | 'custom2' | 'custom3' | 'custom4' | 'on-primary' | 'on-secondary' | 'on-tertiary' | 'on-muted' | 'on-custom1' | 'on-custom2' | 'on-custom3' | 'on-custom4';
       colorOpacity?: number;
       color?: string; // Legacy support
       letterSpacing?: string;
@@ -334,22 +335,23 @@ export interface TemplateConfig {
       paddingBottom?: string;
       paddingLeft?: string;
       // Background
-      backgroundColorKey?: 'primary' | 'secondary' | 'tertiary' | 'muted' | 'text-primary' | 'text-secondary' | 'text-muted' | 'custom1' | 'custom2' | 'custom3' | 'custom4';
+      backgroundColorKey?: 'primary' | 'secondary' | 'tertiary' | 'muted' | 'text-primary' | 'text-secondary' | 'text-muted' | 'custom1' | 'custom2' | 'custom3' | 'custom4' | 'on-primary' | 'on-secondary' | 'on-tertiary' | 'on-muted' | 'on-custom1' | 'on-custom2' | 'on-custom3' | 'on-custom4';
       backgroundColorOpacity?: number;
       backgroundColor?: string; // Legacy support
       borderRadius?: string;
       // Border
       borderStyle?: 'none' | 'solid' | 'dashed' | 'dotted';
       borderWidth?: string;
-      borderColorKey?: 'primary' | 'secondary' | 'tertiary' | 'muted' | 'text-primary' | 'text-secondary' | 'text-muted' | 'custom1' | 'custom2' | 'custom3' | 'custom4';
+      borderColorKey?: 'primary' | 'secondary' | 'tertiary' | 'muted' | 'text-primary' | 'text-secondary' | 'text-muted' | 'custom1' | 'custom2' | 'custom3' | 'custom4' | 'on-primary' | 'on-secondary' | 'on-tertiary' | 'on-muted' | 'on-custom1' | 'on-custom2' | 'on-custom3' | 'on-custom4';
       borderColorOpacity?: number;
       borderColor?: string; // Legacy support
       borderBottom?: string; // Legacy support
       // Divider
       dividerStyle?: 'none' | 'underline' | 'full-width' | 'accent-bar';
       dividerWidth?: string;
-      dividerColorKey?: 'primary' | 'secondary' | 'tertiary' | 'muted' | 'text-primary' | 'text-secondary' | 'text-muted' | 'custom1' | 'custom2' | 'custom3' | 'custom4';
+      dividerColorKey?: 'primary' | 'secondary' | 'tertiary' | 'muted' | 'text-primary' | 'text-secondary' | 'text-muted' | 'custom1' | 'custom2' | 'custom3' | 'custom4' | 'on-primary' | 'on-secondary' | 'on-tertiary' | 'on-muted' | 'on-custom1' | 'on-custom2' | 'on-custom3' | 'on-custom4';
       dividerColorOpacity?: number;
+      dividerGap?: string;
       dividerColor?: string; // Legacy support
       // Shadow
       shadow?: 'none' | 'sm' | 'md' | 'lg';
@@ -367,7 +369,7 @@ export interface TemplateConfig {
       fontFamily?: string;
       fontSize?: string;
       fontWeight?: number;
-      colorKey?: 'primary' | 'secondary' | 'tertiary' | 'muted' | 'text-primary' | 'text-secondary' | 'text-muted' | 'custom1' | 'custom2' | 'custom3' | 'custom4';
+      colorKey?: 'primary' | 'secondary' | 'tertiary' | 'muted' | 'text-primary' | 'text-secondary' | 'text-muted' | 'custom1' | 'custom2' | 'custom3' | 'custom4' | 'on-primary' | 'on-secondary' | 'on-tertiary' | 'on-muted' | 'on-custom1' | 'on-custom2' | 'on-custom3' | 'on-custom4';
       colorOpacity?: number;
       color?: string; // Legacy support
       letterSpacing?: string;
@@ -390,19 +392,20 @@ export interface TemplateConfig {
       paddingBottom?: string;
       paddingLeft?: string;
       // Background
-      backgroundColorKey?: 'primary' | 'secondary' | 'tertiary' | 'muted' | 'text-primary' | 'text-secondary' | 'text-muted' | 'custom1' | 'custom2' | 'custom3' | 'custom4';
+      backgroundColorKey?: 'primary' | 'secondary' | 'tertiary' | 'muted' | 'text-primary' | 'text-secondary' | 'text-muted' | 'custom1' | 'custom2' | 'custom3' | 'custom4' | 'on-primary' | 'on-secondary' | 'on-tertiary' | 'on-muted' | 'on-custom1' | 'on-custom2' | 'on-custom3' | 'on-custom4';
       backgroundColorOpacity?: number;
       borderRadius?: string;
       // Border
       borderStyle?: 'none' | 'solid' | 'dashed' | 'dotted';
       borderWidth?: string;
-      borderColorKey?: 'primary' | 'secondary' | 'tertiary' | 'muted' | 'text-primary' | 'text-secondary' | 'text-muted' | 'custom1' | 'custom2' | 'custom3' | 'custom4';
+      borderColorKey?: 'primary' | 'secondary' | 'tertiary' | 'muted' | 'text-primary' | 'text-secondary' | 'text-muted' | 'custom1' | 'custom2' | 'custom3' | 'custom4' | 'on-primary' | 'on-secondary' | 'on-tertiary' | 'on-muted' | 'on-custom1' | 'on-custom2' | 'on-custom3' | 'on-custom4';
       borderColorOpacity?: number;
       // Divider
       dividerStyle?: 'none' | 'underline' | 'full-width';
       dividerWidth?: string;
-      dividerColorKey?: 'primary' | 'secondary' | 'tertiary' | 'muted' | 'text-primary' | 'text-secondary' | 'text-muted' | 'custom1' | 'custom2' | 'custom3' | 'custom4';
+      dividerColorKey?: 'primary' | 'secondary' | 'tertiary' | 'muted' | 'text-primary' | 'text-secondary' | 'text-muted' | 'custom1' | 'custom2' | 'custom3' | 'custom4' | 'on-primary' | 'on-secondary' | 'on-tertiary' | 'on-muted' | 'on-custom1' | 'on-custom2' | 'on-custom3' | 'on-custom4';
       dividerColorOpacity?: number;
+      dividerGap?: string;
       // Shadow
       shadow?: 'none' | 'sm' | 'md' | 'lg';
     };
@@ -431,7 +434,7 @@ export interface TemplateConfig {
       colorPair?: 'primary' | 'secondary' | 'tertiary' | 'muted' | 'custom1' | 'custom2' | 'custom3' | 'custom4'; // Which semantic color pair to use
       backgroundOpacity?: number; // 0-1, opacity for background color
       textOpacity?: number; // 0-1, opacity for text color
-      textColorKey?: 'primary' | 'secondary' | 'tertiary' | 'muted' | 'text-primary' | 'text-secondary' | 'text-muted' | 'custom1' | 'custom2' | 'custom3' | 'custom4' | 'on-tertiary';
+      textColorKey?: 'primary' | 'secondary' | 'tertiary' | 'muted' | 'text-primary' | 'text-secondary' | 'text-muted' | 'custom1' | 'custom2' | 'custom3' | 'custom4' | 'on-primary' | 'on-secondary' | 'on-tertiary' | 'on-muted' | 'on-custom1' | 'on-custom2' | 'on-custom3' | 'on-custom4' | 'on-tertiary';
       backgroundColor?: string; // Legacy: direct color (will be deprecated)
       textColor?: string; // Legacy: direct color (will be deprecated)
       borderRadius: string;
@@ -447,7 +450,7 @@ export interface TemplateConfig {
       separator?: '·' | '|' | '•' | ',' | 'none'; // separator for inline style
     };
     dateLine: {
-      colorKey?: 'primary' | 'secondary' | 'tertiary' | 'muted' | 'text-primary' | 'text-secondary' | 'text-muted' | 'custom1' | 'custom2' | 'custom3' | 'custom4';
+      colorKey?: 'primary' | 'secondary' | 'tertiary' | 'muted' | 'text-primary' | 'text-secondary' | 'text-muted' | 'custom1' | 'custom2' | 'custom3' | 'custom4' | 'on-primary' | 'on-secondary' | 'on-tertiary' | 'on-muted' | 'on-custom1' | 'on-custom2' | 'on-custom3' | 'on-custom4';
       colorOpacity?: number;
       color?: string; // Legacy support
       fontStyle: 'normal' | 'italic';
@@ -485,9 +488,9 @@ export interface TemplateConfig {
       markerColor?: string;
     };
     links: {
-      colorKey?: 'primary' | 'secondary' | 'tertiary' | 'muted' | 'text-primary' | 'text-secondary' | 'text-muted' | 'custom1' | 'custom2' | 'custom3' | 'custom4';
+      colorKey?: 'primary' | 'secondary' | 'tertiary' | 'muted' | 'text-primary' | 'text-secondary' | 'text-muted' | 'custom1' | 'custom2' | 'custom3' | 'custom4' | 'on-primary' | 'on-secondary' | 'on-tertiary' | 'on-muted' | 'on-custom1' | 'on-custom2' | 'on-custom3' | 'on-custom4';
       colorOpacity?: number;
-      hoverColorKey?: 'primary' | 'secondary' | 'tertiary' | 'muted' | 'text-primary' | 'text-secondary' | 'text-muted' | 'custom1' | 'custom2' | 'custom3' | 'custom4';
+      hoverColorKey?: 'primary' | 'secondary' | 'tertiary' | 'muted' | 'text-primary' | 'text-secondary' | 'text-muted' | 'custom1' | 'custom2' | 'custom3' | 'custom4' | 'on-primary' | 'on-secondary' | 'on-tertiary' | 'on-muted' | 'on-custom1' | 'on-custom2' | 'on-custom3' | 'on-custom4';
       hoverColorOpacity?: number;
       color?: string; // Legacy support - Link color
       hoverColor?: string; // Legacy support - Hover state color
@@ -519,7 +522,7 @@ export interface TemplateConfig {
       format?: string;
       fontSize?: string;
       fontWeight?: number;
-      colorKey?: 'primary' | 'secondary' | 'tertiary' | 'muted' | 'text-primary' | 'text-secondary' | 'text-muted' | 'custom1' | 'custom2' | 'custom3' | 'custom4';
+      colorKey?: 'primary' | 'secondary' | 'tertiary' | 'muted' | 'text-primary' | 'text-secondary' | 'text-muted' | 'custom1' | 'custom2' | 'custom3' | 'custom4' | 'on-primary' | 'on-secondary' | 'on-tertiary' | 'on-muted' | 'on-custom1' | 'on-custom2' | 'on-custom3' | 'on-custom4';
       colorOpacity?: number;
       margin?: string;
     };

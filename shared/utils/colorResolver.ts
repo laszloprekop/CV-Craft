@@ -16,7 +16,15 @@ export type SemanticColorKey =
   | 'custom1'
   | 'custom2'
   | 'custom3'
-  | 'custom4';
+  | 'custom4'
+  | 'on-primary'
+  | 'on-secondary'
+  | 'on-tertiary'
+  | 'on-muted'
+  | 'on-custom1'
+  | 'on-custom2'
+  | 'on-custom3'
+  | 'on-custom4';
 
 /**
  * Resolves a semantic color key to its actual hex color value from the theme
@@ -47,6 +55,14 @@ export function resolveSemanticColor(
     'custom2': config.colors.custom2,
     'custom3': config.colors.custom3,
     'custom4': config.colors.custom4,
+    'on-primary': config.colors.onPrimary,
+    'on-secondary': config.colors.onSecondary,
+    'on-tertiary': config.colors.onTertiary || '#ffffff',
+    'on-muted': config.colors.onMuted || '#334155',
+    'on-custom1': config.colors.onCustom1,
+    'on-custom2': config.colors.onCustom2,
+    'on-custom3': config.colors.onCustom3,
+    'on-custom4': config.colors.onCustom4,
   };
 
   const hexColor = colorMap[colorKey] || config.colors.text.primary;

@@ -172,7 +172,8 @@ export const CVEditorPage: React.FC = () => {
     saveConfig(updated)
     setTimeout(() => {
       console.log(`[CVEditorPage] 💾 Saving to DB...`)
-      saveCv()
+      // Pass updated config directly to avoid stale closure
+      saveCv(updated)
       // Clear live changes after save
       setLiveConfigChanges(null)
     }, 100)

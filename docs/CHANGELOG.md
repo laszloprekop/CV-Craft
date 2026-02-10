@@ -2,6 +2,37 @@
 
 All notable changes to CV-Craft will be documented in this file.
 
+## [1.19.0] - 2026-02-10
+
+### Added
+- **Linked Color Pair Section** — New `ColorPairSection` component for heading editors (H1/H2/H3)
+  - Selecting a pair (e.g., "Custom 1") sets `backgroundColorKey` + `colorKey` (on-variant) together
+  - Includes text opacity and background opacity sliders
+  - Replaces the separate Background section for heading elements
+- **On-color semantic variants** — `on-primary`, `on-secondary`, `on-tertiary`, `on-muted`, `on-custom1–4`
+  - Added to `SemanticColorKey` union type, `colorResolver.ts`, and all UI controls
+  - Enables proper text-on-background color selection for heading elements
+- **Divider gap control** — New spacing slider for dividers on H1/H2/H3 headings
+  - CSS variables: `--name-divider-gap`, `--section-header-divider-gap`, `--job-title-divider-gap`
+- **Color swatch dropdowns** — `SemanticColorControl` replaced plain `<select>` with custom dropdown showing resolved color swatches
+- **Divider HTML in shared renderers** — `sectionRenderer.ts` and `layoutRenderer.ts` now emit divider `<div>` elements, controlled by `display: var(--*-divider-display, none)`
+
+### Fixed
+- **PDF preview config sync** — Changed preview-pdf endpoint from GET to POST; frontend sends current config directly in request body, bypassing stale database config
+- **Background opacity default** — Changed from `?? 0` (invisible) to `?? 1` (fully opaque) when `backgroundColorKey` is set
+- **Section header color fallbacks** — `--section-header-color` and `--section-header-background-color` now conditionally generated only when explicitly set, allowing two-column CSS fallbacks (`accent` for sidebar, `primary` for main) to work correctly
+- **Missing `cv-name` class** — Added to `<h1>` elements in `layoutRenderer.ts` so PDF name styling matches
+
+### Changed
+- "Divider Width" renamed to "Divider Thickness" in UI
+- `semanticCSS.ts` expanded with full CSS properties for H1/H2/H3 (line-height, font-style, border, shadow, `print-color-adjust`)
+- Two-column header CSS uses CSS variable fallback chain: `var(--section-header-color, var(--on-primary-color, #ffffff))`
+
+### Technical Insights
+- **Conditional CSS variable generation**: Section header color/background are only included in `:root` when user has explicitly set a color pair, otherwise omitted so layout-specific CSS fallbacks work
+- **POST config for PDF preview**: Avoids a class of stale-closure/save-timing bugs by sending config directly instead of relying on database state
+- **`useRef` for stable config**: PDF preview effect uses `configRef.current` to always send latest config without adding `config` as a dependency (which would cause constant PDF regeneration)
+
 ## [1.18.0] - 2026-02-06
 
 ### Added
