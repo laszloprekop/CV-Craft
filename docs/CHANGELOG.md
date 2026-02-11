@@ -2,6 +2,14 @@
 
 All notable changes to CV-Craft will be documented in this file.
 
+## [1.22.1] - 2026-02-11
+
+### Changed
+- **README.md rewrite** — Replace internal dev-state README with public-facing documentation: project description, features, tech stack, prerequisites, setup instructions, project structure, and command reference
+- **Port references updated** — Fix all documentation port references from 3000/3001 to 4200/4201 across ARCHITECTURE.md, API.md, DEV-SCRIPTS-README.md, and UNIFIED_RENDERING_STATUS.md
+- **ARCHITECTURE.md updated** — Bump version to 1.22.0, update TemplateConfigPanel tab structure from old 7-tab layout to current 4-tab layout (Colors/Styles/Page/Etc.) with Styles sub-tabs
+- **DEV-SCRIPTS-README.md updated** — Add note about pnpm being preferred, replace npm with pnpm commands, remove emojis
+
 ## [1.22.0] - 2026-02-11
 
 ### Added

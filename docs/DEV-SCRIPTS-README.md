@@ -1,5 +1,7 @@
 # CV-Craft Development Scripts
 
+> **Note:** These are legacy shell scripts from before the pnpm workspace setup. The recommended way to start development is `pnpm dev` from the project root. These scripts still work but reference the older process management approach.
+
 ## Quick Start
 
 ### Starting the Development Servers
@@ -9,22 +11,12 @@
 ```
 
 This script will:
-1. ✅ Check and kill any processes on ports 3000 and 3001
-2. ✅ Verify dependencies are installed
-3. ✅ Start backend on port 3001
-4. ✅ Start frontend on port 3000
-5. ✅ Monitor both servers and restart on crash
-6. ✅ Provide clear status messages with colors
-
-**What you'll see:**
-```
-🚀 CV-Craft Development Server Startup
-======================================
-✅ Backend:  http://localhost:3001
-🌐 Frontend: http://localhost:3000
-
-Press Ctrl+C to stop all servers
-```
+1. Check and kill any processes on ports 4200 and 4201
+2. Verify dependencies are installed
+3. Start backend on port 4201
+4. Start frontend on port 4200
+5. Monitor both servers and restart on crash
+6. Provide clear status messages
 
 ### Stopping the Servers
 
@@ -75,7 +67,7 @@ tail -n 50 backend.log
 
 Common issues:
 - TypeScript compilation errors
-- Missing dependencies: `cd backend && npm install`
+- Missing dependencies: `cd backend && pnpm install`
 - Database issues: Check `backend/cv-craft.db` exists
 
 ### Frontend Won't Start
@@ -86,8 +78,8 @@ tail -n 50 frontend.log
 ```
 
 Common issues:
-- Port 3000 still in use
-- Missing dependencies: `cd frontend && npm install`
+- Port 4200 still in use
+- Missing dependencies: `cd frontend && pnpm install`
 - Build errors in TypeScript
 
 ### Manual Port Cleanup
@@ -95,10 +87,10 @@ Common issues:
 If the stop script doesn't work:
 ```bash
 # Kill backend
-lsof -ti:3001 | xargs kill -9
+lsof -ti:4201 | xargs kill -9
 
 # Kill frontend
-lsof -ti:3000 | xargs kill -9
+lsof -ti:4200 | xargs kill -9
 ```
 
 ## Manual Startup (Alternative)
@@ -108,39 +100,20 @@ If you prefer to run servers manually:
 **Terminal 1 (Backend):**
 ```bash
 cd backend
-npm run dev
+pnpm dev
 ```
 
 **Terminal 2 (Frontend):**
 ```bash
 cd frontend
-npm run dev
+pnpm dev
 ```
-
-## Features
-
-### Auto-Recovery
-The startup script monitors both processes and will:
-- Display crash information
-- Show last 20 lines of logs
-- Cleanly shut down all servers
-
-### Color-Coded Output
-- 🟢 Green: Success messages
-- 🟡 Yellow: Information/warnings
-- 🔴 Red: Errors
-
-### Safety Checks
-- Verifies you're in the correct directory
-- Checks for existing processes before starting
-- Waits for servers to actually start (not just launch)
-- Validates port availability
 
 ## Environment
 
 **Default Ports:**
-- Backend: 3001
-- Frontend: 3000
+- Backend: 4201
+- Frontend: 4200
 
 **Database:**
 - Location: `backend/cv-craft.db`
@@ -149,20 +122,3 @@ The startup script monitors both processes and will:
 **Node Version:**
 - Minimum: Node 18+
 - Recommended: Node 20+
-
-## PDF Generation Testing
-
-Once servers are running, you can test the new PDF generation:
-
-1. Open http://localhost:3000
-2. Create or edit a CV
-3. Click the "PDF Preview" button to see paginated view
-4. Look for any yellow warning boxes about content overflow
-5. Click "Export → PDF" to generate actual PDF
-6. Check the generated PDF matches the preview
-
-**Expected behavior:**
-- PDF preview should show accurate page breaks
-- Overflow warnings appear if content is too large
-- Generated PDF should match preview exactly
-- PDFs saved to `backend/exports/` directory

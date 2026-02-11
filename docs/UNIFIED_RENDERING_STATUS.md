@@ -101,7 +101,7 @@ private generateHTML(cv, template, config) {
 
 **Testing:**
 ```bash
-curl -s http://localhost:3001/api/cvs/e1603823-d738-440f-907d-f29cbba14141/export/pdf -o /tmp/test.pdf
+curl -s http://localhost:4201/api/cvs/<cv-id>/export/pdf -o /tmp/test.pdf
 # ✅ PDF generates successfully with new shared renderer
 ```
 

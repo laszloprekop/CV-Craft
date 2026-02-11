@@ -1,6 +1,6 @@
 # CV-Craft Architecture Documentation
 
-**Version:** 1.17.0
+**Version:** 1.22.0
 **Last Updated:** February 2026
 
 ## Overview
@@ -103,13 +103,14 @@ App
         │   └── PreviewPane (CVPreview)
         ├── EditorRightHeader
         ├── TemplateConfigPanel
-        │   ├── Fonts Tab
-        │   ├── Colors Tab
-        │   ├── Typography Tab
-        │   ├── Layout Tab
-        │   ├── Components Tab
-        │   ├── PDF Tab
-        │   └── Advanced Tab
+        │   ├── Colors Tab (SemanticColorEditor)
+        │   ├── Styles Tab (SemanticElementEditor)
+        │   │   ├── Headings sub-tab (H1/H2/H3)
+        │   │   ├── Body sub-tab (text, list bullets)
+        │   │   ├── Org/Date sub-tab
+        │   │   └── Tags/Links sub-tab
+        │   ├── Page Tab (layout, margins, columns, PDF)
+        │   └── Etc. Tab (Google Fonts, custom CSS)
         ├── AssetUploader
         └── ExportPanel
 ```
@@ -398,25 +399,25 @@ pnpm test
 ```bash
 # Terminal 1: Backend
 cd backend
-pnpm dev  # Port 3001
+pnpm dev  # Port 4201
 
 # Terminal 2: Frontend
 cd frontend
-pnpm dev  # Port 3000
+pnpm dev  # Port 4200
 ```
 
 ### Environment Variables
 
 **Frontend (.env):**
 ```
-VITE_API_URL=http://localhost:3001/api
+VITE_API_URL=http://localhost:4201/api
 ```
 
 **Backend (.env):**
 ```
-PORT=3001
+PORT=4201
 DATABASE_PATH=cv-craft.db
-CORS_ORIGIN=http://localhost:3000
+CORS_ORIGIN=http://localhost:4200
 NODE_ENV=development
 ```
 

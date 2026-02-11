@@ -1,85 +1,118 @@
-# 🚀 CV-Craft Quick Start
+# CV-Craft
 
-## Your Servers Are Running! ✅
+A full-stack CV/Resume generator built with TypeScript. Write your CV in Markdown with YAML frontmatter, customize styling through a visual config panel, preview changes in real time, and export to PDF.
 
-**Backend:** http://localhost:3001
-**Frontend:** http://localhost:3000
+## Features
 
----
+- **Markdown-based editing** with Monaco Editor (syntax highlighting, autocomplete)
+- **YAML frontmatter** for structured contact information
+- **Real-time preview** with live CSS variable updates
+- **Template system** with saveable/loadable theme presets
+- **Semantic color system** with base color pairs, text colors, and custom palette slots
+- **Component-level styling** for headings, body text, list bullets, tags, dates, and more
+- **Two-column layout** with configurable sidebar/main split and per-column backgrounds
+- **PDF export** via Puppeteer with accurate A4 pagination
+- **Forced page breaks** using `<!-- break -->` markers in markdown
+- **Asset management** for profile photos and documents
+- **Auto-save** with debounced persistence to SQLite
 
-## Essential Commands
+## Tech Stack
 
-| Action | Command |
-|--------|---------|
-| **Start servers** | `./start-dev.sh` |
-| **Stop servers** | `./stop-dev.sh` or `Ctrl+C` |
-| **View logs** | `./view-logs.sh` |
-| **Open app** | `open http://localhost:3000` |
+| Layer | Technology |
+|-------|-----------|
+| Frontend | React 18, Vite, TypeScript, Tailwind CSS, styled-components |
+| Backend | Express, TypeScript, SQLite (better-sqlite3) |
+| Shared | `@cv-craft/shared` workspace package (types, utilities) |
+| PDF | Puppeteer (headless Chromium) |
+| Editor | Monaco Editor |
+| Testing | Vitest |
 
----
+## Prerequisites
 
-## What's New? 🎉
+- **Node.js** 18+ (20+ recommended)
+- **pnpm** 8+
 
-### 1. Accurate PDF Page Breaks
-PDF preview now uses **actual measurements** instead of estimates.
+## Getting Started
 
-### 2. Overflow Warnings
-Yellow warning box appears when content is too large for PDF pages.
-
-### 3. Real PDF Export
-"Export PDF" button now generates actual PDFs using Puppeteer that match the preview exactly.
-
-### 4. Safe Startup Scripts
-No more port conflicts or orphaned processes!
-
----
-
-## Test the New Features
-
-1. Open http://localhost:3000
-2. Create or edit a CV
-3. Click **"PDF"** button (top right)
-4. Look for **yellow warnings** if content overflows
-5. Click **"Export → PDF"** to generate PDF
-6. Compare exported PDF with preview
-
----
-
-## Troubleshooting
-
-**Servers won't start?**
 ```bash
-./stop-dev.sh
-./start-dev.sh
+# Clone the repository
+git clone <repo-url>
+cd CV-Craft
+
+# Install dependencies
+pnpm install
+
+# Start both frontend and backend
+pnpm dev
 ```
 
-**Need to see what's happening?**
-```bash
-./view-logs.sh
+- **Frontend:** http://localhost:4200
+- **Backend API:** http://localhost:4201/api
+- **Health check:** http://localhost:4201/health
+
+## Project Structure
+
+```
+CV-Craft/
+├── frontend/           # React + Vite web application
+│   └── src/
+│       ├── components/ # UI components (CVPreview, TemplateConfigPanel, etc.)
+│       ├── pages/      # Route pages (CVManagerPage, CVEditorPage)
+│       ├── hooks/      # Custom hooks (useCVEditor, useTemplates)
+│       ├── services/   # API client layer
+│       └── styles/     # Tailwind + styled-components
+│
+├── backend/            # Express API server
+│   └── src/
+│       ├── api/routes/ # REST endpoints (cvs, templates, assets)
+│       ├── services/   # Business logic (CVService, TemplateService)
+│       ├── lib/        # Core libraries (cv-parser, pdf-generator)
+│       └── database/   # SQLite schema and connection
+│
+├── shared/             # @cv-craft/shared workspace package
+│   ├── types/          # TypeScript interfaces (TemplateConfig, CVSection, etc.)
+│   └── utils/          # Shared utilities (cssVariableGenerator, colorResolver, sectionRenderer)
+│
+└── docs/               # Documentation
 ```
 
-**Port conflict?**
+## Commands
+
 ```bash
-lsof -ti:3000 | xargs kill -9
-lsof -ti:3001 | xargs kill -9
-./start-dev.sh
+# Development
+pnpm dev              # Start frontend + backend in parallel
+pnpm build            # Build all packages
+pnpm test             # Run all tests
+pnpm lint             # Lint all packages
+
+# Package-specific
+cd frontend && pnpm dev        # Frontend only (port 4200)
+cd backend && pnpm dev         # Backend only (port 4201)
+cd backend && pnpm test        # Backend tests
+cd frontend && pnpm test       # Frontend tests
 ```
 
----
+## How It Works
 
-## File Locations
+1. **Edit** your CV in Markdown with YAML frontmatter for contact details
+2. **Customize** colors, fonts, spacing, and component styles in the config panel
+3. **Preview** changes instantly in the browser with approximate page markers
+4. **Export** to PDF — the backend renders HTML through Puppeteer for pixel-accurate output
 
-- **Exported PDFs:** `backend/exports/`
-- **Database:** `backend/cv-craft.db`
-- **Server Logs:** `backend.log`, `frontend.log`
-
----
+The config panel has four tabs:
+- **Colors** — semantic color palette (primary, secondary, tertiary, muted, text, background, custom slots)
+- **Styles** — element-level controls for headings, body text, list bullets, tags, dates, links
+- **Page** — page dimensions, margins, column layout, PDF settings
+- **Etc.** — Google Fonts loading, custom CSS overrides
 
 ## Documentation
 
-- **Startup Scripts:** See `DEV-SCRIPTS-README.md`
-- **Implementation:** See `STARTUP-SUMMARY.md`
+- [Architecture](docs/ARCHITECTURE.md) — system design, data flow, patterns
+- [API Reference](docs/API.md) — REST endpoint documentation
+- [Database Schema](docs/DATABASE.md) — SQLite tables, indexes, JSON structures
+- [Changelog](docs/CHANGELOG.md) — version history
+- [Development Scripts](docs/DEV-SCRIPTS-README.md) — legacy shell script usage
 
----
+## License
 
-**Happy Coding! 🎨📄**
+MIT
