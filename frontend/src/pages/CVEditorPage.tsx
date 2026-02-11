@@ -42,7 +42,7 @@ export const CVEditorPage: React.FC = () => {
   const navigate = useNavigate()
 
   // React 18 Concurrent Features for non-blocking updates
-  const [isPending, startTransition] = useTransition()
+  const [isPending] = useTransition()
   
   // localStorage key for config panel visibility
   const CONFIG_PANEL_KEY = 'cv-craft-config-panel-visible'
@@ -130,9 +130,7 @@ export const CVEditorPage: React.FC = () => {
   // Debounced preview update (300ms as specified in SDD)
   const debouncedPreviewUpdate = useCallback(
     debounce((newContent: string) => {
-      startTransition(() => {
-        updateContent(newContent)
-      })
+      updateContent(newContent)
     }, 300),
     [updateContent]
   )

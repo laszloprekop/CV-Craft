@@ -2,6 +2,11 @@
 
 All notable changes to CV-Craft will be documented in this file.
 
+## [1.21.1] - 2026-02-11
+
+### Fixed
+- **Editor cursor jumping** — Remove `startTransition` from debounced Monaco editor content update to fix cursor jumping to end of document mid-typing; the 300ms debounce already prevents excessive re-renders, making the transition wrapper redundant and the source of a race condition with the controlled component pattern
+
 ## [1.21.0] - 2026-02-10
 
 ### Added
