@@ -95,6 +95,20 @@ CREATE INDEX IF NOT EXISTS idx_templates_active ON templates(is_active) WHERE is
 -- Template name lookup for uniqueness
 CREATE INDEX IF NOT EXISTS idx_templates_name ON templates(name);
 
+-- Saved themes table
+-- Stores named TemplateConfig presets that users can save, load, and reuse
+CREATE TABLE IF NOT EXISTS saved_themes (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL UNIQUE CHECK(LENGTH(name) <= 100),
+    config TEXT NOT NULL,  -- JSON TemplateConfig
+    template_id TEXT NOT NULL DEFAULT 'default-modern',
+    created_at INTEGER NOT NULL,
+    updated_at INTEGER NOT NULL,
+    FOREIGN KEY (template_id) REFERENCES templates(id) ON DELETE CASCADE
+);
+CREATE INDEX IF NOT EXISTS idx_saved_themes_name ON saved_themes(name);
+CREATE INDEX IF NOT EXISTS idx_saved_themes_updated ON saved_themes(updated_at);
+
 -- Schema setup complete
 -- Note: Default template data is inserted separately via init-data.sql
 

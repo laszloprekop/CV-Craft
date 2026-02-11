@@ -2,6 +2,26 @@
 
 All notable changes to CV-Craft will be documented in this file.
 
+## [1.21.0] - 2026-02-10
+
+### Added
+- **Theme management** — Save, load, rename, delete, and reset named TemplateConfig presets ("Saved Themes")
+- **`saved_themes` database table** — Stores named config snapshots with UNIQUE name constraint, FK to templates
+- **Backend CRUD** — `SavedThemeModel`, `SavedThemeService`, REST API at `/api/saved-themes` (GET, POST, PUT, DELETE)
+- **`SavedTheme` shared type** — New interface in `shared/types/index.ts` (distinct from existing UI `Theme`)
+- **`savedThemeApi` frontend client** — API service for saved theme operations
+- **`useSavedThemes` hook** — Manages theme list state with save/update/delete/rename actions
+- **Theme selector dropdown** — Replaces native template `<select>` in `EditorRightHeader` with custom dropdown featuring:
+  - "Modern Professional (Default)" always first with checkmark indicator
+  - User-saved themes with inline rename (pencil icon) and delete (trash icon with confirmation)
+  - "Save as Theme..." with inline name input
+  - "Update [active theme]" to overwrite current config into the active theme
+  - "Reset to Default" when a saved theme is active
+
+### Changed
+- `EditorRightHeader` accepts new theme management props: `savedThemes`, `activeThemeId`, `onLoadTheme`, `onSaveTheme`, `onUpdateTheme`, `onDeleteTheme`, `onRenameTheme`, `onResetToDefault`
+- `CVEditorPage` integrates `useSavedThemes` hook and `activeThemeId` state with handler functions
+
 ## [1.20.0] - 2026-02-10
 
 ### Added

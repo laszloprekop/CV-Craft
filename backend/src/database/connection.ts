@@ -234,7 +234,7 @@ export class DatabaseManager {
     const stats: Record<string, number | string> = {};
 
     // Table counts - whitelist table names to prevent SQL injection
-    const ALLOWED_TABLES = ['cv_instances', 'templates', 'assets', 'exports'] as const;
+    const ALLOWED_TABLES = ['cv_instances', 'templates', 'assets', 'exports', 'saved_themes'] as const;
     for (const table of ALLOWED_TABLES) {
       const result = this.db.prepare(`SELECT COUNT(*) as count FROM ${table}`).get() as { count: number };
       stats[`${table}_count`] = result.count;

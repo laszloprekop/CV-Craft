@@ -754,6 +754,16 @@ export type RequiredKeys<T, K extends keyof T> = T & Required<Pick<T, K>>;
 
 export type OptionalKeys<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
 
+// Saved theme preset (named TemplateConfig snapshot)
+export interface SavedTheme {
+  id: string
+  name: string
+  config: TemplateConfig
+  template_id: string
+  created_at: string
+  updated_at: string
+}
+
 // Theme types
 export interface Theme {
   colors: {

@@ -17,9 +17,10 @@ import { LoadingSpinner } from '../components/LoadingSpinner'
 import { EditorLeftHeader } from '../components/EditorLeftHeader'
 import { EditorRightHeader } from '../components/EditorRightHeader'
 import { TemplateConfigPanel } from '../components/TemplateConfigPanel'
-import { cvApi, templateApi, assetApi } from '../services/api'
+import { cvApi, assetApi } from '../services/api'
 import { useCVEditor } from '../hooks/useCVEditor'
 import { useTemplates } from '../hooks/useTemplates'
+import { useSavedThemes } from '../hooks/useSavedThemes'
 import {
   EditorContainer,
   EditorPane,
@@ -31,7 +32,7 @@ import {
   SaveStatus,
   ToolbarContainer
 } from '../styles/EditorStyles'
-import type { CVInstance, Template, TemplateSettings, TemplateConfig } from '../../../shared/types'
+import type { CVInstance, Template, TemplateSettings, TemplateConfig, SavedTheme } from '../../../shared/types'
 import { DEFAULT_TEMPLATE_CONFIG } from '../../../shared/types'
 
 export const CVEditorPage: React.FC = () => {
@@ -86,6 +87,16 @@ export const CVEditorPage: React.FC = () => {
     loadTemplate,
     templatesLoading
   } = useTemplates()
+
+  const {
+    themes: savedThemes,
+    saveTheme,
+    updateTheme,
+    deleteTheme,
+    renameTheme,
+  } = useSavedThemes()
+
+  const [activeThemeId, setActiveThemeId] = useState<string | null>(null)
 
   // Deep merge helper for nested config objects
   const deepMergeConfig = (prev: TemplateConfig, partial: Partial<TemplateConfig>): TemplateConfig => {
@@ -178,6 +189,44 @@ export const CVEditorPage: React.FC = () => {
       setLiveConfigChanges(null)
     }, 100)
   }, [saveConfig, saveCv, baseConfig, deepMergeConfig])
+
+  // Theme handlers
+  const handleLoadTheme = useCallback((theme: SavedTheme) => {
+    saveConfig(theme.config)
+    setLiveConfigChanges(null)
+    setActiveThemeId(theme.id)
+    setTimeout(() => saveCv(theme.config), 100)
+  }, [saveConfig, saveCv])
+
+  const handleSaveTheme = useCallback(async (name: string) => {
+    const templateId = activeTemplate?.id || 'default-modern'
+    const result = await saveTheme(name, effectiveConfig, templateId)
+    if (result) {
+      setActiveThemeId(result.id)
+    }
+  }, [saveTheme, effectiveConfig, activeTemplate])
+
+  const handleUpdateTheme = useCallback(async (id: string) => {
+    await updateTheme(id, { config: effectiveConfig })
+  }, [updateTheme, effectiveConfig])
+
+  const handleDeleteTheme = useCallback(async (id: string) => {
+    const success = await deleteTheme(id)
+    if (success && activeThemeId === id) {
+      setActiveThemeId(null)
+    }
+  }, [deleteTheme, activeThemeId])
+
+  const handleRenameTheme = useCallback(async (id: string, newName: string) => {
+    await renameTheme(id, newName)
+  }, [renameTheme])
+
+  const handleResetToDefault = useCallback(() => {
+    saveConfig(DEFAULT_TEMPLATE_CONFIG)
+    setLiveConfigChanges(null)
+    setActiveThemeId(null)
+    setTimeout(() => saveCv(DEFAULT_TEMPLATE_CONFIG), 100)
+  }, [saveConfig, saveCv])
 
   // New header handlers
   const handleImportMarkdown = useCallback((content: string, filename: string) => {
@@ -424,6 +473,14 @@ export const CVEditorPage: React.FC = () => {
             isSaving={saveStatus === 'saving'}
             showEditor={showEditor}
             showConfig={showConfig}
+            savedThemes={savedThemes}
+            activeThemeId={activeThemeId}
+            onLoadTheme={handleLoadTheme}
+            onSaveTheme={handleSaveTheme}
+            onUpdateTheme={handleUpdateTheme}
+            onDeleteTheme={handleDeleteTheme}
+            onRenameTheme={handleRenameTheme}
+            onResetToDefault={handleResetToDefault}
             onTemplateChange={handleTemplateChange}
             onZoomChange={handleZoomChange}
             onZoomIn={handleZoomIn}

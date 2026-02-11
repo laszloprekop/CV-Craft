@@ -144,6 +144,7 @@ export class CVCraftApp {
     const cvRoutes = require('./api/routes/cvs').default;
     const templateRoutes = require('./api/routes/templates').default;
     const assetRoutes = require('./api/routes/assets').default;
+    const savedThemeRoutes = require('./api/routes/savedThemes').default;
     // TODO: Add additional route imports as they are implemented
     // import exportRoutes from './api/routes/exports';
 
@@ -151,6 +152,7 @@ export class CVCraftApp {
     apiRouter.use('/cvs', cvRoutes);
     apiRouter.use('/templates', templateRoutes);
     apiRouter.use('/assets', assetRoutes);
+    apiRouter.use('/saved-themes', savedThemeRoutes);
     // TODO: Mount additional routes as they are implemented
     // apiRouter.use('/exports', exportRoutes);
 

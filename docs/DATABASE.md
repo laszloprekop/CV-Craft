@@ -105,6 +105,24 @@ Tracks generated PDF and web package exports.
 
 ---
 
+### saved_themes
+
+Stores named TemplateConfig presets that users can save, load, and reuse.
+
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| id | TEXT | PRIMARY KEY | UUID identifier |
+| name | TEXT | NOT NULL, UNIQUE, max 100 chars | Theme display name |
+| config | TEXT | NOT NULL | JSON: TemplateConfig snapshot |
+| template_id | TEXT | NOT NULL, DEFAULT 'default-modern' | Associated template |
+| created_at | INTEGER | NOT NULL | Unix timestamp |
+| updated_at | INTEGER | NOT NULL | Unix timestamp |
+
+**Foreign Keys:**
+- `template_id` → `templates(id)` ON DELETE CASCADE
+
+---
+
 ## Indexes
 
 ### Performance Indexes
@@ -119,6 +137,8 @@ Tracks generated PDF and web package exports.
 | idx_exports_expires | exports | expires_at (WHERE NOT NULL) | Find expired exports |
 | idx_templates_active | templates | is_active (WHERE is_active=1) | Active templates lookup |
 | idx_templates_name | templates | name | Template name searches |
+| idx_saved_themes_name | saved_themes | name | Theme name uniqueness/lookup |
+| idx_saved_themes_updated | saved_themes | updated_at | Sort themes by recent |
 
 ---
 
@@ -258,13 +278,16 @@ Tracks generated PDF and web package exports.
 
 ```
 templates (1) ←──── (N) cv_instances
-                          │
-                          ├──── (N) assets
-                          │
-                          └──── (N) exports
+    │                     │
+    │                     ├──── (N) assets
+    │                     │
+    │                     └──── (N) exports
+    │
+    └──── (N) saved_themes
 ```
 
 - A **template** can be used by many **CVs**
+- A **template** can have many **saved themes** (cascade delete)
 - A **CV** can have many **assets** (cascade delete)
 - A **CV** can have many **exports** (cascade delete)
 - Deleting a template with CVs is prevented (RESTRICT)

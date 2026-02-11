@@ -5,7 +5,7 @@
  */
 
 import axios from 'axios'
-import type { CVInstance, Template, Asset, Export, TemplateSettings, TemplateConfig } from '../../../shared/types'
+import type { CVInstance, Template, Asset, Export, TemplateSettings, TemplateConfig, SavedTheme } from '../../../shared/types'
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:4201/api'
 
@@ -264,6 +264,28 @@ export const exportApi = {
   getDownloadUrl(exportRecord: any): string {
     // The backend returns the file_path directly, so we can construct a download URL
     return `${API_BASE_URL.replace('/api', '')}/${exportRecord.file_path}`
+  }
+}
+
+// Saved Theme API
+export const savedThemeApi = {
+  async list(): Promise<ApiResponse<SavedTheme[]>> {
+    const response = await api.get('/saved-themes')
+    return response.data
+  },
+
+  async create(data: { name: string; config: TemplateConfig; template_id: string }): Promise<ApiResponse<SavedTheme>> {
+    const response = await api.post('/saved-themes', data)
+    return response.data
+  },
+
+  async update(id: string, data: { name?: string; config?: TemplateConfig }): Promise<ApiResponse<SavedTheme>> {
+    const response = await api.put(`/saved-themes/${id}`, data)
+    return response.data
+  },
+
+  async delete(id: string): Promise<void> {
+    await api.delete(`/saved-themes/${id}`)
   }
 }
 

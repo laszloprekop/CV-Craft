@@ -399,6 +399,72 @@ POST /api/templates/validate
 
 ---
 
+## Saved Theme Endpoints
+
+### List Saved Themes
+```
+GET /api/saved-themes
+```
+
+**Response:** Array of SavedTheme objects (ordered by updated_at DESC)
+
+---
+
+### Create Saved Theme
+```
+POST /api/saved-themes
+```
+
+**Request Body:**
+```json
+{
+  "name": "My Custom Theme",
+  "config": { ... },
+  "template_id": "default-modern"
+}
+```
+
+**Response:** `201 Created` with SavedTheme
+
+---
+
+### Get Saved Theme
+```
+GET /api/saved-themes/:id
+```
+
+**Response:** SavedTheme object
+
+---
+
+### Update Saved Theme
+```
+PUT /api/saved-themes/:id
+```
+
+**Request Body:**
+```json
+{
+  "name": "Renamed Theme",
+  "config": { ... }
+}
+```
+
+All fields are optional.
+
+**Response:** Updated SavedTheme
+
+---
+
+### Delete Saved Theme
+```
+DELETE /api/saved-themes/:id
+```
+
+**Response:** `204 No Content`
+
+---
+
 ## Asset Endpoints
 
 ### Upload Asset
