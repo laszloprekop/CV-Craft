@@ -55,13 +55,13 @@ const COLOR_OPTIONS: ColorOption[] = [
   { value: 'on-custom3', label: 'On Custom 3', bgKey: 'on-custom3', fgKey: 'custom3', group: 'on' },
   { value: 'on-custom4', label: 'On Custom 4', bgKey: 'on-custom4', fgKey: 'custom4', group: 'on' },
   // Text colors — shown on neutral background
-  { value: 'text-primary', label: 'Text Primary', bgKey: '', fgKey: 'text-primary', group: 'text' },
-  { value: 'text-secondary', label: 'Text Secondary', bgKey: '', fgKey: 'text-secondary', group: 'text' },
-  { value: 'text-muted', label: 'Text Muted', bgKey: '', fgKey: 'text-muted', group: 'text' },
-  { value: 'on-custom1', label: 'Text Custom 1', bgKey: '', fgKey: 'on-custom1', group: 'text' },
-  { value: 'on-custom2', label: 'Text Custom 2', bgKey: '', fgKey: 'on-custom2', group: 'text' },
-  { value: 'on-custom3', label: 'Text Custom 3', bgKey: '', fgKey: 'on-custom3', group: 'text' },
-  { value: 'on-custom4', label: 'Text Custom 4', bgKey: '', fgKey: 'on-custom4', group: 'text' },
+  { value: 'text-primary', label: 'On Background', bgKey: '', fgKey: 'text-primary', group: 'text' },
+  { value: 'text-secondary', label: 'On Background (Light)', bgKey: '', fgKey: 'text-secondary', group: 'text' },
+  { value: 'text-muted', label: 'On Background (Muted)', bgKey: '', fgKey: 'text-muted', group: 'text' },
+  { value: 'on-custom1', label: 'On Custom 1', bgKey: '', fgKey: 'on-custom1', group: 'text' },
+  { value: 'on-custom2', label: 'On Custom 2', bgKey: '', fgKey: 'on-custom2', group: 'text' },
+  { value: 'on-custom3', label: 'On Custom 3', bgKey: '', fgKey: 'on-custom3', group: 'text' },
+  { value: 'on-custom4', label: 'On Custom 4', bgKey: '', fgKey: 'on-custom4', group: 'text' },
 ];
 
 const GROUP_LABELS: Record<string, string> = {

@@ -23,7 +23,7 @@ import {
   getFixedBackgroundCSS,
   getAdvancedEffectsCSS
 } from './semanticCSS'
-import { getAllPaginationCSS } from './paginationCSS'
+import { getAllPaginationCSS, getPaginationCSS } from './paginationCSS'
 import { renderContactInfo, CONTACT_ICONS } from './contactRenderer'
 import { renderProfilePhoto } from './photoRenderer'
 
@@ -94,14 +94,41 @@ export function isSidebarSection(section: CVSection): boolean {
 }
 
 /**
- * Split sections into sidebar and main content
+ * Check if a section is a break marker (synthetic <!-- break --> section)
+ */
+function isBreakMarker(section: CVSection): boolean {
+  return !!section.breakBefore && !section.title
+}
+
+/**
+ * Split sections into sidebar and main content.
+ * Break markers are assigned to the same column as the preceding section.
  */
 export function splitSections(sections: CVSection[]): {
   sidebarSections: CVSection[]
   mainSections: CVSection[]
 } {
-  const sidebarSections = sections.filter(s => isSidebarSection(s))
-  const mainSections = sections.filter(s => !isSidebarSection(s))
+  const sidebarSections: CVSection[] = []
+  const mainSections: CVSection[] = []
+  let lastWasSidebar = false
+
+  for (const section of sections) {
+    if (isBreakMarker(section)) {
+      // Route break marker to whichever column the previous section belonged to
+      if (lastWasSidebar) {
+        sidebarSections.push(section)
+      } else {
+        mainSections.push(section)
+      }
+    } else if (isSidebarSection(section)) {
+      sidebarSections.push(section)
+      lastWasSidebar = true
+    } else {
+      mainSections.push(section)
+      lastWasSidebar = false
+    }
+  }
+
   return { sidebarSections, mainSections }
 }
 
@@ -235,6 +262,11 @@ function renderSidebarSections(
 ): string {
   return sections
     .map(section => {
+      // Break-only marker section: emit just the forced-break div
+      if (section.breakBefore && !section.title && (!section.content || (typeof section.content === 'string' && !section.content.trim()) || (Array.isArray(section.content) && section.content.length === 0))) {
+        return '<div class="forced-break"></div>'
+      }
+
       const isSkillsSection =
         section.type === 'skills' ||
         section.title?.toLowerCase().includes('skill') ||
@@ -281,12 +313,10 @@ export function generateCVCSS(
   // Resolve colors from config if not provided
   const resolvedSidebarColor = sidebarColor ||
     cssVariables['--surface-color'] ||
-    config.colors.secondary ||
-    '#f5f0e8'
+    config.colors.secondary
   const resolvedMainColor = mainColor ||
     cssVariables['--background-color'] ||
-    config.colors.background ||
-    '#ffffff'
+    config.colors.background
 
   let css = `
 :root {
@@ -435,8 +465,8 @@ export function generateCVDocument(
   const useTwoColumn = true // Default to two-column for now
 
   // Resolve background colors
-  const sidebarColor = cssVariables['--surface-color'] || config.colors.secondary || '#f5f0e8'
-  const mainColor = cssVariables['--background-color'] || config.colors.background || '#ffffff'
+  const sidebarColor = cssVariables['--surface-color'] || config.colors.secondary
+  const mainColor = cssVariables['--background-color'] || config.colors.background
 
   // Generate CSS
   const css = generateCVCSS(config, {
@@ -572,10 +602,11 @@ export function generateColumnHTML(options: ColumnRenderOptions): string {
   css += getNameHeaderCSS()
   css += getSemanticCSS()
   css += getTwoColumnHeaderCSS()
+  css += getPaginationCSS()
 
   const bgColor = column === 'sidebar'
-    ? (cssVariables['--surface-color'] || config.colors.secondary || '#f5f0e8')
-    : (cssVariables['--background-color'] || config.colors.background || '#ffffff')
+    ? (cssVariables['--surface-color'] || config.colors.secondary)
+    : (cssVariables['--background-color'] || config.colors.background)
 
   return `
 <!DOCTYPE html>
@@ -619,7 +650,7 @@ export function generateColumnHTML(options: ColumnRenderOptions): string {
 
     .column-content {
       padding: ${innerPadding};
-      color: ${column === 'sidebar' ? 'var(--on-secondary-color, #4a3d2a)' : 'var(--text-color)'};
+      color: ${column === 'sidebar' ? 'var(--on-secondary-color, var(--text-color))' : 'var(--text-color)'};
     }
 
     ${css}

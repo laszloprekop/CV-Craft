@@ -128,14 +128,14 @@ export function getContactCSS(): string {
   align-items: center;
   gap: var(--contact-spacing, 8px);
   font-size: var(--contact-font-size, var(--small-font-size));
-  color: var(--on-secondary-color, #4a3d2a);
+  color: var(--on-secondary-color, var(--text-color));
 }
 
 .contact-item svg {
   flex-shrink: 0;
   width: var(--contact-icon-size, 14px);
   height: var(--contact-icon-size, 14px);
-  color: var(--contact-icon-color, var(--on-secondary-color, #4a3d2a));
+  color: var(--contact-icon-color, var(--on-secondary-color, var(--text-color)));
 }
 
 .contact-item a {
@@ -366,7 +366,7 @@ export function getSemanticCSS(): string {
 }
 
 .entry-bullets {
-  list-style-type: disc;
+  list-style-type: var(--bullet-level1-style, disc);
   margin-left: var(--bullet-level1-indent, 1.5rem);
   padding-left: 0;
   font-size: var(--small-font-size);
@@ -384,7 +384,7 @@ export function getSemanticCSS(): string {
 /* Nested lists (level 2) */
 .entry-bullets ul,
 .entry-bullets ol {
-  list-style-type: circle;
+  list-style-type: var(--bullet-level2-style, circle);
   margin-left: var(--bullet-level2-indent, 1.5rem);
 }
 
@@ -398,7 +398,7 @@ export function getSemanticCSS(): string {
 .entry-bullets ol ol,
 .entry-bullets ul ol,
 .entry-bullets ol ul {
-  list-style-type: square;
+  list-style-type: var(--bullet-level3-style, square);
   margin-left: var(--bullet-level3-indent, 1.5rem);
 }
 
@@ -441,7 +441,7 @@ export function getSemanticCSS(): string {
   font-family: var(--heading-font-family);
   font-size: var(--small-font-size);
   font-weight: 600;
-  color: var(--on-secondary-color, #4a3d2a);
+  color: var(--on-secondary-color, var(--text-color));
   margin-bottom: 0.5rem;
 }
 
@@ -468,7 +468,7 @@ export function getSemanticCSS(): string {
 .skill-inline {
   font-family: var(--font-family);
   font-size: var(--tag-font-size-custom, var(--small-font-size));
-  color: var(--on-secondary-color, #4a3d2a);
+  color: var(--on-secondary-color, var(--text-color));
 }
 
 /* Header styling */
@@ -566,7 +566,7 @@ export function getSemanticCSS(): string {
 .sidebar .skill-list,
 .sidebar .skill-item,
 .sidebar .content-text {
-  color: var(--on-secondary-color, #4a3d2a);
+  color: var(--on-secondary-color, var(--text-color));
 }
 
 .sidebar,
@@ -575,7 +575,7 @@ export function getSemanticCSS(): string {
 .sidebar .entry-company,
 .sidebar .entry-description,
 .sidebar .content-text {
-  color: var(--on-secondary-color, #4a3d2a);
+  color: var(--on-secondary-color, var(--text-color));
 }
 
 /* Reduce bullet indentation in sidebar to prevent overflow */

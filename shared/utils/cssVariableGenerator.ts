@@ -5,7 +5,7 @@
  */
 
 import type { TemplateConfig } from '../types';
-import { resolveSemanticColor, resolveColorPair, hexToRgba } from './colorResolver';
+import { resolveSemanticColor, resolveColorPair, hexToRgba, type SemanticColorKey } from './colorResolver';
 
 /**
  * Calculate font size based on scale and base font size
@@ -542,9 +542,18 @@ export function generateCSSVariables(config: TemplateConfig): Record<string, str
     '--emphasis-color': config.components.emphasis?.color || config.colors.text.primary,
 
     // Bullet Lists (Multi-level)
-    '--bullet-level1-color': config.components.list?.level1?.color || config.colors.primary,
-    '--bullet-level2-color': config.components.list?.level2?.color || config.colors.text.secondary,
-    '--bullet-level3-color': config.components.list?.level3?.color || config.colors.text.muted,
+    '--bullet-level1-color': (config.components.list?.level1?.colorKey ? resolveSemanticColor(config.components.list.level1.colorKey as SemanticColorKey, config) : undefined) || config.components.list?.level1?.color || config.colors.primary,
+    '--bullet-level2-color': (config.components.list?.level2?.colorKey ? resolveSemanticColor(config.components.list.level2.colorKey as SemanticColorKey, config) : undefined) || config.components.list?.level2?.color || config.colors.text.secondary,
+    '--bullet-level3-color': (config.components.list?.level3?.colorKey ? resolveSemanticColor(config.components.list.level3.colorKey as SemanticColorKey, config) : undefined) || config.components.list?.level3?.color || config.colors.text.muted,
+    '--bullet-level1-style': config.components.list?.level1?.bulletStyle === 'custom'
+      ? `'${config.components.list.level1.customBullet || '▸'}'`
+      : (config.components.list?.level1?.bulletStyle || 'disc'),
+    '--bullet-level2-style': config.components.list?.level2?.bulletStyle === 'custom'
+      ? `'${config.components.list.level2.customBullet || '▸'}'`
+      : (config.components.list?.level2?.bulletStyle || 'circle'),
+    '--bullet-level3-style': config.components.list?.level3?.bulletStyle === 'custom'
+      ? `'${config.components.list.level3.customBullet || '▸'}'`
+      : (config.components.list?.level3?.bulletStyle || 'square'),
     '--bullet-level1-indent': config.components.list?.level1?.indent || '20px',
     '--bullet-level2-indent': config.components.list?.level2?.indent || '40px',
     '--bullet-level3-indent': config.components.list?.level3?.indent || '60px',

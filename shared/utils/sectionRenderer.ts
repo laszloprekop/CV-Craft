@@ -32,6 +32,11 @@ export function renderSections(sections: CVSection[], options: RenderOptions = {
  * pagination with smart groupings (entry-start, entry-bullet-bridge).
  */
 function renderSection(section: CVSection, pagination: boolean, prefix: string, separator: string): string {
+  // Break-only marker section: emit just the forced-break div
+  if (section.breakBefore && !section.title && (!section.content || (typeof section.content === 'string' && !section.content.trim()) || (Array.isArray(section.content) && section.content.length === 0))) {
+    return `<div class="${prefix}forced-break"></div>`
+  }
+
   const sectionClass = `${prefix}cv-section`
 
   return `

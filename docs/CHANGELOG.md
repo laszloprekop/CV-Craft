@@ -2,6 +2,24 @@
 
 All notable changes to CV-Craft will be documented in this file.
 
+## [1.22.0] - 2026-02-11
+
+### Added
+- **Bullet list customization UI** — Wire up `MultiLevelBulletPicker` in Styles > Body > List Bullets with per-level bullet style, semantic color, and indent controls
+- **`--bullet-level{1,2,3}-style` CSS variables** — Bullet style (disc/circle/square/none/custom) now flows through CSS variables to `list-style-type`, enabling live preview and PDF rendering
+- **Semantic color for bullet markers** — Replace hex color picker with `SemanticColorControl` dropdown and add `colorKey` field to `BulletLevelConfig` type
+
+### Changed
+- **Consistent "On X" naming** — Rename "Text Primary/Secondary/Muted" to "On Background/On Background (Light)/On Background (Muted)" and "Text Custom 1-4" to "On Custom 1-4" in `SemanticColorControl` dropdown to match Colors tab naming convention
+
+### Fixed
+- **Hardcoded color fallbacks** — Remove hardcoded `#f5f0e8`, `#ffffff`, `#4a3d2a` from `layoutRenderer.ts`, `semanticCSS.ts`, and `CVPreview.tsx`; replace with `var(--text-color)` CSS fallbacks or config-derived values so customized column colors are never overridden
+- **Bullet color regression** — Guard `resolveSemanticColor` calls in CSS variable generator to only fire when `colorKey` is explicitly set; prevents `resolveSemanticColor(undefined)` returning `text.primary` and short-circuiting the fallback chain
+- **`onCommit` prop not destructured** — Add `onCommit` to `SemanticElementEditor` component destructuring so bullet config changes persist to database
+
+### Technical Insights
+- `resolveSemanticColor(undefined, config)` returns `config.colors.text.primary` (a truthy string), not `undefined` — never use it in an `||` fallback chain without guarding for the key being set first
+
 ## [1.21.1] - 2026-02-11
 
 ### Fixed

@@ -41,6 +41,7 @@ export interface CVSection {
   title?: string;
   content: string | CVListItem[] | CVExperienceItem[] | CVEducationItem[] | string[] | any[];
   level?: number; // for headings (1-6)
+  breakBefore?: boolean; // forced page break before this section (from <!-- break --> marker)
 }
 
 export interface CVListItem {
@@ -478,18 +479,21 @@ export interface TemplateConfig {
         bulletStyle?: 'disc' | 'circle' | 'square' | 'none' | 'custom';
         customBullet?: string;
         color?: string;
+        colorKey?: string;
         indent?: string;
       };
       level2?: {
         bulletStyle?: 'disc' | 'circle' | 'square' | 'none' | 'custom';
         customBullet?: string;
         color?: string;
+        colorKey?: string;
         indent?: string;
       };
       level3?: {
         bulletStyle?: 'disc' | 'circle' | 'square' | 'none' | 'custom';
         customBullet?: string;
         color?: string;
+        colorKey?: string;
         indent?: string;
       };
       // Legacy support

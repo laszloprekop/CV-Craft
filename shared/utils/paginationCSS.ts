@@ -58,76 +58,58 @@ export function getPaginationCSS(): string {
    Prevent orphaned headers and awkward breaks
    ======================================== */
 
-/* Section headers should not be orphaned */
+/* ── Headers: never orphaned ─────────────────── */
 .section-header,
 h2.section-header {
   page-break-after: avoid;
   break-after: avoid;
-  orphans: 2;
-  widows: 2;
 }
 
-/* Keep headers with following content */
 h1, h2, h3, h4, h5, h6 {
   page-break-after: avoid;
   break-after: avoid;
 }
 
-/* Entry start group - header + first content */
+/* ── Sections & entries: allow natural flow ──── */
+/* Sections flow freely across pages.
+   Headers stay with content via break-after:avoid above. */
+.cv-section {
+  page-break-inside: auto;
+  break-inside: auto;
+}
+
+/* Entries flow freely — only their header group is kept together. */
+.entry {
+  page-break-inside: auto;
+  break-inside: auto;
+}
+
+/* ── Smart keep-together groups (small, fixed-size) ── */
+/* Entry header + first 1-2 description paragraphs */
 .entry-start {
   page-break-inside: avoid;
   break-inside: avoid;
 }
 
-/* Bridge between description and bullets */
+/* Last description paragraph + first bullet */
 .entry-bullet-bridge {
   page-break-inside: avoid;
   break-inside: avoid;
 }
 
-/* Sections can break but prefer to stay together */
-.cv-section {
-  page-break-inside: avoid;
-  break-inside: avoid;
-}
-
-/* Allow long sections to break */
-.cv-section.can-break {
-  page-break-inside: auto;
-  break-inside: auto;
-}
-
-/* Individual entries prefer not to break */
-.entry {
-  page-break-inside: avoid;
-  break-inside: avoid;
-}
-
-/* Allow breaking between bullets after first */
-.entry-bullets-continue {
-  page-break-inside: auto;
-  break-inside: auto;
-}
-
-/* Description continuation can break */
-.entry-description-continue {
-  page-break-inside: auto;
-  break-inside: auto;
-}
-
-/* Skills should stay together */
+/* Skill category (title + tags row) */
 .skill-category-block {
   page-break-inside: avoid;
   break-inside: avoid;
 }
 
-/* Contact info should stay together */
+/* Contact info block */
 .contact-info {
   page-break-inside: avoid;
   break-inside: avoid;
 }
 
-/* Photo container should stay together */
+/* Profile photo */
 .photo-container {
   page-break-inside: avoid;
   break-inside: avoid;
@@ -139,28 +121,36 @@ h1, h2, h3, h4, h5, h6 {
   break-inside: avoid;
 }
 
-/* Orphan and widow control for paragraphs */
+/* ── Continuations: break freely ─────────────── */
+.entry-bullets-continue,
+.entry-description-continue {
+  page-break-inside: auto;
+  break-inside: auto;
+}
+
+/* ── Lists: allow breaks between items ───────── */
+ul, ol {
+  page-break-inside: auto;
+  break-inside: auto;
+}
+
+/* Individual list items stay whole */
+li {
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+
+/* ── Paragraphs ──────────────────────────────── */
 p {
   orphans: 2;
   widows: 2;
 }
 
-/* Lists control */
-ul, ol {
-  page-break-inside: avoid;
-  break-inside: avoid;
-}
-
-/* Allow long lists to break */
-ul.can-break, ol.can-break {
-  page-break-inside: auto;
-  break-inside: auto;
-}
-
-/* List items prefer not to break */
-li {
-  page-break-inside: avoid;
-  break-inside: avoid;
+/* ── Forced page break (<!-- break --> marker) ── */
+.forced-break {
+  page-break-before: always;
+  break-before: page;
+  height: 0;
 }
 `
 }

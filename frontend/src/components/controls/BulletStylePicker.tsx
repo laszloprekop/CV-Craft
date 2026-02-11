@@ -5,16 +5,17 @@
  */
 
 import React from 'react';
-import { ColorControl } from './ColorControl';
-import { SelectControl } from './SelectControl';
 import { SpacingControl } from './SpacingControl';
+import { SemanticColorControl } from './SemanticColorControl';
 
 type BulletStyle = 'disc' | 'circle' | 'square' | 'none' | 'custom';
+type SemanticColor = 'primary' | 'secondary' | 'tertiary' | 'muted' | 'text-primary' | 'text-secondary' | 'text-muted' | 'custom1' | 'custom2' | 'custom3' | 'custom4' | 'on-primary' | 'on-secondary' | 'on-tertiary' | 'on-muted' | 'on-custom1' | 'on-custom2' | 'on-custom3' | 'on-custom4';
 
 interface BulletLevelConfig {
   bulletStyle?: BulletStyle;
   customBullet?: string;
   color?: string;
+  colorKey?: string;
   indent?: string;
 }
 
@@ -24,14 +25,22 @@ interface BulletStylePickerProps {
   value: BulletLevelConfig;
   onChange: (value: BulletLevelConfig) => void;
   onChangeComplete?: (value: BulletLevelConfig) => void;
+  resolvedColors?: Record<string, string>;
 }
 
+const STYLE_OPTIONS: { value: BulletStyle; preview: string }[] = [
+  { value: 'disc', preview: '●' },
+  { value: 'circle', preview: '○' },
+  { value: 'square', preview: '■' },
+  { value: 'none', preview: '—' },
+];
+
 export const BulletStylePicker: React.FC<BulletStylePickerProps> = ({
-  level,
   label,
   value,
   onChange,
   onChangeComplete,
+  resolvedColors,
 }) => {
   const update = (partial: Partial<BulletLevelConfig>) => {
     onChange({ ...value, ...partial });
@@ -43,63 +52,60 @@ export const BulletStylePicker: React.FC<BulletStylePickerProps> = ({
     }
   };
 
-  const bulletOptions = [
-    { value: 'disc', label: '● Disc', preview: '●' },
-    { value: 'circle', label: '○ Circle', preview: '○' },
-    { value: 'square', label: '■ Square', preview: '■' },
-    { value: 'none', label: 'None', preview: '' },
-    { value: 'custom', label: 'Custom', preview: value.customBullet || '▸' },
-  ];
+  const isCustom = value.bulletStyle === 'custom';
 
   return (
-    <div className="mb-2 p-2 border border-border rounded bg-surface/30">
-      <h6 className="text-[10px] font-semibold text-text-primary mb-1.5">{label}</h6>
+    <div className="mb-2">
+      <h6 className="text-[10px] font-semibold text-text-primary mb-1">{label}</h6>
 
-      {/* Bullet Style Selector */}
-      <div className="grid grid-cols-2 gap-1 mb-2">
-        {bulletOptions.map((option) => (
+      {/* Bullet style selector — horizontal row */}
+      <div className="flex gap-1 mb-1.5">
+        {STYLE_OPTIONS.map((option) => (
           <button
             key={option.value}
-            onClick={() => update({ bulletStyle: option.value as BulletStyle })}
-            className={`text-[10px] px-2 py-1.5 border rounded flex items-center gap-1 transition-all ${
-              value.bulletStyle === option.value
-                ? 'border-primary bg-primary/10 text-primary font-medium'
+            onClick={() => update({ bulletStyle: option.value })}
+            className={`text-sm w-7 h-7 flex items-center justify-center border rounded transition-all ${
+              !isCustom && value.bulletStyle === option.value
+                ? 'border-primary bg-primary/10 text-primary'
                 : 'border-border hover:border-primary/50 text-text-secondary'
             }`}
+            title={option.value}
           >
-            <span className="text-xs">{option.preview}</span>
-            <span>{option.label.replace(/^[●○■]\s/, '')}</span>
+            {option.preview}
           </button>
         ))}
+        {/* Custom bullet inline input */}
+        <input
+          type="text"
+          value={isCustom ? (value.customBullet || '') : ''}
+          onChange={(e) => {
+            const v = e.target.value;
+            update({ bulletStyle: 'custom', customBullet: v });
+          }}
+          onFocus={() => {
+            if (!isCustom) update({ bulletStyle: 'custom' });
+          }}
+          onBlur={(e) => commit({ bulletStyle: 'custom', customBullet: e.target.value })}
+          maxLength={3}
+          placeholder="▸"
+          className={`w-7 h-7 text-sm text-center border rounded transition-all focus:outline-none focus:border-primary ${
+            isCustom
+              ? 'border-primary bg-primary/10 text-primary'
+              : 'border-border text-text-secondary'
+          }`}
+          title="Custom character"
+        />
       </div>
 
-      {/* Custom Bullet Character */}
-      {value.bulletStyle === 'custom' && (
-        <div className="mb-2">
-          <label className="block text-[10px] font-medium text-text-primary mb-1">
-            Custom Character
-          </label>
-          <input
-            type="text"
-            value={value.customBullet || ''}
-            onChange={(e) => update({ customBullet: e.target.value })}
-            onBlur={(e) => commit({ customBullet: e.target.value })}
-            maxLength={3}
-            placeholder="▸"
-            className="w-full px-2 py-1 text-xs border border-border rounded bg-background text-text-primary focus:outline-none focus:border-primary text-center"
-          />
-        </div>
-      )}
-
-      {/* Bullet Color */}
-      <ColorControl
+      {/* Color + Indent row */}
+      <SemanticColorControl
         label="Color"
-        value={value.color || '#000000'}
-        onChange={(val) => update({ color: val })}
-        onChangeComplete={(val) => commit({ color: val })}
+        colorKey={(value.colorKey || 'primary') as SemanticColor}
+        onColorChange={(v) => update({ colorKey: v })}
+        onChangeComplete={() => commit({ colorKey: value.colorKey })}
+        resolvedColors={resolvedColors}
+        mode="text"
       />
-
-      {/* Indent */}
       <SpacingControl
         label="Indent"
         value={value.indent || '20px'}
@@ -127,6 +133,7 @@ interface MultiLevelBulletPickerProps {
     level2?: BulletLevelConfig;
     level3?: BulletLevelConfig;
   }) => void;
+  resolvedColors?: Record<string, string>;
 }
 
 export const MultiLevelBulletPicker: React.FC<MultiLevelBulletPickerProps> = ({
@@ -135,35 +142,35 @@ export const MultiLevelBulletPicker: React.FC<MultiLevelBulletPickerProps> = ({
   level3,
   onChange,
   onChangeComplete,
+  resolvedColors,
 }) => {
   return (
-    <div className="mb-3">
-      <label className="block text-xs font-medium text-text-primary mb-2">
-        List Bullets
-      </label>
-
+    <div>
       <BulletStylePicker
         level="level1"
         label="Level 1"
-        value={level1 || { bulletStyle: 'disc', color: '#2563eb', indent: '20px' }}
+        value={level1 || { bulletStyle: 'disc', colorKey: 'primary', indent: '20px' }}
         onChange={(val) => onChange({ level1: val })}
         onChangeComplete={(val) => onChangeComplete?.({ level1: val })}
+        resolvedColors={resolvedColors}
       />
 
       <BulletStylePicker
         level="level2"
         label="Level 2 (nested)"
-        value={level2 || { bulletStyle: 'circle', color: '#64748b', indent: '40px' }}
+        value={level2 || { bulletStyle: 'circle', colorKey: 'text-secondary', indent: '40px' }}
         onChange={(val) => onChange({ level2: val })}
         onChangeComplete={(val) => onChangeComplete?.({ level2: val })}
+        resolvedColors={resolvedColors}
       />
 
       <BulletStylePicker
         level="level3"
         label="Level 3 (nested)"
-        value={level3 || { bulletStyle: 'square', color: '#94a3b8', indent: '60px' }}
+        value={level3 || { bulletStyle: 'square', colorKey: 'text-muted', indent: '60px' }}
         onChange={(val) => onChange({ level3: val })}
         onChangeComplete={(val) => onChangeComplete?.({ level3: val })}
+        resolvedColors={resolvedColors}
       />
     </div>
   );

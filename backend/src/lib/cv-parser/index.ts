@@ -440,6 +440,36 @@ export class CVParser {
     // Walk through AST nodes
     this.walkTree(tree, (node: any) => {
       switch (node.type) {
+        case 'html': {
+          // Detect <!-- break --> marker (case-insensitive, flexible whitespace)
+          const trimmed = node.value.trim();
+          if (/^<!--\s*break\s*-->$/i.test(trimmed)) {
+            // Finalize and push current section (if any)
+            if (currentSection) {
+              if (currentEntry && currentSection.type in { experience: 1, education: 1, projects: 1 }) {
+                if (!Array.isArray(currentSection.content)) {
+                  currentSection.content = [];
+                }
+                if (Array.isArray(currentEntry.description)) {
+                  currentEntry.description = currentEntry.description.join('\n\n');
+                }
+                currentSection.content.push(currentEntry);
+              }
+              sections.push(currentSection);
+              currentSection = null;
+              currentEntry = null;
+            }
+            // Push a synthetic break-marker section at this position
+            sections.push({
+              type: 'paragraph',
+              title: '',
+              content: '',
+              breakBefore: true
+            });
+          }
+          break;
+        }
+
         case 'heading':
           if (node.depth === 2) {
             // H2 - Start new section
@@ -603,6 +633,8 @@ export class CVParser {
     });
 
     return sections.filter(section =>
+      // Preserve break-marker sections (synthetic <!-- break --> markers)
+      section.breakBefore ||
       section.content && (
         typeof section.content === 'string' ? section.content.trim() :
         Array.isArray(section.content) ? section.content.length > 0 : true

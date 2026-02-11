@@ -15,7 +15,7 @@ import {
   IconBuilding,
 } from '@tabler/icons-react';
 import type { TemplateConfig } from '../../../../shared/types';
-import { SpacingControl, NumberControl, SelectControl, SemanticColorControl, FontSelector, ColorControl, LinkedSpacingControl } from './index';
+import { SpacingControl, NumberControl, SelectControl, SemanticColorControl, FontSelector, ColorControl, LinkedSpacingControl, MultiLevelBulletPicker } from './index';
 
 type SemanticColor = 'primary' | 'secondary' | 'tertiary' | 'muted' | 'text-primary' | 'text-secondary' | 'text-muted' | 'custom1' | 'custom2' | 'custom3' | 'custom4' | 'on-primary' | 'on-secondary' | 'on-tertiary' | 'on-muted' | 'on-custom1' | 'on-custom2' | 'on-custom3' | 'on-custom4';
 
@@ -1109,6 +1109,7 @@ const TypographyControls: React.FC<{
 export const SemanticElementEditor: React.FC<SemanticElementEditorProps> = ({
   config,
   onChange,
+  onCommit,
 }) => {
   const [activeElement, setActiveElement] = useState<SemanticElement>('base');
 
@@ -1839,6 +1840,16 @@ export const SemanticElementEditor: React.FC<SemanticElementEditorProps> = ({
             value={bodyText.textAlign || 'left'}
             onChange={(v) => updateBody('textAlign', v)}
             options={ALIGNMENT_OPTIONS}
+          />
+        </Section>
+        <Section label="List Bullets">
+          <MultiLevelBulletPicker
+            level1={config.components.list?.level1}
+            level2={config.components.list?.level2}
+            level3={config.components.list?.level3}
+            onChange={(updates) => onChange('components', { list: { ...config.components.list, ...updates } })}
+            onChangeComplete={(updates) => onCommit('components', { list: { ...config.components.list, ...updates } })}
+            resolvedColors={resolvedColors}
           />
         </Section>
       </>
