@@ -19,7 +19,6 @@ export interface GoogleFontsResponse {
 
 const CACHE_KEY = 'cv-craft-google-fonts';
 const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
-const API_KEY = 'AIzaSyD-Your-API-Key-Here'; // TODO: Move to env variable
 
 /**
  * Get cached fonts data or fetch from API
@@ -33,18 +32,6 @@ export async function getGoogleFonts(): Promise<GoogleFont[]> {
 
   // Fetch from API
   try {
-    // Note: Since we don't want to require API key setup, we'll use a curated static list
-    // In production, you'd uncomment the API call below:
-    /*
-    const response = await fetch(
-      `https://www.googleapis.com/webfonts/v1/webfonts?key=${API_KEY}&sort=popularity`
-    );
-    const data: GoogleFontsResponse = await response.json();
-    cacheFonts(data.items);
-    return data.items;
-    */
-
-    // For now, return a curated list of popular fonts
     const fonts = getCuratedFontList();
     cacheFonts(fonts);
     return fonts;

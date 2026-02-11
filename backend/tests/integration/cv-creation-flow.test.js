@@ -29,16 +29,16 @@ describe('Integration: Complete CV Creation Flow', () => {
     const cvData = {
       name: 'Frontend Developer CV - 2025',
       content: `---
-name: Laszlo Prekop
-email: laszlo@example.com
+name: Jane Smith
+email: jane.smith@example.com
 phone: +1-555-0123
 location: San Francisco, CA
-website: laszlo.dev
-linkedin: linkedin.com/in/laszloprekop
-github: github.com/laszloprekop
+website: janesmith.dev
+linkedin: linkedin.com/in/janesmith
+github: github.com/janesmith
 ---
 
-# Laszlo Prekop
+# Jane Smith
 Frontend Developer
 
 ## Professional Summary
@@ -84,8 +84,8 @@ Designed and developed personal portfolio with modern web technologies
     // Step 2: Verify CV was parsed correctly
     const cv = createResponse.body.data
     expect(cv.parsed_content).toBeTruthy()
-    expect(cv.parsed_content.frontmatter.name).toBe('Laszlo Prekop')
-    expect(cv.parsed_content.frontmatter.email).toBe('laszlo@example.com')
+    expect(cv.parsed_content.frontmatter.name).toBe('Jane Smith')
+    expect(cv.parsed_content.frontmatter.email).toBe('jane.smith@example.com')
     expect(cv.status).toBe('active')
 
     // Step 3: Upload profile photo (matches quickstart scenario)
@@ -136,7 +136,7 @@ Designed and developed personal portfolio with modern web technologies
     const exportRecord = exportResponse.body.data
     expect(exportRecord.cv_id).toBe(createdCVId)
     expect(exportRecord.export_type).toBe('pdf')
-    expect(exportRecord.filename).toBe('Laszlo_Prekop_CV.pdf')
+    expect(exportRecord.filename).toBe('Jane_Smith_CV.pdf')
 
     // Step 6: Verify CV appears in list (matches quickstart scenario CV manager)
     const listResponse = await request(server)
@@ -181,6 +181,6 @@ Designed and developed personal portfolio with modern web technologies
       exportRecord => exportRecord.export_type === 'pdf'
     )
     expect(pdfExport).toBeTruthy()
-    expect(pdfExport.filename).toBe('Laszlo_Prekop_CV.pdf')
+    expect(pdfExport.filename).toBe('Jane_Smith_CV.pdf')
   })
 })

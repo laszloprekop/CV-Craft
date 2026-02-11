@@ -1,6 +1,4 @@
-# Include your project-specific ignores in this file
-# Read about how to use .gitignore: https://help.github.com/articles/ignoring-files
-# Useful .gitignore templates: https://github.com/github/gitignore
+# Dependencies
 node_modules
 dist
 .cache
@@ -8,23 +6,27 @@ dist
 # Package manager
 package-lock.json
 
-# Next.js
+# Build output
 .next/
 out/
 
 # SQLite databases
+*.db
 *.db-shm
 *.db-wal
 
 # Environment variables
 .env
 .env.local
+.env.development
 .env.development.local
 .env.test.local
 .env.production.local
 
-# Uploads
+# Uploads and generated files
 public/uploads/
+backend/exports/
+backend/storage/
 
 # Development logs
 backend.log
@@ -37,10 +39,17 @@ backend/generated-html.html
 backend/minimal-output.pdf
 backend/test-*.ts
 
-# Duplicate database at root
-cv-craft.db
-
 # Personal reference files
 _references/*.pdf
 _references/*.afdesign
 _references/laszlo_*.md
+
+# IDE
+.idea/
+
+# Claude local settings
+.claude/settings.local.json
+
+# OS files
+.DS_Store
+Thumbs.db
