@@ -6,6 +6,7 @@
 
 import { Request, Response, NextFunction } from 'express';
 import { CVInstanceError } from '../models/CVInstance';
+import { CVServiceError } from '../services/CVService';
 
 export interface ApiError {
   error: string;
@@ -23,7 +24,7 @@ export function errorHandler(
   res: Response,
   next: NextFunction
 ): void {
-  // Log error details — omit req.body to avoid logging sensitive user data
+  // Log error details - omit req.body to avoid logging sensitive user data
   console.error('Error occurred:', {
     error: err.message,
     stack: err.stack,
@@ -39,6 +40,15 @@ export function errorHandler(
       error: err.code,
       message: err.message,
       details: err.cause ? { cause: err.cause.message } : undefined
+    } as ApiError);
+    return;
+  }
+
+  if (err instanceof CVServiceError) {
+    const statusCode = getStatusCodeForError(err.code);
+    res.status(statusCode).json({
+      error: err.code,
+      message: err.message,
     } as ApiError);
     return;
   }
@@ -109,6 +119,12 @@ function getStatusCodeForError(code: string): number {
     'NOT_FOUND': 404,
     'DUPLICATE_NAME': 409,
     'INVALID_TEMPLATE': 422,
+    'INVALID_CONTENT': 422,
+    'PARSE_ERROR': 422,
+    'TEMPLATE_NOT_FOUND': 404,
+    'UNPARSED_CONTENT': 422,
+    'NOT_IMPLEMENTED': 501,
+    'INVALID_ASSET': 422,
     'VALIDATION_ERROR': 422,
     'INVALID_PARAMS': 400,
     'HAS_DEPENDENCIES': 409,

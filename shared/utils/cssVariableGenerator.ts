@@ -62,8 +62,18 @@ function calculateMainWidth(pageWidth: string, sidebarWidth: string): string {
 }
 
 export function generateCSSVariables(config: TemplateConfig): Record<string, string> {
-  // Ensure layout and pageMargin exist with defaults
-  const layout = config.layout || {};
+  // Ensure all top-level and nested sections exist with safe defaults
+  const colors = config.colors || {} as any;
+  const colorText = colors.text || {} as any;
+  const colorLinks = colors.links || {} as any;
+  const typography = config.typography || {} as any;
+  const fontFamily = typography.fontFamily || {} as any;
+  const fontWeight = typography.fontWeight || {} as any;
+  const lineHeight = typography.lineHeight || {} as any;
+  const layout = config.layout || {} as any;
+  const components = config.components || {} as any;
+  const pdf = config.pdf || {} as any;
+
   const rawPageMargin = layout.pageMargin || {};
   const pageMargin = {
     top: ensureMarginUnits(rawPageMargin.top, '20mm'),
@@ -72,8 +82,8 @@ export function generateCSSVariables(config: TemplateConfig): Record<string, str
     left: ensureMarginUnits(rawPageMargin.left, '20mm'),
   };
 
-  const baseFontSize = config.typography.baseFontSize || '10pt';
-  const fontScale = config.typography.fontScale || {
+  const baseFontSize = typography.baseFontSize || '10pt';
+  const fontScale = typography.fontScale || {
     h1: 3.2,
     h2: 2.4,
     h3: 2.0,
@@ -86,86 +96,86 @@ export function generateCSSVariables(config: TemplateConfig): Record<string, str
   };
 
   // Tags - use semantic color pairs with transparency
-  const tagColorPair = config.components.tags?.colorPair || 'tertiary';
-  const tagBgOpacity = config.components.tags?.backgroundOpacity ?? 0.2;
-  const tagTextOpacity = config.components.tags?.textOpacity ?? 1.0;
+  const tagColorPair = components.tags?.colorPair || 'tertiary';
+  const tagBgOpacity = components.tags?.backgroundOpacity ?? 0.2;
+  const tagTextOpacity = components.tags?.textOpacity ?? 1.0;
   const { baseColor: tagBaseColor, onColor: tagOnColor } = resolveColorPair(tagColorPair, config);
   // Allow explicit text color override via textColorKey (set from Tag > Typography > Color)
-  const tagTextColor = config.components.tags?.textColorKey
-    ? resolveSemanticColor(config.components.tags.textColorKey as SemanticColorKey, config)
+  const tagTextColor = components.tags?.textColorKey
+    ? resolveSemanticColor(components.tags.textColorKey as SemanticColorKey, config)
     : tagOnColor;
 
   // Section header color/background are conditionally generated:
   // When explicitly set by user (via Color Pair), include them so they override two-column defaults.
   // When not set, omit them so the two-column CSS can use layout-specific fallbacks (primary/accent).
   const sectionHeaderColorOverrides: Record<string, string> = {};
-  if (config.components.sectionHeader?.colorKey) {
+  if (components.sectionHeader?.colorKey) {
     sectionHeaderColorOverrides['--section-header-color'] = resolveSemanticColor(
-      config.components.sectionHeader.colorKey,
+      components.sectionHeader.colorKey,
       config,
-      config.components.sectionHeader.colorOpacity
+      components.sectionHeader.colorOpacity
     );
   }
-  if (config.components.sectionHeader?.backgroundColorKey) {
+  if (components.sectionHeader?.backgroundColorKey) {
     sectionHeaderColorOverrides['--section-header-background-color'] = resolveSemanticColor(
-      config.components.sectionHeader.backgroundColorKey,
+      components.sectionHeader.backgroundColorKey,
       config,
-      config.components.sectionHeader.backgroundColorOpacity ?? 1
+      components.sectionHeader.backgroundColorOpacity ?? 1
     );
   }
 
   return {
     // Main Color Pairs - Background colors and their text colors
-    '--primary-color': config.colors.primary,
-    '--on-primary-color': config.colors.onPrimary,
-    '--secondary-color': config.colors.secondary,
-    '--on-secondary-color': config.colors.onSecondary,
-    '--tertiary-color': config.colors.tertiary || config.colors.accent || '#f59e0b',
-    '--on-tertiary-color': config.colors.onTertiary || '#ffffff',
-    '--muted-color': config.colors.muted || '#f1f5f9',
-    '--on-muted-color': config.colors.onMuted || '#334155',
-    '--background-color': config.layout.mainBackground || config.colors.background,
-    '--on-background-color': config.colors.text.primary,
+    '--primary-color': colors.primary,
+    '--on-primary-color': colors.onPrimary,
+    '--secondary-color': colors.secondary,
+    '--on-secondary-color': colors.onSecondary,
+    '--tertiary-color': colors.tertiary || colors.accent || '#f59e0b',
+    '--on-tertiary-color': colors.onTertiary || '#ffffff',
+    '--muted-color': colors.muted || '#f1f5f9',
+    '--on-muted-color': colors.onMuted || '#334155',
+    '--background-color': layout.mainBackground || colors.background,
+    '--on-background-color': colorText.primary,
 
     // Custom color pairs
-    '--custom1-color': config.colors.custom1,
-    '--on-custom1-color': config.colors.onCustom1,
-    '--custom2-color': config.colors.custom2,
-    '--on-custom2-color': config.colors.onCustom2,
-    '--custom3-color': config.colors.custom3,
-    '--on-custom3-color': config.colors.onCustom3,
-    '--custom4-color': config.colors.custom4,
-    '--on-custom4-color': config.colors.onCustom4,
+    '--custom1-color': colors.custom1,
+    '--on-custom1-color': colors.onCustom1,
+    '--custom2-color': colors.custom2,
+    '--on-custom2-color': colors.onCustom2,
+    '--custom3-color': colors.custom3,
+    '--on-custom3-color': colors.onCustom3,
+    '--custom4-color': colors.custom4,
+    '--on-custom4-color': colors.onCustom4,
 
     // Legacy color variables for backward compatibility
-    '--accent-color': config.colors.tertiary || config.colors.accent || '#f59e0b',
-    '--surface-color': config.layout.sidebarBackground || config.colors.secondary,
-    '--text-color': config.colors.text.primary,
-    '--text-secondary': config.colors.text.secondary,
-    '--text-muted': config.colors.text.muted,
+    '--accent-color': colors.tertiary || colors.accent || '#f59e0b',
+    '--surface-color': layout.sidebarBackground || colors.secondary,
+    '--text-color': colorText.primary,
+    '--text-secondary': colorText.secondary,
+    '--text-muted': colorText.muted,
 
     // Border & Link colors
-    '--border-color': config.colors.borders,
+    '--border-color': colors.borders,
     '--link-color': resolveSemanticColor(
-      config.components.links?.colorKey,
+      components.links?.colorKey,
       config,
-      config.components.links?.colorOpacity
-    ) || config.components.links?.color || config.colors.links.default,
+      components.links?.colorOpacity
+    ) || components.links?.color || colorLinks.default,
     '--link-hover-color': resolveSemanticColor(
-      config.components.links?.hoverColorKey,
+      components.links?.hoverColorKey,
       config,
-      config.components.links?.hoverColorOpacity
-    ) || config.components.links?.hoverColor || config.colors.links.hover,
-    '--link-font-size': config.components.links?.fontSize || 'inherit',
-    '--link-font-weight': String(config.components.links?.fontWeight || 500),
-    '--link-letter-spacing': config.components.links?.letterSpacing || '0em',
-    '--link-text-transform': config.components.links?.textTransform || 'none',
-    '--link-font-style': config.components.links?.fontStyle || 'normal',
-    '--link-underline-style': config.components.links?.underlineStyle || 'always',
+      components.links?.hoverColorOpacity
+    ) || components.links?.hoverColor || colorLinks.hover,
+    '--link-font-size': components.links?.fontSize || 'inherit',
+    '--link-font-weight': String(components.links?.fontWeight || 500),
+    '--link-letter-spacing': components.links?.letterSpacing || '0em',
+    '--link-text-transform': components.links?.textTransform || 'none',
+    '--link-font-style': components.links?.fontStyle || 'normal',
+    '--link-underline-style': components.links?.underlineStyle || 'always',
 
     // Typography
-    '--font-family': config.typography.fontFamily.body,
-    '--heading-font-family': config.typography.fontFamily.heading,
+    '--font-family': fontFamily.body,
+    '--heading-font-family': fontFamily.heading,
 
     // Font sizes - calculated from base + scale
     '--base-font-size': baseFontSize,
@@ -180,15 +190,15 @@ export function generateCSSVariables(config: TemplateConfig): Record<string, str
     '--inline-code-font-size': calculateFontSize(fontScale.inlineCode || 1.2, baseFontSize),
 
     // Font weights
-    '--heading-weight': String(config.typography.fontWeight.heading || 700),
-    '--subheading-weight': String(config.typography.fontWeight.subheading || 600),
-    '--body-weight': String(config.typography.fontWeight.body || 400),
-    '--bold-weight': String(config.typography.fontWeight.bold || 600),
+    '--heading-weight': String(fontWeight.heading || 700),
+    '--subheading-weight': String(fontWeight.subheading || 600),
+    '--body-weight': String(fontWeight.body || 400),
+    '--bold-weight': String(fontWeight.bold || 600),
 
     // Line heights
-    '--heading-line-height': String(config.typography.lineHeight.heading || 1.2),
-    '--body-line-height': String(config.typography.lineHeight.body || 1.6),
-    '--compact-line-height': String(config.typography.lineHeight.compact || 1.4),
+    '--heading-line-height': String(lineHeight.heading || 1.2),
+    '--body-line-height': String(lineHeight.body || 1.6),
+    '--compact-line-height': String(lineHeight.compact || 1.4),
 
     // Layout
     '--page-width': layout.pageWidth || '210mm',
@@ -206,100 +216,100 @@ export function generateCSSVariables(config: TemplateConfig): Record<string, str
     // Tags - semantic color pairs with opacity
     '--tag-bg-color': hexToRgba(tagBaseColor, tagBgOpacity),
     '--tag-text-color': hexToRgba(tagTextColor, tagTextOpacity),
-    '--tag-border-radius': config.components.tags.borderRadius,
-    '--tag-font-size-custom': config.components.tags?.fontSize || calculateFontSize(fontScale.tag || 1.3, baseFontSize),
-    '--tag-font-weight': String(config.components.tags?.fontWeight || 500),
-    '--tag-letter-spacing': config.components.tags?.letterSpacing || '0em',
-    '--tag-text-transform': config.components.tags?.textTransform || 'none',
-    '--tag-font-style': config.components.tags?.fontStyle || 'normal',
-    '--tag-padding': config.components.tags?.padding || '4px 8px',
-    '--tag-gap': config.components.tags?.gap || '8px',
+    '--tag-border-radius': components.tags?.borderRadius || '4px',
+    '--tag-font-size-custom': components.tags?.fontSize || calculateFontSize(fontScale.tag || 1.3, baseFontSize),
+    '--tag-font-weight': String(components.tags?.fontWeight || 500),
+    '--tag-letter-spacing': components.tags?.letterSpacing || '0em',
+    '--tag-text-transform': components.tags?.textTransform || 'none',
+    '--tag-font-style': components.tags?.fontStyle || 'normal',
+    '--tag-padding': components.tags?.padding || '4px 8px',
+    '--tag-gap': components.tags?.gap || '8px',
 
     // Date Line
     '--date-line-color': resolveSemanticColor(
-      config.components.dateLine.colorKey,
+      components.dateLine?.colorKey,
       config,
-      config.components.dateLine.colorOpacity
+      components.dateLine?.colorOpacity
     ),
-    '--date-line-font-family': config.components.dateLine?.fontFamily || 'inherit',
-    '--date-line-font-size-custom': config.components.dateLine?.fontSize || calculateFontSize(fontScale.dateLine || 1.3, baseFontSize),
-    '--date-line-font-weight': String(config.components.dateLine?.fontWeight || 400),
-    '--date-line-font-style': config.components.dateLine?.fontStyle || 'normal',
-    '--date-line-alignment': config.components.dateLine?.alignment || 'right',
-    '--date-line-letter-spacing': config.components.dateLine?.letterSpacing || '0em',
-    '--date-line-text-transform': config.components.dateLine?.textTransform || 'none',
+    '--date-line-font-family': components.dateLine?.fontFamily || 'inherit',
+    '--date-line-font-size-custom': components.dateLine?.fontSize || calculateFontSize(fontScale.dateLine || 1.3, baseFontSize),
+    '--date-line-font-weight': String(components.dateLine?.fontWeight || 400),
+    '--date-line-font-style': components.dateLine?.fontStyle || 'normal',
+    '--date-line-alignment': components.dateLine?.alignment || 'right',
+    '--date-line-letter-spacing': components.dateLine?.letterSpacing || '0em',
+    '--date-line-text-transform': components.dateLine?.textTransform || 'none',
 
     // Name (H1) - Typography
-    '--name-font-size': config.components.name?.fontSize || calculateFontSize(fontScale.h1, baseFontSize),
-    '--name-font-weight': String(config.components.name?.fontWeight || 700),
+    '--name-font-size': components.name?.fontSize || calculateFontSize(fontScale.h1, baseFontSize),
+    '--name-font-weight': String(components.name?.fontWeight || 700),
     '--name-color': resolveSemanticColor(
-      config.components.name?.colorKey,
+      components.name?.colorKey,
       config,
-      config.components.name?.colorOpacity
-    ) || config.components.name?.color || config.colors.primary || '#0f172a',
-    '--name-letter-spacing': config.components.name?.letterSpacing || '-0.02em',
-    '--name-text-transform': config.components.name?.textTransform || 'uppercase',
-    '--name-alignment': config.components.name?.alignment || 'left',
-    '--name-line-height': String(config.components.name?.lineHeight || 1.2),
-    '--name-font-style': config.components.name?.fontStyle || 'normal',
+      components.name?.colorOpacity
+    ) || components.name?.color || colors.primary || '#0f172a',
+    '--name-letter-spacing': components.name?.letterSpacing || '-0.02em',
+    '--name-text-transform': components.name?.textTransform || 'uppercase',
+    '--name-alignment': components.name?.alignment || 'left',
+    '--name-line-height': String(components.name?.lineHeight || 1.2),
+    '--name-font-style': components.name?.fontStyle || 'normal',
     // Name (H1) - Spacing (supports uniform/individual modes)
     '--name-margin-top': (() => {
-      const comp = config.components.name;
+      const comp = components.name;
       if (comp?.marginMode === 'uniform' && comp.marginUniform) return comp.marginUniform;
       return comp?.marginTop || '0px';
     })(),
     '--name-margin-bottom': (() => {
-      const comp = config.components.name;
+      const comp = components.name;
       if (comp?.marginMode === 'uniform' && comp.marginUniform) return comp.marginUniform;
       return comp?.marginBottom || '8px';
     })(),
     '--name-margin-left': (() => {
-      const comp = config.components.name;
+      const comp = components.name;
       if (comp?.marginMode === 'uniform' && comp.marginUniform) return comp.marginUniform;
       return comp?.marginLeft || '0px';
     })(),
     '--name-margin-right': (() => {
-      const comp = config.components.name;
+      const comp = components.name;
       if (comp?.marginMode === 'uniform' && comp.marginUniform) return comp.marginUniform;
       return comp?.marginRight || '0px';
     })(),
     '--name-padding': (() => {
-      const comp = config.components.name;
+      const comp = components.name;
       if (comp?.paddingMode === 'individual') {
         return `${comp.paddingTop || '0px'} ${comp.paddingRight || '0px'} ${comp.paddingBottom || '0px'} ${comp.paddingLeft || '0px'}`;
       }
       return comp?.paddingUniform || comp?.padding || '0px';
     })(),
     // Name (H1) - Background
-    '--name-background-color': config.components.name?.backgroundColorKey
+    '--name-background-color': components.name?.backgroundColorKey
       ? resolveSemanticColor(
-          config.components.name.backgroundColorKey,
+          components.name.backgroundColorKey,
           config,
-          config.components.name?.backgroundColorOpacity ?? 1
+          components.name?.backgroundColorOpacity ?? 1
         )
       : 'transparent',
-    '--name-border-radius': config.components.name?.borderRadius || '0px',
+    '--name-border-radius': components.name?.borderRadius || '0px',
     // Name (H1) - Border
-    '--name-border-style': config.components.name?.borderStyle || 'none',
-    '--name-border-width': config.components.name?.borderWidth || '0px',
+    '--name-border-style': components.name?.borderStyle || 'none',
+    '--name-border-width': components.name?.borderWidth || '0px',
     '--name-border-color': resolveSemanticColor(
-      config.components.name?.borderColorKey,
+      components.name?.borderColorKey,
       config,
-      config.components.name?.borderColorOpacity ?? 1
+      components.name?.borderColorOpacity ?? 1
     ) || 'transparent',
     // Name (H1) - Divider
-    '--name-divider-style': config.components.name?.dividerStyle || 'none',
-    '--name-divider-width': config.components.name?.dividerWidth || '2px',
+    '--name-divider-style': components.name?.dividerStyle || 'none',
+    '--name-divider-width': components.name?.dividerWidth || '2px',
     '--name-divider-color': resolveSemanticColor(
-      config.components.name?.dividerColorKey,
+      components.name?.dividerColorKey,
       config,
-      config.components.name?.dividerColorOpacity ?? 1
-    ) || config.colors.primary,
-    '--name-divider-gap': config.components.name?.dividerGap || '4px',
-    '--name-divider-display': (config.components.name?.dividerStyle && config.components.name.dividerStyle !== 'none') ? 'block' : 'none',
+      components.name?.dividerColorOpacity ?? 1
+    ) || colors.primary,
+    '--name-divider-gap': components.name?.dividerGap || '4px',
+    '--name-divider-display': (components.name?.dividerStyle && components.name.dividerStyle !== 'none') ? 'block' : 'none',
     // Name (H1) - Shadow
     '--name-shadow': (() => {
-      const shadow = config.components.name?.shadow || 'none';
+      const shadow = components.name?.shadow || 'none';
       const shadowMap: Record<string, string> = {
         none: 'none',
         sm: '0 1px 2px rgba(0, 0, 0, 0.05)',
@@ -310,43 +320,43 @@ export function generateCSSVariables(config: TemplateConfig): Record<string, str
     })(),
 
     // Header Section
-    '--header-alignment': config.components.header?.alignment || 'left',
+    '--header-alignment': components.header?.alignment || 'left',
 
     // Contact Info
-    '--contact-layout': config.components.contactInfo?.layout || 'inline',
-    '--contact-icon-size': config.components.contactInfo?.iconSize || '16px',
+    '--contact-layout': components.contactInfo?.layout || 'inline',
+    '--contact-icon-size': components.contactInfo?.iconSize || '16px',
     '--contact-icon-color': resolveSemanticColor(
-      config.components.contactInfo?.iconColorKey,
+      components.contactInfo?.iconColorKey,
       config,
-      config.components.contactInfo?.iconColorOpacity
-    ) || config.components.contactInfo?.iconColor || config.colors.text.secondary,
-    '--contact-spacing': config.components.contactInfo?.spacing || '12px',
-    '--contact-font-size': config.components.contactInfo?.fontSize || calculateFontSize(fontScale.small, baseFontSize),
-    '--contact-font-weight': String(config.components.contactInfo?.fontWeight || 400),
+      components.contactInfo?.iconColorOpacity
+    ) || components.contactInfo?.iconColor || colorText.secondary,
+    '--contact-spacing': components.contactInfo?.spacing || '12px',
+    '--contact-font-size': components.contactInfo?.fontSize || calculateFontSize(fontScale.small, baseFontSize),
+    '--contact-font-weight': String(components.contactInfo?.fontWeight || 400),
     '--contact-color': resolveSemanticColor(
-      config.components.contactInfo?.colorKey,
+      components.contactInfo?.colorKey,
       config,
-      config.components.contactInfo?.colorOpacity
-    ) || config.components.contactInfo?.textColor || config.colors.text.secondary,
-    '--contact-letter-spacing': config.components.contactInfo?.letterSpacing || '0em',
-    '--contact-text-transform': config.components.contactInfo?.textTransform || 'none',
-    '--contact-font-style': config.components.contactInfo?.fontStyle || 'normal',
+      components.contactInfo?.colorOpacity
+    ) || components.contactInfo?.textColor || colorText.secondary,
+    '--contact-letter-spacing': components.contactInfo?.letterSpacing || '0em',
+    '--contact-text-transform': components.contactInfo?.textTransform || 'none',
+    '--contact-font-style': components.contactInfo?.fontStyle || 'normal',
 
     // Profile Photo - 160px is optimal for two-column PDF layout
-    '--profile-photo-size': config.components.profilePhoto?.size || '160px',
-    '--profile-photo-border-radius': config.components.profilePhoto?.borderRadius || '50%',
-    '--profile-photo-border-width': config.components.profilePhoto?.borderWidth || '3px',
-    '--profile-photo-border-style': config.components.profilePhoto?.borderStyle || 'solid',
-    '--profile-photo-border-color': config.components.profilePhoto?.borderColor || '#e2e8f0',
-    '--profile-photo-border': `${config.components.profilePhoto?.borderWidth || '3px'} ${config.components.profilePhoto?.borderStyle || 'solid'} ${config.components.profilePhoto?.borderColor || '#e2e8f0'}`,
-    '--profile-photo-position': config.components.profilePhoto?.position || 'center',
-    '--profile-photo-margin-top': config.components.profilePhoto?.marginTop || '0px',
-    '--profile-photo-margin-bottom': config.components.profilePhoto?.marginBottom || '16px',
-    '--profile-photo-margin-left': config.components.profilePhoto?.marginLeft || '0px',
-    '--profile-photo-margin-right': config.components.profilePhoto?.marginRight || '0px',
-    '--profile-photo-opacity': String(config.components.profilePhoto?.opacity ?? 1),
+    '--profile-photo-size': components.profilePhoto?.size || '160px',
+    '--profile-photo-border-radius': components.profilePhoto?.borderRadius || '50%',
+    '--profile-photo-border-width': components.profilePhoto?.borderWidth || '3px',
+    '--profile-photo-border-style': components.profilePhoto?.borderStyle || 'solid',
+    '--profile-photo-border-color': components.profilePhoto?.borderColor || '#e2e8f0',
+    '--profile-photo-border': `${components.profilePhoto?.borderWidth || '3px'} ${components.profilePhoto?.borderStyle || 'solid'} ${components.profilePhoto?.borderColor || '#e2e8f0'}`,
+    '--profile-photo-position': components.profilePhoto?.position || 'center',
+    '--profile-photo-margin-top': components.profilePhoto?.marginTop || '0px',
+    '--profile-photo-margin-bottom': components.profilePhoto?.marginBottom || '16px',
+    '--profile-photo-margin-left': components.profilePhoto?.marginLeft || '0px',
+    '--profile-photo-margin-right': components.profilePhoto?.marginRight || '0px',
+    '--profile-photo-opacity': String(components.profilePhoto?.opacity ?? 1),
     '--profile-photo-shadow': (() => {
-      const shadow = config.components.profilePhoto?.shadow || 'none';
+      const shadow = components.profilePhoto?.shadow || 'none';
       const shadowMap: Record<string, string> = {
         none: 'none',
         sm: '0 1px 2px rgba(0, 0, 0, 0.05)',
@@ -357,7 +367,7 @@ export function generateCSSVariables(config: TemplateConfig): Record<string, str
       return shadowMap[shadow] || 'none';
     })(),
     '--profile-photo-filter': (() => {
-      const filter = config.components.profilePhoto?.filter || 'none';
+      const filter = components.profilePhoto?.filter || 'none';
       const filterMap: Record<string, string> = {
         none: 'none',
         grayscale: 'grayscale(100%)',
@@ -367,67 +377,67 @@ export function generateCSSVariables(config: TemplateConfig): Record<string, str
     })(),
 
     // Section Headers (H2) - Typography
-    '--section-header-font-size': config.components.sectionHeader?.fontSize || calculateFontSize(fontScale.h2, baseFontSize),
-    '--section-header-font-weight': String(config.components.sectionHeader?.fontWeight || 700),
+    '--section-header-font-size': components.sectionHeader?.fontSize || calculateFontSize(fontScale.h2, baseFontSize),
+    '--section-header-font-weight': String(components.sectionHeader?.fontWeight || 700),
     // Note: --section-header-color and --section-header-background-color are conditionally
     // generated above (sectionHeaderColorOverrides) so two-column CSS fallbacks work correctly.
     ...sectionHeaderColorOverrides,
-    '--section-header-text-transform': config.components.sectionHeader?.textTransform || 'uppercase',
-    '--section-header-letter-spacing': config.components.sectionHeader?.letterSpacing || '0.05em',
-    '--section-header-line-height': String(config.components.sectionHeader?.lineHeight || 1.2),
-    '--section-header-font-style': config.components.sectionHeader?.fontStyle || 'normal',
+    '--section-header-text-transform': components.sectionHeader?.textTransform || 'uppercase',
+    '--section-header-letter-spacing': components.sectionHeader?.letterSpacing || '0.05em',
+    '--section-header-line-height': String(components.sectionHeader?.lineHeight || 1.2),
+    '--section-header-font-style': components.sectionHeader?.fontStyle || 'normal',
     // Section Headers (H2) - Spacing (supports uniform/individual modes)
     '--section-header-margin-top': (() => {
-      const comp = config.components.sectionHeader;
+      const comp = components.sectionHeader;
       if (comp?.marginMode === 'uniform' && comp.marginUniform) return comp.marginUniform;
       return comp?.marginTop || '24px';
     })(),
     '--section-header-margin-bottom': (() => {
-      const comp = config.components.sectionHeader;
+      const comp = components.sectionHeader;
       if (comp?.marginMode === 'uniform' && comp.marginUniform) return comp.marginUniform;
       return comp?.marginBottom || '12px';
     })(),
     '--section-header-margin-left': (() => {
-      const comp = config.components.sectionHeader;
+      const comp = components.sectionHeader;
       if (comp?.marginMode === 'uniform' && comp.marginUniform) return comp.marginUniform;
       return comp?.marginLeft || '0px';
     })(),
     '--section-header-margin-right': (() => {
-      const comp = config.components.sectionHeader;
+      const comp = components.sectionHeader;
       if (comp?.marginMode === 'uniform' && comp.marginUniform) return comp.marginUniform;
       return comp?.marginRight || '0px';
     })(),
     '--section-header-padding': (() => {
-      const comp = config.components.sectionHeader;
+      const comp = components.sectionHeader;
       if (comp?.paddingMode === 'individual') {
         return `${comp.paddingTop || '0px'} ${comp.paddingRight || '0px'} ${comp.paddingBottom || '0px'} ${comp.paddingLeft || '0px'}`;
       }
       return comp?.paddingUniform || comp?.padding || '4px 12px';
     })(),
     // Section Headers (H2) - Background
-    '--section-header-border-radius': config.components.sectionHeader?.borderRadius || '0px',
+    '--section-header-border-radius': components.sectionHeader?.borderRadius || '0px',
     // Section Headers (H2) - Border
-    '--section-header-border-style': config.components.sectionHeader?.borderStyle || 'none',
-    '--section-header-border-width': config.components.sectionHeader?.borderWidth || '0px',
+    '--section-header-border-style': components.sectionHeader?.borderStyle || 'none',
+    '--section-header-border-width': components.sectionHeader?.borderWidth || '0px',
     '--section-header-border-color': resolveSemanticColor(
-      config.components.sectionHeader?.borderColorKey,
+      components.sectionHeader?.borderColorKey,
       config,
-      config.components.sectionHeader?.borderColorOpacity ?? 1
+      components.sectionHeader?.borderColorOpacity ?? 1
     ) || 'transparent',
     // Section Headers (H2) - Divider (legacy support + new)
-    '--section-header-border-bottom': config.components.sectionHeader?.borderBottom || '2px solid',
-    '--section-header-divider-style': config.components.sectionHeader?.dividerStyle || 'none',
-    '--section-header-divider-width': config.components.sectionHeader?.dividerWidth || '2px',
+    '--section-header-border-bottom': components.sectionHeader?.borderBottom || '2px solid',
+    '--section-header-divider-style': components.sectionHeader?.dividerStyle || 'none',
+    '--section-header-divider-width': components.sectionHeader?.dividerWidth || '2px',
     '--section-header-divider-color': resolveSemanticColor(
-      config.components.sectionHeader?.dividerColorKey,
+      components.sectionHeader?.dividerColorKey,
       config,
-      config.components.sectionHeader?.dividerColorOpacity ?? 1
-    ) || config.components.sectionHeader?.dividerColor || config.components.sectionHeader?.borderColor || config.colors.primary,
-    '--section-header-divider-gap': config.components.sectionHeader?.dividerGap || '0px',
-    '--section-header-divider-display': (config.components.sectionHeader?.dividerStyle && config.components.sectionHeader.dividerStyle !== 'none') ? 'block' : 'none',
+      components.sectionHeader?.dividerColorOpacity ?? 1
+    ) || components.sectionHeader?.dividerColor || components.sectionHeader?.borderColor || colors.primary,
+    '--section-header-divider-gap': components.sectionHeader?.dividerGap || '0px',
+    '--section-header-divider-display': (components.sectionHeader?.dividerStyle && components.sectionHeader.dividerStyle !== 'none') ? 'block' : 'none',
     // Section Headers (H2) - Shadow
     '--section-header-shadow': (() => {
-      const shadow = config.components.sectionHeader?.shadow || 'none';
+      const shadow = components.sectionHeader?.shadow || 'none';
       const shadowMap: Record<string, string> = {
         none: 'none',
         sm: '0 1px 2px rgba(0, 0, 0, 0.05)',
@@ -438,75 +448,75 @@ export function generateCSSVariables(config: TemplateConfig): Record<string, str
     })(),
 
     // Job Titles (H3) - Typography
-    '--job-title-font-size': config.components.jobTitle?.fontSize || calculateFontSize(fontScale.h3, baseFontSize),
-    '--job-title-font-weight': String(config.components.jobTitle?.fontWeight || 600),
+    '--job-title-font-size': components.jobTitle?.fontSize || calculateFontSize(fontScale.h3, baseFontSize),
+    '--job-title-font-weight': String(components.jobTitle?.fontWeight || 600),
     '--job-title-color': resolveSemanticColor(
-      config.components.jobTitle?.colorKey,
+      components.jobTitle?.colorKey,
       config,
-      config.components.jobTitle?.colorOpacity
-    ) || config.components.jobTitle?.color || config.colors.text.primary,
-    '--job-title-letter-spacing': config.components.jobTitle?.letterSpacing || '0em',
-    '--job-title-text-transform': config.components.jobTitle?.textTransform || 'none',
-    '--job-title-line-height': String(config.components.jobTitle?.lineHeight || 1.3),
-    '--job-title-font-style': config.components.jobTitle?.fontStyle || 'normal',
+      components.jobTitle?.colorOpacity
+    ) || components.jobTitle?.color || colorText.primary,
+    '--job-title-letter-spacing': components.jobTitle?.letterSpacing || '0em',
+    '--job-title-text-transform': components.jobTitle?.textTransform || 'none',
+    '--job-title-line-height': String(components.jobTitle?.lineHeight || 1.3),
+    '--job-title-font-style': components.jobTitle?.fontStyle || 'normal',
     // Job Titles (H3) - Spacing (supports uniform/individual modes)
     '--job-title-margin-top': (() => {
-      const comp = config.components.jobTitle;
+      const comp = components.jobTitle;
       if (comp?.marginMode === 'uniform' && comp.marginUniform) return comp.marginUniform;
       return comp?.marginTop || '0px';
     })(),
     '--job-title-margin-bottom': (() => {
-      const comp = config.components.jobTitle;
+      const comp = components.jobTitle;
       if (comp?.marginMode === 'uniform' && comp.marginUniform) return comp.marginUniform;
       return comp?.marginBottom || '4px';
     })(),
     '--job-title-margin-left': (() => {
-      const comp = config.components.jobTitle;
+      const comp = components.jobTitle;
       if (comp?.marginMode === 'uniform' && comp.marginUniform) return comp.marginUniform;
       return comp?.marginLeft || '0px';
     })(),
     '--job-title-margin-right': (() => {
-      const comp = config.components.jobTitle;
+      const comp = components.jobTitle;
       if (comp?.marginMode === 'uniform' && comp.marginUniform) return comp.marginUniform;
       return comp?.marginRight || '0px';
     })(),
     '--job-title-padding': (() => {
-      const comp = config.components.jobTitle;
+      const comp = components.jobTitle;
       if (comp?.paddingMode === 'individual') {
         return `${comp.paddingTop || '0px'} ${comp.paddingRight || '0px'} ${comp.paddingBottom || '0px'} ${comp.paddingLeft || '0px'}`;
       }
       return comp?.paddingUniform || comp?.padding || '0px';
     })(),
     // Job Titles (H3) - Background
-    '--job-title-background-color': config.components.jobTitle?.backgroundColorKey
+    '--job-title-background-color': components.jobTitle?.backgroundColorKey
       ? resolveSemanticColor(
-          config.components.jobTitle.backgroundColorKey,
+          components.jobTitle.backgroundColorKey,
           config,
-          config.components.jobTitle?.backgroundColorOpacity ?? 1
+          components.jobTitle?.backgroundColorOpacity ?? 1
         )
       : 'transparent',
-    '--job-title-border-radius': config.components.jobTitle?.borderRadius || '0px',
+    '--job-title-border-radius': components.jobTitle?.borderRadius || '0px',
     // Job Titles (H3) - Border
-    '--job-title-border-style': config.components.jobTitle?.borderStyle || 'none',
-    '--job-title-border-width': config.components.jobTitle?.borderWidth || '0px',
+    '--job-title-border-style': components.jobTitle?.borderStyle || 'none',
+    '--job-title-border-width': components.jobTitle?.borderWidth || '0px',
     '--job-title-border-color': resolveSemanticColor(
-      config.components.jobTitle?.borderColorKey,
+      components.jobTitle?.borderColorKey,
       config,
-      config.components.jobTitle?.borderColorOpacity ?? 1
+      components.jobTitle?.borderColorOpacity ?? 1
     ) || 'transparent',
     // Job Titles (H3) - Divider
-    '--job-title-divider-style': config.components.jobTitle?.dividerStyle || 'none',
-    '--job-title-divider-width': config.components.jobTitle?.dividerWidth || '2px',
+    '--job-title-divider-style': components.jobTitle?.dividerStyle || 'none',
+    '--job-title-divider-width': components.jobTitle?.dividerWidth || '2px',
     '--job-title-divider-color': resolveSemanticColor(
-      config.components.jobTitle?.dividerColorKey,
+      components.jobTitle?.dividerColorKey,
       config,
-      config.components.jobTitle?.dividerColorOpacity ?? 1
-    ) || config.colors.primary,
-    '--job-title-divider-gap': config.components.jobTitle?.dividerGap || '0px',
-    '--job-title-divider-display': (config.components.jobTitle?.dividerStyle && config.components.jobTitle.dividerStyle !== 'none') ? 'block' : 'none',
+      components.jobTitle?.dividerColorOpacity ?? 1
+    ) || colors.primary,
+    '--job-title-divider-gap': components.jobTitle?.dividerGap || '0px',
+    '--job-title-divider-display': (components.jobTitle?.dividerStyle && components.jobTitle.dividerStyle !== 'none') ? 'block' : 'none',
     // Job Titles (H3) - Shadow
     '--job-title-shadow': (() => {
-      const shadow = config.components.jobTitle?.shadow || 'none';
+      const shadow = components.jobTitle?.shadow || 'none';
       const shadowMap: Record<string, string> = {
         none: 'none',
         sm: '0 1px 2px rgba(0, 0, 0, 0.05)',
@@ -520,57 +530,57 @@ export function generateCSSVariables(config: TemplateConfig): Record<string, str
     '--entry-layout': 'column',
 
     // Organization Names
-    '--org-name-font-family': config.components.organizationName?.fontFamily || 'inherit',
-    '--org-name-font-size': config.components.organizationName?.fontSize || calculateFontSize(fontScale.body, baseFontSize),
-    '--org-name-font-weight': String(config.components.organizationName?.fontWeight || 500),
+    '--org-name-font-family': components.organizationName?.fontFamily || 'inherit',
+    '--org-name-font-size': components.organizationName?.fontSize || calculateFontSize(fontScale.body, baseFontSize),
+    '--org-name-font-weight': String(components.organizationName?.fontWeight || 500),
     '--org-name-color': resolveSemanticColor(
-      config.components.organizationName?.colorKey,
+      components.organizationName?.colorKey,
       config,
-      config.components.organizationName?.colorOpacity
-    ) || config.components.organizationName?.color || config.colors.text.secondary,
-    '--org-name-font-style': config.components.organizationName?.fontStyle || 'normal',
-    '--org-name-letter-spacing': config.components.organizationName?.letterSpacing || '0em',
-    '--org-name-text-transform': config.components.organizationName?.textTransform || 'none',
-    '--org-name-line-height': String(config.components.organizationName?.lineHeight || 1.4),
+      components.organizationName?.colorOpacity
+    ) || components.organizationName?.color || colorText.secondary,
+    '--org-name-font-style': components.organizationName?.fontStyle || 'normal',
+    '--org-name-letter-spacing': components.organizationName?.letterSpacing || '0em',
+    '--org-name-text-transform': components.organizationName?.textTransform || 'none',
+    '--org-name-line-height': String(components.organizationName?.lineHeight || 1.4),
 
     // Key-Value Pairs
-    '--key-value-label-color': config.components.keyValue?.labelColor || config.colors.text.primary,
-    '--key-value-label-weight': String(config.components.keyValue?.labelWeight || 600),
-    '--key-value-value-color': config.components.keyValue?.valueColor || config.colors.text.secondary,
-    '--key-value-value-weight': String(config.components.keyValue?.valueWeight || 400),
-    '--key-value-separator': config.components.keyValue?.separator || ':',
-    '--key-value-spacing': config.components.keyValue?.spacing || '4px',
+    '--key-value-label-color': components.keyValue?.labelColor || colorText.primary,
+    '--key-value-label-weight': String(components.keyValue?.labelWeight || 600),
+    '--key-value-value-color': components.keyValue?.valueColor || colorText.secondary,
+    '--key-value-value-weight': String(components.keyValue?.valueWeight || 400),
+    '--key-value-separator': components.keyValue?.separator || ':',
+    '--key-value-spacing': components.keyValue?.spacing || '4px',
 
     // Emphasis
-    '--emphasis-font-weight': String(config.components.emphasis?.fontWeight || 600),
-    '--emphasis-color': config.components.emphasis?.color || config.colors.text.primary,
+    '--emphasis-font-weight': String(components.emphasis?.fontWeight || 600),
+    '--emphasis-color': components.emphasis?.color || colorText.primary,
 
     // Bullet Lists (Multi-level)
-    '--bullet-level1-color': (config.components.list?.level1?.colorKey ? resolveSemanticColor(config.components.list.level1.colorKey as SemanticColorKey, config) : undefined) || config.components.list?.level1?.color || config.colors.primary,
-    '--bullet-level2-color': (config.components.list?.level2?.colorKey ? resolveSemanticColor(config.components.list.level2.colorKey as SemanticColorKey, config) : undefined) || config.components.list?.level2?.color || config.colors.text.secondary,
-    '--bullet-level3-color': (config.components.list?.level3?.colorKey ? resolveSemanticColor(config.components.list.level3.colorKey as SemanticColorKey, config) : undefined) || config.components.list?.level3?.color || config.colors.text.muted,
-    '--bullet-level1-style': config.components.list?.level1?.bulletStyle === 'custom'
-      ? `'${config.components.list.level1.customBullet || '▸'}'`
-      : (config.components.list?.level1?.bulletStyle || 'disc'),
-    '--bullet-level2-style': config.components.list?.level2?.bulletStyle === 'custom'
-      ? `'${config.components.list.level2.customBullet || '▸'}'`
-      : (config.components.list?.level2?.bulletStyle || 'circle'),
-    '--bullet-level3-style': config.components.list?.level3?.bulletStyle === 'custom'
-      ? `'${config.components.list.level3.customBullet || '▸'}'`
-      : (config.components.list?.level3?.bulletStyle || 'square'),
-    '--bullet-level1-indent': config.components.list?.level1?.indent || '20px',
-    '--bullet-level2-indent': config.components.list?.level2?.indent || '40px',
-    '--bullet-level3-indent': config.components.list?.level3?.indent || '60px',
+    '--bullet-level1-color': (components.list?.level1?.colorKey ? resolveSemanticColor(components.list.level1.colorKey as SemanticColorKey, config) : undefined) || components.list?.level1?.color || colors.primary,
+    '--bullet-level2-color': (components.list?.level2?.colorKey ? resolveSemanticColor(components.list.level2.colorKey as SemanticColorKey, config) : undefined) || components.list?.level2?.color || colorText.secondary,
+    '--bullet-level3-color': (components.list?.level3?.colorKey ? resolveSemanticColor(components.list.level3.colorKey as SemanticColorKey, config) : undefined) || components.list?.level3?.color || colorText.muted,
+    '--bullet-level1-style': components.list?.level1?.bulletStyle === 'custom'
+      ? `'${components.list.level1.customBullet || '▸'}'`
+      : (components.list?.level1?.bulletStyle || 'disc'),
+    '--bullet-level2-style': components.list?.level2?.bulletStyle === 'custom'
+      ? `'${components.list.level2.customBullet || '▸'}'`
+      : (components.list?.level2?.bulletStyle || 'circle'),
+    '--bullet-level3-style': components.list?.level3?.bulletStyle === 'custom'
+      ? `'${components.list.level3.customBullet || '▸'}'`
+      : (components.list?.level3?.bulletStyle || 'square'),
+    '--bullet-level1-indent': components.list?.level1?.indent || '20px',
+    '--bullet-level2-indent': components.list?.level2?.indent || '40px',
+    '--bullet-level3-indent': components.list?.level3?.indent || '60px',
 
     // Body Text
     '--body-text-color': resolveSemanticColor(
-      config.components.bodyText?.colorKey,
+      components.bodyText?.colorKey,
       config,
-      config.components.bodyText?.colorOpacity
-    ) || config.colors.text.primary,
-    '--body-text-weight': String(config.components.bodyText?.fontWeight || config.typography.fontWeight.body || 400),
-    '--body-text-line-height': String(config.components.bodyText?.lineHeight || config.typography.lineHeight.body || 1.6),
-    '--body-text-align': config.components.bodyText?.textAlign || 'left',
+      components.bodyText?.colorOpacity
+    ) || colorText.primary,
+    '--body-text-weight': String(components.bodyText?.fontWeight || fontWeight.body || 400),
+    '--body-text-line-height': String(components.bodyText?.lineHeight || lineHeight.body || 1.6),
+    '--body-text-align': components.bodyText?.textAlign || 'left',
 
     // Advanced Effects
     '--animation-duration': config.advanced?.animations ? '0.2s' : '0s',
@@ -578,15 +588,15 @@ export function generateCSSVariables(config: TemplateConfig): Record<string, str
     '--shadow-hover': config.advanced?.shadows ? '0 4px 12px rgba(0, 0, 0, 0.15)' : 'none',
 
     // Page Numbers (PDF)
-    '--page-number-font-size': config.pdf.pageNumbers?.fontSize || '10px',
-    '--page-number-font-weight': String(config.pdf.pageNumbers?.fontWeight || 400),
+    '--page-number-font-size': pdf.pageNumbers?.fontSize || '10px',
+    '--page-number-font-weight': String(pdf.pageNumbers?.fontWeight || 400),
     '--page-number-color': resolveSemanticColor(
-      config.pdf.pageNumbers?.colorKey,
+      pdf.pageNumbers?.colorKey,
       config,
-      config.pdf.pageNumbers?.colorOpacity
-    ) || config.colors.text.secondary,
-    '--page-number-margin': config.pdf.pageNumbers?.margin || '10mm',
-    '--page-number-position': config.pdf.pageNumbers?.position || 'bottom-center',
+      pdf.pageNumbers?.colorOpacity
+    ) || colorText.secondary,
+    '--page-number-margin': pdf.pageNumbers?.margin || '10mm',
+    '--page-number-position': pdf.pageNumbers?.position || 'bottom-center',
   };
 }
 

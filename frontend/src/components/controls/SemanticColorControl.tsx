@@ -36,7 +36,7 @@ interface ColorOption {
 }
 
 const COLOR_OPTIONS: ColorOption[] = [
-  // Surface colors — bg is the color itself, text is the on-variant
+  // Surface colors - bg is the color itself, text is the on-variant
   { value: 'primary', label: 'Primary', bgKey: 'primary', fgKey: 'on-primary', group: 'surface' },
   { value: 'secondary', label: 'Secondary', bgKey: 'secondary', fgKey: 'on-secondary', group: 'surface' },
   { value: 'tertiary', label: 'Tertiary', bgKey: 'tertiary', fgKey: 'on-tertiary', group: 'surface' },
@@ -45,7 +45,7 @@ const COLOR_OPTIONS: ColorOption[] = [
   { value: 'custom2', label: 'Custom 2', bgKey: 'custom2', fgKey: 'on-custom2', group: 'surface' },
   { value: 'custom3', label: 'Custom 3', bgKey: 'custom3', fgKey: 'on-custom3', group: 'surface' },
   { value: 'custom4', label: 'Custom 4', bgKey: 'custom4', fgKey: 'on-custom4', group: 'surface' },
-  // On-colors — swapped/negative: bg is the on-color, text is the surface it pairs with
+  // On-colors - swapped/negative: bg is the on-color, text is the surface it pairs with
   { value: 'on-primary', label: 'On Primary', bgKey: 'on-primary', fgKey: 'primary', group: 'on' },
   { value: 'on-secondary', label: 'On Secondary', bgKey: 'on-secondary', fgKey: 'secondary', group: 'on' },
   { value: 'on-tertiary', label: 'On Tertiary', bgKey: 'on-tertiary', fgKey: 'tertiary', group: 'on' },
@@ -54,7 +54,7 @@ const COLOR_OPTIONS: ColorOption[] = [
   { value: 'on-custom2', label: 'On Custom 2', bgKey: 'on-custom2', fgKey: 'custom2', group: 'on' },
   { value: 'on-custom3', label: 'On Custom 3', bgKey: 'on-custom3', fgKey: 'custom3', group: 'on' },
   { value: 'on-custom4', label: 'On Custom 4', bgKey: 'on-custom4', fgKey: 'custom4', group: 'on' },
-  // Text colors — shown on neutral background
+  // Text colors - shown on neutral background
   { value: 'text-primary', label: 'On Background', bgKey: '', fgKey: 'text-primary', group: 'text' },
   { value: 'text-secondary', label: 'On Background (Light)', bgKey: '', fgKey: 'text-secondary', group: 'text' },
   { value: 'text-muted', label: 'On Background (Muted)', bgKey: '', fgKey: 'text-muted', group: 'text' },
@@ -124,7 +124,7 @@ export const SemanticColorControl: React.FC<SemanticColorControlProps> = ({
     ? new Set(['text'])
     : mode === 'background'
       ? new Set(['surface', 'on'])
-      : null; // no filter — show all
+      : null; // no filter - show all
 
   const filteredOptions = allowedGroups
     ? COLOR_OPTIONS.filter(o => allowedGroups.has(o.group))

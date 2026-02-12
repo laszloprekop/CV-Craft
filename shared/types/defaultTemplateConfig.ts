@@ -8,39 +8,39 @@ import type { TemplateConfig } from './index';
 
 export const DEFAULT_TEMPLATE_CONFIG: TemplateConfig = {
   colors: {
-    primary: '#2563eb',       // Blue-600
-    onPrimary: '#ffffff',     // White text on primary
-    secondary: '#64748b',     // Slate-500
-    onSecondary: '#ffffff',   // White text on secondary
-    tertiary: '#f59e0b',      // Amber-500 (renamed from accent)
-    onTertiary: '#ffffff',    // White text on tertiary
-    background: '#ffffff',    // White
-    muted: '#f1f5f9',         // Slate-100
-    onMuted: '#334155',       // Slate-700 text on muted
+    primary: '#2b3a4e',       // Deep slate-blue - strong, authoritative
+    onPrimary: '#f0f4f8',     // Light blue-white for readable text on primary
+    secondary: '#eae8e4',     // Warm stone - distinct sidebar background
+    onSecondary: '#2d3748',   // Dark slate - strong contrast on sidebar (11:1)
+    tertiary: '#3d7a8a',      // Deep teal - rich, saturated accent
+    onTertiary: '#ffffff',    // White text on teal (7:1 contrast)
+    background: '#fafaf9',    // Warm off-white
+    muted: '#ddd9d4',         // Warm taupe - visible muted elements
+    onMuted: '#3f3f46',       // Zinc-700 - strong contrast on muted (7:1)
     text: {
-      primary: '#0f172a',     // Slate-900
-      secondary: '#475569',   // Slate-600
-      muted: '#94a3b8',       // Slate-400
+      primary: '#18181b',     // Zinc-900 - near-black, excellent readability
+      secondary: '#52525b',   // Zinc-600 - 7:1 contrast on white
+      muted: '#71717a',       // Zinc-500 - 4.6:1, passes AA normal text
     },
-    borders: '#e2e8f0',       // Slate-200
+    borders: '#c8c3bd',       // Warm gray - visible border
     links: {
-      default: '#2563eb',     // Blue-600
-      hover: '#1d4ed8',       // Blue-700
+      default: '#2d7a8a',     // Deep teal - matches tertiary, 5.5:1 on white
+      hover: '#1b5c6b',       // Even darker teal on hover (8:1)
     },
-    // Custom color pairs
-    custom1: '#8b5cf6',       // Violet-500
-    onCustom1: '#ffffff',     // White
-    custom2: '#ec4899',       // Pink-500
-    onCustom2: '#ffffff',     // White
-    custom3: '#14b8a6',       // Teal-500
-    onCustom3: '#ffffff',     // White
-    custom4: '#f97316',       // Orange-500
-    onCustom4: '#ffffff',     // White
+    // Custom color pairs - all chosen for good contrast with white text
+    custom1: '#6b5fa6',       // Rich purple (5.2:1)
+    onCustom1: '#ffffff',
+    custom2: '#a85c4a',       // Warm sienna (4.8:1)
+    onCustom2: '#ffffff',
+    custom3: '#3d7a5f',       // Forest green (5.1:1)
+    onCustom3: '#ffffff',
+    custom4: '#8a7042',       // Warm bronze (4.7:1)
+    onCustom4: '#ffffff',
     // Legacy support
-    accent: '#f59e0b',        // Deprecated, use tertiary
-    highlight: '#fef3c7',     // Amber-100
-    error: '#dc2626',         // Red-600
-    success: '#16a34a',       // Green-600
+    accent: '#3d7a8a',        // Deprecated, use tertiary
+    highlight: '#dff0f4',     // Light teal tint
+    error: '#b44240',         // Muted red (5.3:1)
+    success: '#3d7a5f',       // Forest green (5.1:1)
   },
 
   typography: {
@@ -58,36 +58,38 @@ export const DEFAULT_TEMPLATE_CONFIG: TemplateConfig = {
       'Raleway',
       'Merriweather',
       'Playfair Display',
-      'Lora'
+      'Lora',
+      'IBM Plex Sans',
+      'Crimson Text',
     ],
     fontLoadingStrategy: 'preload',
 
     fontFamily: {
-      heading: 'Inter, system-ui, -apple-system, sans-serif',
-      body: 'Georgia, "Times New Roman", serif',
+      heading: '"IBM Plex Sans", system-ui, -apple-system, sans-serif',
+      body: 'Inter, system-ui, -apple-system, sans-serif',
       monospace: '"Fira Code", "Courier New", monospace',
     },
 
-    // Font scale relative to baseFontSize
+    // Font scale relative to baseFontSize (x1.0 = body text size)
     fontScale: {
-      h1: 3.2,        // Main name/title
-      h2: 2.4,        // Section headers
-      h3: 2.0,        // Job titles
-      body: 1.6,      // Paragraphs, descriptions
-      small: 1.4,     // Metadata, contact info
-      tiny: 1.2,      // Dates, locations, page numbers
-      tag: 1.3,       // Skill tags
-      dateLine: 1.3,  // Date ranges in experience/education
-      inlineCode: 1.2,// Inline code snippets
+      h1: 2.0,        // Main name/title - prominent but not oversized
+      h2: 1.3,        // Section headers - clear hierarchy above body
+      h3: 1.1,        // Job titles - slightly larger than body
+      body: 1.0,      // Paragraphs, descriptions (reference size)
+      small: 0.9,     // Metadata, contact info
+      tiny: 0.8,      // Fine print, page numbers
+      tag: 0.9,       // Skill tags
+      dateLine: 0.9,  // Date ranges in experience/education
+      inlineCode: 0.85,// Inline code snippets
     },
 
     fontSize: {
-      h1: '32px',
-      h2: '24px',
-      h3: '20px',
-      body: '16px',
-      small: '14px',
-      tiny: '12px',
+      h1: '20pt',
+      h2: '13pt',
+      h3: '11pt',
+      body: '10pt',
+      small: '9pt',
+      tiny: '8pt',
     },
     fontWeight: {
       heading: 700,
@@ -96,32 +98,34 @@ export const DEFAULT_TEMPLATE_CONFIG: TemplateConfig = {
       bold: 600,
     },
     lineHeight: {
-      heading: 1.2,
-      body: 1.6,
+      heading: 1.3,
+      body: 1.5,
       compact: 1.4,
     },
     letterSpacing: {
-      heading: '-0.02em',
+      heading: '-0.01em',
       body: '0',
     },
   },
 
   layout: {
     templateType: 'two-column',
-    sidebarWidth: '84mm', // 40% of A4 width (210mm) for two-column layout
+    sidebarWidth: '40%',
+    sidebarBackground: '#eae8e4',
+    mainBackground: '#ffffff',
     pageWidth: '210mm', // A4 width
     pageMargin: {
-      top: '20mm',
-      right: '20mm',
-      bottom: '20mm',
-      left: '20mm',
+      top: '15mm',
+      right: '14mm',
+      bottom: '18mm',
+      left: '12mm',
     },
-    sectionSpacing: '24px',
-    paragraphSpacing: '12px',
+    sectionSpacing: '20px',
+    paragraphSpacing: '10px',
     columns: {
-      enabled: false,
-      gap: '24px',
-      ratio: '1:1',
+      enabled: true,
+      gap: '0px',
+      ratio: '1:2',
     },
   },
 
@@ -130,89 +134,84 @@ export const DEFAULT_TEMPLATE_CONFIG: TemplateConfig = {
     name: {
       fontFamily: undefined, // Uses heading font by default
       fontSize: undefined,   // Uses h1 × baseFontSize (calculated)
-      fontWeight: 700,
-      color: '#0f172a',
-      letterSpacing: '-0.02em',
+      fontWeight: 800,
+      color: '#18181b',
+      letterSpacing: '-0.01em',
       textTransform: 'uppercase',
       alignment: 'left',
       marginBottom: '8px',
     },
     // Contact information
     contactInfo: {
-      layout: 'inline',
+      layout: 'stacked',
       iconSize: '16px',
-      iconColor: '#64748b',
-      textColor: '#475569',
-      spacing: '12px',
+      iconColor: '#3d7a8a',
+      textColor: '#3f3f46',
+      spacing: '10px',
       fontSize: undefined, // Uses small × baseFontSize (calculated)
       showIcons: true,
       iconPosition: 'left',
-      separator: '·', // Default separator between items
+      separator: '·',
     },
     // Profile photo
     profilePhoto: {
       size: '200px',
       borderRadius: '50%',
-      border: '3px solid #e2e8f0',
-      borderColor: '#e2e8f0',
-      position: 'center',
+      border: 'none',
+      borderColor: '#c8c3bd',
+      position: 'left',
     },
     header: {
       backgroundColor: undefined,
-      padding: '0 0 16px 0',
-      borderBottom: '2px solid #e2e8f0',
+      padding: '0 0 12px 0',
+      borderBottom: 'none',
       alignment: 'left',
-      nameSize: '36px',
-      contactSize: '14px',
+      nameSize: '20pt',
+      contactSize: '9pt',
     },
     // Section headers (H2)
+    // Two-column CSS provides colored backgrounds as the primary decorator.
+    // dividerStyle is 'none' to avoid double decoration (background + underline).
     sectionHeader: {
       fontFamily: undefined, // Uses heading font by default
       fontSize: undefined,   // Uses h2 × baseFontSize (calculated)
       fontWeight: 700,
-      color: '#0f172a',
-      textTransform: 'uppercase',
-      dividerStyle: 'underline', // Visual divider style
-      dividerColor: '#2563eb',
-      dividerWidth: '2px',
-      borderBottom: '2px solid #2563eb', // Legacy support
-      borderColor: '#2563eb',
-      borderWidth: '2px',
-      padding: '0 0 4px 0',
-      marginTop: '24px',
-      marginBottom: '12px',
-      letterSpacing: '0.05em',
-      backgroundColor: undefined,
+      textTransform: 'capitalize',
+      dividerStyle: 'none',
+      padding: '4px 8px',
+      marginTop: '20px',
+      marginBottom: '10px',
+      letterSpacing: '0.03em',
     },
     section: {
-      marginBottom: '24px',
-      titleColor: '#0f172a',
-      titleBorderBottom: '1px solid #e2e8f0',
-      titlePadding: '0 0 8px 0',
+      marginBottom: '20px',
+      titleColor: '#2b3a4e',
+      titleBorderBottom: '1px solid #c8c3bd',
+      titlePadding: '0 0 6px 0',
       titleTransform: 'none',
     },
     // Job/education titles (H3)
     jobTitle: {
-      fontFamily: undefined, // Uses heading font by default
-      fontSize: undefined,   // Uses h3 × baseFontSize (calculated)
+      fontFamily: undefined,
+      fontSize: undefined,
       fontWeight: 600,
-      color: '#0f172a',
+      color: '#18181b',
       fontStyle: 'normal',
       marginBottom: '4px',
       textTransform: 'none',
     },
     // Organization/company names
     organizationName: {
-      fontSize: undefined, // Uses body × baseFontSize (calculated)
+      fontSize: undefined,
       fontWeight: 500,
-      color: '#475569',
+      color: '#52525b',
       fontStyle: 'normal',
     },
     // Key-value pairs
     keyValue: {
-      labelColor: '#0f172a',
+      labelColor: '#18181b',
       labelWeight: 600,
-      valueColor: '#475569',
+      valueColor: '#52525b',
       valueWeight: 400,
       separator: ':',
       spacing: '4px',
@@ -220,70 +219,71 @@ export const DEFAULT_TEMPLATE_CONFIG: TemplateConfig = {
     // Emphasized text
     emphasis: {
       fontWeight: 600,
-      color: '#0f172a',
+      color: '#18181b',
     },
     tags: {
-      colorPair: 'tertiary',      // Use tertiary color pair by default
-      backgroundOpacity: 0.2,     // 20% opacity for background
-      textOpacity: 1.0,           // 100% opacity for text
-      backgroundColor: '#e0e7ff', // Legacy fallback: Indigo-100
-      textColor: '#3730a3',       // Legacy fallback: Indigo-800
+      colorPair: 'tertiary',      // Uses muted teal
+      backgroundOpacity: 0.15,    // 15% opacity - subtle
+      textColorKey: 'text-primary',// Dark text on light bg (>12:1 contrast)
+      textOpacity: 1.0,
+      backgroundColor: '#e0e7ff', // Legacy fallback
+      textColor: '#3730a3',       // Legacy fallback
       borderRadius: '4px',
       padding: '4px 8px',
-      fontSize: undefined,        // Uses tag × baseFontSize (calculated)
-      gap: '8px',
+      fontSize: undefined,
+      gap: '6px',
       border: undefined,
       fontWeight: 500,
-      style: 'pill',              // Default to pill style
-      separator: '·',             // Default separator for inline style
+      style: 'pill',
+      separator: '·',
     },
     dateLine: {
-      color: '#64748b',
+      color: '#71717a',
       fontStyle: 'italic',
-      fontSize: undefined, // Uses dateLine × baseFontSize (calculated)
+      fontSize: undefined,
       fontWeight: 400,
-      alignment: 'right',
-      format: 'short', // Use 'short' format by default (MMM YYYY)
+      alignment: 'left',
+      format: 'short',
     },
     list: {
       level1: {
         bulletStyle: 'disc',
         customBullet: undefined,
-        color: '#2563eb',
-        indent: '20px',
+        color: '#3d7a8a',
+        indent: '18px',
       },
       level2: {
         bulletStyle: 'circle',
         customBullet: undefined,
-        color: '#64748b',
-        indent: '40px',
+        color: '#71717a',
+        indent: '36px',
       },
       level3: {
         bulletStyle: 'square',
         customBullet: undefined,
-        color: '#94a3b8',
-        indent: '60px',
+        color: '#a1a1aa',
+        indent: '54px',
       },
       // Legacy support
       bulletStyle: 'disc',
       customBullet: undefined,
-      indent: '20px',
-      spacing: '8px',
-      markerColor: '#2563eb',
+      indent: '18px',
+      spacing: '6px',
+      markerColor: '#3d7a8a',
     },
     links: {
-      color: '#2563eb', // Primary blue for links
-      hoverColor: '#1d4ed8', // Darker blue on hover
-      underline: true, // Legacy support
-      underlineStyle: 'always', // Show underline always
+      color: '#2d7a8a',
+      hoverColor: '#1b5c6b',
+      underline: true,
+      underlineStyle: 'always',
       fontWeight: 500,
-      decoration: 'underline', // Legacy support
+      decoration: 'underline',
     },
     divider: {
       style: 'solid',
-      color: '#e2e8f0',
+      color: '#c8c3bd',
       thickness: '1px',
-      spacing: '16px',
+      spacing: '14px',
     },
   },
 

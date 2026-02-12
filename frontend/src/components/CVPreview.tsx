@@ -232,7 +232,7 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
       "<em>$1</em>",
     )
 
-    // Handle links [text](url) — sanitize URL to prevent javascript: XSS
+    // Handle links [text](url) - sanitize URL to prevent javascript: XSS
     formatted = formatted.replace(
       /\[([^\]]+)\]\(([^)]+)\)/g,
       (_match: string, text: string, url: string) =>
@@ -462,10 +462,9 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
 
   // Apply template-based styling - memoized to prevent infinite re-renders
   const templateStyles = useMemo((): CSSCustomProperties => {
-    if (!template) return {}
-
-    // Prefer config over settings (config is newer, more comprehensive)
-    const activeConfig = config || template.default_config
+    // Use config directly (already includes fallback chain from CVEditorPage)
+    const activeConfig = config || template?.default_config
+    if (!activeConfig) return {}
 
     // Use shared CSS variable generator for consistency with PDF export
     const cssVariables = generateCSSVariables(activeConfig)

@@ -54,7 +54,6 @@ describe('isSidebarSection', () => {
       ['skills', 'Skills'],
       ['languages', 'Languages'],
       ['interests', 'Interests'],
-      ['certifications', 'Certifications'],
     ] as const)('returns true for type=%s', (type, title) => {
       expect(isSidebarSection(makeSection({ type, title }))).toBe(true)
     })
@@ -85,12 +84,6 @@ describe('isSidebarSection', () => {
       ).toBe(true)
     })
 
-    it('matches title containing "certifications"', () => {
-      expect(
-        isSidebarSection(makeSection({ type: 'heading', title: 'My Certifications & Awards' }))
-      ).toBe(true)
-    })
-
     it('matches title containing "tools"', () => {
       expect(
         isSidebarSection(makeSection({ type: 'heading', title: 'Development Tools' }))
@@ -104,6 +97,7 @@ describe('isSidebarSection', () => {
       ['education', 'Education'],
       ['summary', 'Summary'],
       ['projects', 'Projects'],
+      ['certifications', 'Certifications & Awards'],
     ] as const)('returns false for type=%s, title=%s', (type, title) => {
       expect(isSidebarSection(makeSection({ type, title }))).toBe(false)
     })

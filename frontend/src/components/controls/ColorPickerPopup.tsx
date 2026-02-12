@@ -72,15 +72,15 @@ export const ColorPickerPopup: React.FC<ColorPickerPopupProps> = ({
     let maxHeight: number;
 
     if (spaceBelow >= minUsableHeight) {
-      // Place below — cap height to available space
+      // Place below - cap height to available space
       top = rect.bottom + gap;
       maxHeight = spaceBelow;
     } else if (spaceAbove > spaceBelow) {
-      // Flip above — more room there
+      // Flip above - more room there
       maxHeight = spaceAbove;
       top = rect.top - gap - Math.min(maxHeight, 500);
     } else {
-      // Neither side is great — go below, capped
+      // Neither side is great - go below, capped
       top = rect.bottom + gap;
       maxHeight = spaceBelow;
     }
@@ -187,7 +187,7 @@ export const ColorPickerPopup: React.FC<ColorPickerPopupProps> = ({
         />
       </div>
 
-      {/* Swatch libraries — scrollable area */}
+      {/* Swatch libraries - scrollable area */}
       <div className="overflow-y-auto flex-1 min-h-0 border-t border-border/30">
         <SwatchLibrary
           title="Tailwind"

@@ -1117,25 +1117,25 @@ export const SemanticElementEditor: React.FC<SemanticElementEditorProps> = ({
 
   // Resolved color map for swatch display in SemanticColorControl dropdowns
   const resolvedColors: Record<string, string> = {
-    'primary': config.colors.primary,
-    'secondary': config.colors.secondary,
-    'tertiary': config.colors.tertiary,
-    'muted': config.colors.muted,
-    'text-primary': config.colors.text.primary,
-    'text-secondary': config.colors.text.secondary,
-    'text-muted': config.colors.text.muted,
-    'custom1': config.colors.custom1,
-    'custom2': config.colors.custom2,
-    'custom3': config.colors.custom3,
-    'custom4': config.colors.custom4,
-    'on-primary': config.colors.onPrimary,
-    'on-secondary': config.colors.onSecondary,
-    'on-tertiary': config.colors.onTertiary || '#ffffff',
-    'on-muted': config.colors.onMuted || '#334155',
-    'on-custom1': config.colors.onCustom1,
-    'on-custom2': config.colors.onCustom2,
-    'on-custom3': config.colors.onCustom3,
-    'on-custom4': config.colors.onCustom4,
+    'primary': config.colors?.primary,
+    'secondary': config.colors?.secondary,
+    'tertiary': config.colors?.tertiary,
+    'muted': config.colors?.muted,
+    'text-primary': config.colors?.text?.primary,
+    'text-secondary': config.colors?.text?.secondary,
+    'text-muted': config.colors?.text?.muted,
+    'custom1': config.colors?.custom1,
+    'custom2': config.colors?.custom2,
+    'custom3': config.colors?.custom3,
+    'custom4': config.colors?.custom4,
+    'on-primary': config.colors?.onPrimary,
+    'on-secondary': config.colors?.onSecondary,
+    'on-tertiary': config.colors?.onTertiary || '#ffffff',
+    'on-muted': config.colors?.onMuted || '#334155',
+    'on-custom1': config.colors?.onCustom1,
+    'on-custom2': config.colors?.onCustom2,
+    'on-custom3': config.colors?.onCustom3,
+    'on-custom4': config.colors?.onCustom4,
   };
 
   // Render editor for base typography
@@ -1144,37 +1144,37 @@ export const SemanticElementEditor: React.FC<SemanticElementEditorProps> = ({
       <Section label="Fonts">
         <FontSelector
           label="Body Font"
-          value={config.typography.fontFamily.body}
-          onChange={(v) => onChange('typography', { fontFamily: { ...config.typography.fontFamily, body: v } })}
+          value={config.typography?.fontFamily?.body}
+          onChange={(v) => onChange('typography', { fontFamily: { ...(config.typography?.fontFamily || {}), body: v } })}
           fontType="body"
         />
         <FontSelector
           label="Heading Font"
-          value={config.typography.fontFamily.heading}
-          onChange={(v) => onChange('typography', { fontFamily: { ...config.typography.fontFamily, heading: v } })}
+          value={config.typography?.fontFamily?.heading}
+          onChange={(v) => onChange('typography', { fontFamily: { ...(config.typography?.fontFamily || {}), heading: v } })}
           fontType="heading"
         />
       </Section>
       <Section label="Scale">
         <SpacingControl
           label="Base Size"
-          value={config.typography.baseFontSize}
+          value={config.typography?.baseFontSize}
           onChange={(v) => onChange('typography', { baseFontSize: v })}
           units={['pt', 'px']}
         />
         <div className="grid grid-cols-2 gap-1">
           <NumberControl
             label="Body Weight"
-            value={config.typography.fontWeight.body}
-            onChange={(v) => onChange('typography', { fontWeight: { ...config.typography.fontWeight, body: v } })}
+            value={config.typography?.fontWeight?.body}
+            onChange={(v) => onChange('typography', { fontWeight: { ...(config.typography?.fontWeight || {}), body: v } })}
             min={100}
             max={900}
             step={100}
           />
           <NumberControl
             label="Heading Weight"
-            value={config.typography.fontWeight.heading}
-            onChange={(v) => onChange('typography', { fontWeight: { ...config.typography.fontWeight, heading: v } })}
+            value={config.typography?.fontWeight?.heading}
+            onChange={(v) => onChange('typography', { fontWeight: { ...(config.typography?.fontWeight || {}), heading: v } })}
             min={100}
             max={900}
             step={100}
@@ -1183,16 +1183,16 @@ export const SemanticElementEditor: React.FC<SemanticElementEditorProps> = ({
         <div className="grid grid-cols-2 gap-1">
           <NumberControl
             label="Body Line H."
-            value={config.typography.lineHeight.body}
-            onChange={(v) => onChange('typography', { lineHeight: { ...config.typography.lineHeight, body: v } })}
+            value={config.typography?.lineHeight?.body}
+            onChange={(v) => onChange('typography', { lineHeight: { ...(config.typography?.lineHeight || {}), body: v } })}
             min={1}
             max={3}
             step={0.1}
           />
           <NumberControl
             label="Heading Line H."
-            value={config.typography.lineHeight.heading}
-            onChange={(v) => onChange('typography', { lineHeight: { ...config.typography.lineHeight, heading: v } })}
+            value={config.typography?.lineHeight?.heading}
+            onChange={(v) => onChange('typography', { lineHeight: { ...(config.typography?.lineHeight || {}), heading: v } })}
             min={1}
             max={3}
             step={0.1}
@@ -1203,48 +1203,48 @@ export const SemanticElementEditor: React.FC<SemanticElementEditorProps> = ({
         <div className="grid grid-cols-2 gap-1">
           <NumberControl
             label="H1 Scale"
-            value={config.typography.fontScale.h1}
-            onChange={(v) => onChange('typography', { fontScale: { ...config.typography.fontScale, h1: v } })}
+            value={config.typography?.fontScale?.h1}
+            onChange={(v) => onChange('typography', { fontScale: { ...(config.typography?.fontScale || {}), h1: v } })}
             min={1}
             max={5}
             step={0.1}
           />
           <NumberControl
             label="H2 Scale"
-            value={config.typography.fontScale.h2}
-            onChange={(v) => onChange('typography', { fontScale: { ...config.typography.fontScale, h2: v } })}
+            value={config.typography?.fontScale?.h2}
+            onChange={(v) => onChange('typography', { fontScale: { ...(config.typography?.fontScale || {}), h2: v } })}
             min={1}
             max={4}
             step={0.1}
           />
           <NumberControl
             label="H3 Scale"
-            value={config.typography.fontScale.h3}
-            onChange={(v) => onChange('typography', { fontScale: { ...config.typography.fontScale, h3: v } })}
+            value={config.typography?.fontScale?.h3}
+            onChange={(v) => onChange('typography', { fontScale: { ...(config.typography?.fontScale || {}), h3: v } })}
             min={1}
             max={3}
             step={0.1}
           />
           <NumberControl
             label="Body Scale"
-            value={config.typography.fontScale.body}
-            onChange={(v) => onChange('typography', { fontScale: { ...config.typography.fontScale, body: v } })}
+            value={config.typography?.fontScale?.body}
+            onChange={(v) => onChange('typography', { fontScale: { ...(config.typography?.fontScale || {}), body: v } })}
             min={1}
             max={2.5}
             step={0.1}
           />
           <NumberControl
             label="Small Scale"
-            value={config.typography.fontScale.small}
-            onChange={(v) => onChange('typography', { fontScale: { ...config.typography.fontScale, small: v } })}
+            value={config.typography?.fontScale?.small}
+            onChange={(v) => onChange('typography', { fontScale: { ...(config.typography?.fontScale || {}), small: v } })}
             min={0.8}
             max={2}
             step={0.1}
           />
           <NumberControl
             label="Tiny Scale"
-            value={config.typography.fontScale.tiny}
-            onChange={(v) => onChange('typography', { fontScale: { ...config.typography.fontScale, tiny: v } })}
+            value={config.typography?.fontScale?.tiny}
+            onChange={(v) => onChange('typography', { fontScale: { ...(config.typography?.fontScale || {}), tiny: v } })}
             min={0.8}
             max={1.8}
             step={0.1}
@@ -1254,13 +1254,13 @@ export const SemanticElementEditor: React.FC<SemanticElementEditorProps> = ({
       <Section label="Spacing">
         <SpacingControl
           label="Section Spacing"
-          value={config.layout.sectionSpacing}
+          value={config.layout?.sectionSpacing}
           onChange={(v) => onChange('layout', { sectionSpacing: v })}
           units={['px', 'rem', 'em']}
         />
         <SpacingControl
           label="Paragraph Spacing"
-          value={config.layout.paragraphSpacing}
+          value={config.layout?.paragraphSpacing}
           onChange={(v) => onChange('layout', { paragraphSpacing: v })}
           units={['px', 'rem', 'em']}
         />
@@ -1398,18 +1398,18 @@ export const SemanticElementEditor: React.FC<SemanticElementEditorProps> = ({
 
   // Render editor for Org/Date (organization name, date, separator)
   const renderOrgEditor = () => {
-    const orgComp = config.components.organizationName || {};
-    const dateComp = config.components.dateLine || {};
-    const currentSep = config.components.jobTitle?.metaSeparator || 'pipe';
+    const orgComp = config.components?.organizationName || {};
+    const dateComp = config.components?.dateLine || {};
+    const currentSep = config.components?.jobTitle?.metaSeparator || 'pipe';
 
     const updateOrg = (key: string, value: any) => {
-      onChange('components', { organizationName: { ...config.components.organizationName, [key]: value } });
+      onChange('components', { organizationName: { ...(config.components?.organizationName || {}), [key]: value } });
     };
     const updateDate = (key: string, value: any) => {
-      onChange('components', { dateLine: { ...config.components.dateLine, [key]: value } });
+      onChange('components', { dateLine: { ...(config.components?.dateLine || {}), [key]: value } });
     };
     const updateSeparator = (value: string) => {
-      onChange('components', { jobTitle: { ...config.components.jobTitle, metaSeparator: value } });
+      onChange('components', { jobTitle: { ...(config.components?.jobTitle || {}), metaSeparator: value } });
     };
 
     return (
@@ -1433,13 +1433,13 @@ export const SemanticElementEditor: React.FC<SemanticElementEditorProps> = ({
             ))}
           </div>
           <p className="text-[9px] text-text-muted mt-1">
-            {SEPARATOR_OPTIONS.find(o => o.value === currentSep)?.title || 'Pipe'} — between company, date, and location
+            {SEPARATOR_OPTIONS.find(o => o.value === currentSep)?.title || 'Pipe'} - between company, date, and location
           </p>
         </Section>
         <Section label="Organization">
           <FontSelector
             label="Font"
-            value={orgComp.fontFamily || config.typography.fontFamily.body}
+            value={orgComp.fontFamily || config.typography?.fontFamily?.body}
             onChange={(v) => updateOrg('fontFamily', v)}
             fontType="body"
           />
@@ -1501,7 +1501,7 @@ export const SemanticElementEditor: React.FC<SemanticElementEditorProps> = ({
         <Section label="Date">
           <FontSelector
             label="Font"
-            value={dateComp.fontFamily || config.typography.fontFamily.body}
+            value={dateComp.fontFamily || config.typography?.fontFamily?.body}
             onChange={(v) => updateDate('fontFamily', v)}
             fontType="body"
           />
@@ -1556,9 +1556,9 @@ export const SemanticElementEditor: React.FC<SemanticElementEditorProps> = ({
 
   // Render editor for tags
   const renderTagEditor = () => {
-    const tags = config.components.tags || {};
+    const tags = config.components?.tags || {};
     const updateTag = (key: string, value: any) => {
-      onChange('components', { tags: { ...config.components.tags, [key]: value } });
+      onChange('components', { tags: { ...(config.components?.tags || {}), [key]: value } });
     };
     // Custom update handler for tags (maps colorKey to textColorKey)
     const tagTypographyUpdate = (key: string, value: any) => {
@@ -1624,9 +1624,9 @@ export const SemanticElementEditor: React.FC<SemanticElementEditorProps> = ({
 
   // Render editor for links
   const renderLinkEditor = () => {
-    const links = config.components.links || {};
+    const links = config.components?.links || {};
     const updateLink = (key: string, value: any) => {
-      onChange('components', { links: { ...config.components.links, [key]: value } });
+      onChange('components', { links: { ...(config.components?.links || {}), [key]: value } });
     };
     return (
       <>
@@ -1662,9 +1662,9 @@ export const SemanticElementEditor: React.FC<SemanticElementEditorProps> = ({
 
   // Render editor for contact
   const renderContactEditor = () => {
-    const contactInfo = config.components.contactInfo || {};
+    const contactInfo = config.components?.contactInfo || {};
     const updateContact = (key: string, value: any) => {
-      onChange('components', { contactInfo: { ...config.components.contactInfo, [key]: value } });
+      onChange('components', { contactInfo: { ...(config.components?.contactInfo || {}), [key]: value } });
     };
     return (
       <>
@@ -1702,9 +1702,9 @@ export const SemanticElementEditor: React.FC<SemanticElementEditorProps> = ({
 
   // Render editor for photo
   const renderPhotoEditor = () => {
-    const profilePhoto = config.components.profilePhoto || {};
+    const profilePhoto = config.components?.profilePhoto || {};
     const updatePhoto = (key: string, value: any) => {
-      onChange('components', { profilePhoto: { ...config.components.profilePhoto, [key]: value } });
+      onChange('components', { profilePhoto: { ...(config.components?.profilePhoto || {}), [key]: value } });
     };
     return (
       <>
@@ -1743,9 +1743,9 @@ export const SemanticElementEditor: React.FC<SemanticElementEditorProps> = ({
 
   // Render editor for page numbers
   const renderPageNumberEditor = () => {
-    const pageNumbers = config.pdf.pageNumbers || {};
+    const pageNumbers = config.pdf?.pageNumbers || {};
     const updatePageNumbers = (key: string, value: any) => {
-      onChange('pdf', { pageNumbers: { ...config.pdf.pageNumbers, [key]: value } });
+      onChange('pdf', { pageNumbers: { ...(config.pdf?.pageNumbers || {}), [key]: value } });
     };
     return (
       <>
@@ -1798,9 +1798,9 @@ export const SemanticElementEditor: React.FC<SemanticElementEditorProps> = ({
 
   // Render editor for body text
   const renderBodyEditor = () => {
-    const bodyText = config.components.bodyText || {};
+    const bodyText = config.components?.bodyText || {};
     const updateBody = (key: string, value: any) => {
-      onChange('components', { bodyText: { ...config.components.bodyText, [key]: value } });
+      onChange('components', { bodyText: { ...(config.components?.bodyText || {}), [key]: value } });
     };
     return (
       <>
@@ -1820,7 +1820,7 @@ export const SemanticElementEditor: React.FC<SemanticElementEditorProps> = ({
           <div className="grid grid-cols-2 gap-1">
             <NumberControl
               label="Weight"
-              value={bodyText.fontWeight ?? config.typography.fontWeight.body}
+              value={bodyText.fontWeight ?? config.typography?.fontWeight?.body}
               onChange={(v) => updateBody('fontWeight', v)}
               min={100}
               max={900}
@@ -1828,7 +1828,7 @@ export const SemanticElementEditor: React.FC<SemanticElementEditorProps> = ({
             />
             <NumberControl
               label="Line Height"
-              value={bodyText.lineHeight ?? config.typography.lineHeight.body}
+              value={bodyText.lineHeight ?? config.typography?.lineHeight?.body}
               onChange={(v) => updateBody('lineHeight', v)}
               min={1}
               max={3}
@@ -1844,11 +1844,11 @@ export const SemanticElementEditor: React.FC<SemanticElementEditorProps> = ({
         </Section>
         <Section label="List Bullets">
           <MultiLevelBulletPicker
-            level1={config.components.list?.level1}
-            level2={config.components.list?.level2}
-            level3={config.components.list?.level3}
-            onChange={(updates) => onChange('components', { list: { ...config.components.list, ...updates } })}
-            onChangeComplete={(updates) => onCommit('components', { list: { ...config.components.list, ...updates } })}
+            level1={config.components?.list?.level1}
+            level2={config.components?.list?.level2}
+            level3={config.components?.list?.level3}
+            onChange={(updates) => onChange('components', { list: { ...(config.components?.list || {}), ...updates } })}
+            onChangeComplete={(updates) => onCommit('components', { list: { ...(config.components?.list || {}), ...updates } })}
             resolvedColors={resolvedColors}
           />
         </Section>

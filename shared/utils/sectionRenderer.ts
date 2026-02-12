@@ -76,7 +76,16 @@ function renderSectionContent(section: CVSection, pagination: boolean, prefix: s
     return renderSkills(content, prefix)
   }
 
-  // Simple list sections (languages, interests, etc.)
+  // Simple list sections (languages, interests, certifications, etc.)
+  // Check if content looks like a list of items (objects with .text property from backend parser)
+  const hasListItems = content.some(item => typeof item === 'object' && item !== null && 'text' in item)
+  if (hasListItems) {
+    return `<ul class="${prefix}content-list">\n${content.map(item => {
+      const text = typeof item === 'string' ? item : (item as any).text || ''
+      return `  <li>${renderInlineMarkdown(text)}</li>`
+    }).join('\n')}\n</ul>`
+  }
+
   return content.map(item => {
     if (typeof item === 'string') {
       return `<p class="${prefix}content-text">${renderInlineMarkdown(item)}</p>`
@@ -296,7 +305,7 @@ function renderDescription(description: string, prefix: string): string {
   }
 
   return paragraphs.map(para => {
-    // Spacer paragraph (from preserveBlankLines) — render as visible line break
+    // Spacer paragraph (from preserveBlankLines) - render as visible line break
     if (/^\u200B+$/.test(para)) {
       return '<br/>'
     }
@@ -376,7 +385,7 @@ export function renderInlineMarkdown(text: string): string {
   result = result.replace(/(?<!\w)_(.+?)_(?!\w)/g, '<em>$1</em>')
   // Inline code: `code`
   result = result.replace(/`(.+?)`/g, '<code>$1</code>')
-  // Links: [text](url) — sanitize URL to prevent javascript: XSS
+  // Links: [text](url) - sanitize URL to prevent javascript: XSS
   result = result.replace(/\[(.+?)\]\((.+?)\)/g, (_match, text, url) => `<a href="${sanitizeUrl(url)}">${text}</a>`)
   return result
 }

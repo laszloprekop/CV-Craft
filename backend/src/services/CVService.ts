@@ -226,10 +226,16 @@ export class CVService {
    * Get CV statistics
    */
   async getStats(id: string): Promise<CVStats> {
-    const cv = await this.getById(id);
-    
+    let cv = await this.getById(id);
+
     if (!cv.parsed_content) {
-      throw new CVServiceError('CV content not parsed', 'UNPARSED_CONTENT');
+      if (cv.content) {
+        await this.reparse(id);
+        cv = await this.getById(id);
+      }
+      if (!cv.parsed_content) {
+        throw new CVServiceError('CV content not parsed', 'UNPARSED_CONTENT');
+      }
     }
 
     const stats: CVStats = {
@@ -321,10 +327,16 @@ export class CVService {
    * Export CV to PDF or web package
    */
   async exportCV(id: string, exportType: 'pdf' | 'web_package', configOverride?: TemplateConfig): Promise<CVExportResult> {
-    const cv = await this.getById(id);
+    let cv = await this.getById(id);
 
     if (!cv.parsed_content) {
-      throw new CVServiceError('CV content not parsed', 'UNPARSED_CONTENT');
+      if (cv.content) {
+        await this.reparse(id);
+        cv = await this.getById(id);
+      }
+      if (!cv.parsed_content) {
+        throw new CVServiceError('CV content not parsed', 'UNPARSED_CONTENT');
+      }
     }
 
     // Get template

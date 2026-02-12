@@ -66,7 +66,7 @@ Content without frontmatter
       expect(result.frontmatter.name).toBe('John Doe');
     });
 
-    test('should throw for frontmatter missing required email field', async () => {
+    test('should accept frontmatter without email (email is optional)', async () => {
       const partialCV = `---
 name: John Doe
 ---
@@ -75,7 +75,9 @@ name: John Doe
 Content
 `;
 
-      await expect(parseCV(partialCV)).rejects.toThrow('email');
+      const result = await parseCV(partialCV);
+      expect(result.frontmatter.name).toBe('John Doe');
+      expect(result.frontmatter.email).toBeUndefined();
     });
   });
 

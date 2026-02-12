@@ -81,7 +81,6 @@ const SIDEBAR_SECTION_TYPES = [
   'languages',
   'interests',
   'tools',
-  'certifications',
 ]
 
 /**

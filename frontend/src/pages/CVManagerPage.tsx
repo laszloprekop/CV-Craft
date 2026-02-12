@@ -9,12 +9,14 @@ import {
   Copy,
   PencilSimple,
   CursorText,
+  Trash,
   Check,
   X,
   CaretUp,
   CaretDown
 } from '@phosphor-icons/react'
 import type { CVInstance, Template } from '../../../shared/types'
+import { SAMPLE_CV_ID } from '../hooks/useCVEditor'
 
 type SortKey = 'name' | 'updated_at' | 'created_at' | 'sections_count' | 'word_count' | 'status'
 type SortDir = 'asc' | 'desc'
@@ -30,6 +32,7 @@ export const CVManagerPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null)
   const [renamingId, setRenamingId] = useState<string | null>(null)
   const [renameValue, setRenameValue] = useState('')
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
   const [sortKey, setSortKey] = useState<SortKey>('updated_at')
   const [sortDir, setSortDir] = useState<SortDir>('desc')
 
@@ -179,6 +182,18 @@ export const CVManagerPage: React.FC = () => {
     setRenamingId(null)
   }
 
+  const handleDeleteCV = async (e: React.MouseEvent, id: string) => {
+    e.stopPropagation()
+    try {
+      await cvApi.delete(id)
+      setCvs(prev => prev.filter(cv => cv.id !== id))
+      setConfirmDeleteId(null)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to delete CV')
+      setConfirmDeleteId(null)
+    }
+  }
+
   useEffect(() => {
     if (renamingId && renameInputRef.current) renameInputRef.current.focus()
   }, [renamingId])
@@ -248,6 +263,7 @@ export const CVManagerPage: React.FC = () => {
         {cvs.length === 0 ? (
           <p className="text-text-secondary">No CVs created yet. Click &ldquo;Create New CV&rdquo; to get started!</p>
         ) : (
+          <>
           <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
             <table className="w-full">
               <thead>
@@ -310,7 +326,7 @@ export const CVManagerPage: React.FC = () => {
                         </div>
                       ) : (
                         <span className="text-sm font-medium text-gray-900 group-hover:text-emerald-700 transition-colors">
-                          {cv.name}
+                          {cv.name}{cv.id === SAMPLE_CV_ID && <span className="text-gray-400">*</span>}
                         </span>
                       )}
                     </td>
@@ -340,35 +356,64 @@ export const CVManagerPage: React.FC = () => {
                     </td>
                     {/* Actions */}
                     <td className="px-4 py-3">
-                      <div className="flex gap-1 justify-end opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button
-                          onClick={(e) => { e.stopPropagation(); handleEditCV(cv.id) }}
-                          className="p-1.5 text-gray-400 hover:text-emerald-600 hover:bg-emerald-100 rounded transition-colors"
-                          title="Edit"
-                        >
-                          <PencilSimple size={16} />
-                        </button>
-                        <button
-                          onClick={(e) => handleStartRename(e, cv)}
-                          className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-100 rounded transition-colors"
-                          title="Rename"
-                        >
-                          <CursorText size={16} />
-                        </button>
-                        <button
-                          onClick={(e) => handleDuplicateCV(e, cv)}
-                          className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-200 rounded transition-colors"
-                          title="Duplicate"
-                        >
-                          <Copy size={16} />
-                        </button>
-                      </div>
+                      {confirmDeleteId === cv.id ? (
+                        <div className="flex items-center gap-1 justify-end" onClick={(e) => e.stopPropagation()}>
+                          <span className="text-xs text-red-600 font-medium mr-1">Delete?</span>
+                          <button
+                            onClick={(e) => handleDeleteCV(e, cv.id)}
+                            className="px-1.5 py-0.5 text-xs bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
+                          >
+                            Yes
+                          </button>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); setConfirmDeleteId(null) }}
+                            className="px-1.5 py-0.5 text-xs border border-gray-300 rounded hover:bg-gray-100 transition-colors"
+                          >
+                            No
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="flex gap-1 justify-end opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button
+                            onClick={(e) => { e.stopPropagation(); handleEditCV(cv.id) }}
+                            className="p-1.5 text-gray-400 hover:text-emerald-600 hover:bg-emerald-100 rounded transition-colors"
+                            title="Edit"
+                          >
+                            <PencilSimple size={16} />
+                          </button>
+                          <button
+                            onClick={(e) => handleStartRename(e, cv)}
+                            className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-100 rounded transition-colors"
+                            title="Rename"
+                          >
+                            <CursorText size={16} />
+                          </button>
+                          <button
+                            onClick={(e) => handleDuplicateCV(e, cv)}
+                            className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-200 rounded transition-colors"
+                            title="Duplicate"
+                          >
+                            <Copy size={16} />
+                          </button>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); setConfirmDeleteId(cv.id) }}
+                            className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-100 rounded transition-colors"
+                            title="Delete"
+                          >
+                            <Trash size={16} />
+                          </button>
+                        </div>
+                      )}
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
+          {cvs.some(cv => cv.id === SAMPLE_CV_ID) && (
+            <p className="text-xs text-gray-400 mt-2 ml-1">* Opening the Template CV creates a new copy, keeping the original unchanged.</p>
+          )}
+          </>
         )}
       </div>
     </div>

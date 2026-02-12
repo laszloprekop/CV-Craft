@@ -176,9 +176,10 @@ export class CVInstanceModel {
     const countStmt = this.db.prepare(`SELECT COUNT(*) as count FROM cv_instances WHERE ${whereClause}`);
     const { count: total } = countStmt.get(...params) as { count: number };
 
-    // Get data with pagination
+    // Get data with pagination (exclude heavy fields for list view)
     const dataStmt = this.db.prepare(`
-      SELECT * FROM cv_instances
+      SELECT id, name, template_id, photo_asset_id, status, created_at, updated_at, metadata
+      FROM cv_instances
       WHERE ${whereClause}
       ORDER BY ${orderBy} ${orderDirection}
       LIMIT ? OFFSET ?
@@ -329,6 +330,8 @@ export class CVInstanceModel {
     }
 
     // Create duplicate with new name, carrying over config and photo
+    // Strip active_theme_id so the new CV starts with no theme selected
+    const { active_theme_id, ...restMetadata } = original.metadata || {} as any;
     const duplicateData: CreateCVInstanceData = {
       name: newName.trim(),
       content: original.content,
@@ -338,7 +341,7 @@ export class CVInstanceModel {
       config: original.config,
       settings: original.settings,
       metadata: {
-        ...original.metadata,
+        ...restMetadata,
         duplicated_from: original.id,
         duplicated_at: new Date().toISOString()
       }

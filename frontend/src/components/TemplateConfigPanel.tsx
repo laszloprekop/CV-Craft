@@ -150,125 +150,125 @@ export const TemplateConfigPanel: React.FC<TemplateConfigPanelProps> = ({
         {activeTab === 'colors' && (
           <div className="space-y-0">
             <CollapsibleSection id="colors-main" label="Main Colors" defaultOpen={true} icon={<IconColorSwatch size={14} />}>
-              {/* Primary / Secondary / Tertiary — 3-column */}
+              {/* Primary / Secondary / Tertiary - 3-column */}
               <div className="grid grid-cols-3 gap-px rounded overflow-hidden mb-1">
                 <ColorRoleBlock
                   label="Primary"
-                  value={config.colors.primary}
-                  textColor={config.colors.onPrimary}
+                  value={config.colors?.primary}
+                  textColor={config.colors?.onPrimary}
                   onChange={(value) => updateConfig('colors', { primary: value })}
                   onChangeComplete={(value) => commitConfig('colors', { primary: value })}
                 />
                 <ColorRoleBlock
                   label="Secondary"
-                  value={config.colors.secondary}
-                  textColor={config.colors.onSecondary}
+                  value={config.colors?.secondary}
+                  textColor={config.colors?.onSecondary}
                   onChange={(value) => updateConfig('colors', { secondary: value })}
                   onChangeComplete={(value) => commitConfig('colors', { secondary: value })}
                 />
                 <ColorRoleBlock
                   label="Tertiary"
-                  value={config.colors.tertiary}
-                  textColor={config.colors.onTertiary}
+                  value={config.colors?.tertiary}
+                  textColor={config.colors?.onTertiary}
                   onChange={(value) => updateConfig('colors', { tertiary: value })}
                   onChangeComplete={(value) => commitConfig('colors', { tertiary: value })}
                 />
                 <ColorRoleBlock
                   label="On Primary"
-                  value={config.colors.onPrimary}
-                  textColor={config.colors.primary}
+                  value={config.colors?.onPrimary}
+                  textColor={config.colors?.primary}
                   onChange={(value) => updateConfig('colors', { onPrimary: value })}
                   onChangeComplete={(value) => commitConfig('colors', { onPrimary: value })}
                 />
                 <ColorRoleBlock
                   label="On Secondary"
-                  value={config.colors.onSecondary}
-                  textColor={config.colors.secondary}
+                  value={config.colors?.onSecondary}
+                  textColor={config.colors?.secondary}
                   onChange={(value) => updateConfig('colors', { onSecondary: value })}
                   onChangeComplete={(value) => commitConfig('colors', { onSecondary: value })}
                 />
                 <ColorRoleBlock
                   label="On Tertiary"
-                  value={config.colors.onTertiary}
-                  textColor={config.colors.tertiary}
+                  value={config.colors?.onTertiary}
+                  textColor={config.colors?.tertiary}
                   onChange={(value) => updateConfig('colors', { onTertiary: value })}
                   onChangeComplete={(value) => commitConfig('colors', { onTertiary: value })}
                 />
               </div>
 
-              {/* Muted / Background — 2-column */}
+              {/* Muted / Background - 2-column */}
               <div className="grid grid-cols-2 gap-px rounded overflow-hidden mb-1">
                 <ColorRoleBlock
                   label="Muted"
-                  value={config.colors.muted}
-                  textColor={config.colors.onMuted}
+                  value={config.colors?.muted}
+                  textColor={config.colors?.onMuted}
                   onChange={(value) => updateConfig('colors', { muted: value })}
                   onChangeComplete={(value) => commitConfig('colors', { muted: value })}
                 />
                 <ColorRoleBlock
                   label="Background"
-                  value={config.colors.background}
-                  textColor={config.colors.text.primary}
+                  value={config.colors?.background}
+                  textColor={config.colors?.text?.primary}
                   onChange={(value) => updateConfig('colors', { background: value })}
                   onChangeComplete={(value) => commitConfig('colors', { background: value })}
                 />
                 <ColorRoleBlock
                   label="On Muted"
-                  value={config.colors.onMuted}
-                  textColor={config.colors.muted}
+                  value={config.colors?.onMuted}
+                  textColor={config.colors?.muted}
                   onChange={(value) => updateConfig('colors', { onMuted: value })}
                   onChangeComplete={(value) => commitConfig('colors', { onMuted: value })}
                 />
                 <ColorRoleBlock
                   label="On Background"
-                  value={config.colors.text.primary}
-                  textColor={config.colors.background}
+                  value={config.colors?.text?.primary}
+                  textColor={config.colors?.background}
                   onChange={(value) =>
                     updateConfig('colors', {
-                      text: { ...config.colors.text, primary: value },
+                      text: { ...(config.colors?.text || {}), primary: value },
                     })
                   }
                   onChangeComplete={(value) =>
                     commitConfig('colors', {
-                      text: { ...config.colors.text, primary: value },
+                      text: { ...(config.colors?.text || {}), primary: value },
                     })
                   }
                 />
               </div>
 
-              {/* Border & Links — 3-column */}
+              {/* Border & Links - 3-column */}
               <div className="grid grid-cols-3 gap-px rounded overflow-hidden mb-1">
                 <ColorRoleBlock
                   label="Border"
-                  value={config.colors.borders}
+                  value={config.colors?.borders}
                   onChange={(value) => updateConfig('colors', { borders: value })}
                   onChangeComplete={(value) => commitConfig('colors', { borders: value })}
                 />
                 <ColorRoleBlock
                   label="Link"
-                  value={config.colors.links.default}
+                  value={config.colors?.links?.default}
                   onChange={(value) =>
                     updateConfig('colors', {
-                      links: { ...config.colors.links, default: value },
+                      links: { ...(config.colors?.links || {}), default: value },
                     })
                   }
                   onChangeComplete={(value) =>
                     commitConfig('colors', {
-                      links: { ...config.colors.links, default: value },
+                      links: { ...(config.colors?.links || {}), default: value },
                     })
                   }
                 />
                 <ColorRoleBlock
                   label="Link Hover"
-                  value={config.colors.links.hover}
+                  value={config.colors?.links?.hover}
                   onChange={(value) =>
                     updateConfig('colors', {
-                      links: { ...config.colors.links, hover: value },
+                      links: { ...(config.colors?.links || {}), hover: value },
                     })
                   }
                   onChangeComplete={(value) =>
                     commitConfig('colors', {
-                      links: { ...config.colors.links, hover: value },
+                      links: { ...(config.colors?.links || {}), hover: value },
                     })
                   }
                 />
@@ -280,29 +280,29 @@ export const TemplateConfigPanel: React.FC<TemplateConfigPanelProps> = ({
               <div className="grid grid-cols-2 gap-px rounded overflow-hidden mb-1">
                 <ColorRoleBlock
                   label="Custom 1"
-                  value={config.colors.custom1}
-                  textColor={config.colors.onCustom1}
+                  value={config.colors?.custom1}
+                  textColor={config.colors?.onCustom1}
                   onChange={(value) => updateConfig('colors', { custom1: value })}
                   onChangeComplete={(value) => commitConfig('colors', { custom1: value })}
                 />
                 <ColorRoleBlock
                   label="Custom 2"
-                  value={config.colors.custom2}
-                  textColor={config.colors.onCustom2}
+                  value={config.colors?.custom2}
+                  textColor={config.colors?.onCustom2}
                   onChange={(value) => updateConfig('colors', { custom2: value })}
                   onChangeComplete={(value) => commitConfig('colors', { custom2: value })}
                 />
                 <ColorRoleBlock
                   label="On Custom 1"
-                  value={config.colors.onCustom1}
-                  textColor={config.colors.custom1}
+                  value={config.colors?.onCustom1}
+                  textColor={config.colors?.custom1}
                   onChange={(value) => updateConfig('colors', { onCustom1: value })}
                   onChangeComplete={(value) => commitConfig('colors', { onCustom1: value })}
                 />
                 <ColorRoleBlock
                   label="On Custom 2"
-                  value={config.colors.onCustom2}
-                  textColor={config.colors.custom2}
+                  value={config.colors?.onCustom2}
+                  textColor={config.colors?.custom2}
                   onChange={(value) => updateConfig('colors', { onCustom2: value })}
                   onChangeComplete={(value) => commitConfig('colors', { onCustom2: value })}
                 />
@@ -312,29 +312,29 @@ export const TemplateConfigPanel: React.FC<TemplateConfigPanelProps> = ({
               <div className="grid grid-cols-2 gap-px rounded overflow-hidden">
                 <ColorRoleBlock
                   label="Custom 3"
-                  value={config.colors.custom3}
-                  textColor={config.colors.onCustom3}
+                  value={config.colors?.custom3}
+                  textColor={config.colors?.onCustom3}
                   onChange={(value) => updateConfig('colors', { custom3: value })}
                   onChangeComplete={(value) => commitConfig('colors', { custom3: value })}
                 />
                 <ColorRoleBlock
                   label="Custom 4"
-                  value={config.colors.custom4}
-                  textColor={config.colors.onCustom4}
+                  value={config.colors?.custom4}
+                  textColor={config.colors?.onCustom4}
                   onChange={(value) => updateConfig('colors', { custom4: value })}
                   onChangeComplete={(value) => commitConfig('colors', { custom4: value })}
                 />
                 <ColorRoleBlock
                   label="On Custom 3"
-                  value={config.colors.onCustom3}
-                  textColor={config.colors.custom3}
+                  value={config.colors?.onCustom3}
+                  textColor={config.colors?.custom3}
                   onChange={(value) => updateConfig('colors', { onCustom3: value })}
                   onChangeComplete={(value) => commitConfig('colors', { onCustom3: value })}
                 />
                 <ColorRoleBlock
                   label="On Custom 4"
-                  value={config.colors.onCustom4}
-                  textColor={config.colors.custom4}
+                  value={config.colors?.onCustom4}
+                  textColor={config.colors?.custom4}
                   onChange={(value) => updateConfig('colors', { onCustom4: value })}
                   onChangeComplete={(value) => commitConfig('colors', { onCustom4: value })}
                 />
@@ -357,7 +357,7 @@ export const TemplateConfigPanel: React.FC<TemplateConfigPanelProps> = ({
               <div className="grid grid-cols-2 gap-1 mb-2">
                 <SelectControl
                   label="Size"
-                  value={config.pdf.pageSize}
+                  value={config.pdf?.pageSize}
                   onChange={(value) =>
                     updateConfig('pdf', { pageSize: value as any })
                   }
@@ -369,7 +369,7 @@ export const TemplateConfigPanel: React.FC<TemplateConfigPanelProps> = ({
                 />
                 <SelectControl
                   label="Orientation"
-                  value={config.pdf.orientation}
+                  value={config.pdf?.orientation}
                   onChange={(value) =>
                     updateConfig('pdf', { orientation: value as any })
                   }
@@ -383,15 +383,15 @@ export const TemplateConfigPanel: React.FC<TemplateConfigPanelProps> = ({
 
             <CollapsibleSection id="page-layout" label="Page Layout" defaultOpen={true} icon={<IconLayout size={14} />}>
               <LayoutPicker
-                value={config.layout.templateType || 'two-column'}
+                value={config.layout?.templateType || 'two-column'}
                 onChange={(value) => updateConfig('layout', { templateType: value })}
               />
 
               {/* Sidebar Width (for two-column layouts) */}
-              {(config.layout.templateType === 'two-column' || config.layout.templateType === 'sidebar-left' || config.layout.templateType === 'sidebar-right') && (
+              {(config.layout?.templateType === 'two-column' || config.layout?.templateType === 'sidebar-left' || config.layout?.templateType === 'sidebar-right') && (
                 <SpacingControl
                   label="Sidebar Width"
-                  value={config.layout.sidebarWidth || '84mm'}
+                  value={config.layout?.sidebarWidth || '84mm'}
                   onChange={(value) => updateConfig('layout', { sidebarWidth: value })}
                   units={['mm', '%', 'px']}
                   description="Width of the sidebar column"
@@ -400,18 +400,18 @@ export const TemplateConfigPanel: React.FC<TemplateConfigPanelProps> = ({
             </CollapsibleSection>
 
             {/* Column Colors - only for two-column layouts */}
-            {(config.layout.templateType === 'two-column' || config.layout.templateType === 'sidebar-left' || config.layout.templateType === 'sidebar-right' || !config.layout.templateType) && (
+            {(config.layout?.templateType === 'two-column' || config.layout?.templateType === 'sidebar-left' || config.layout?.templateType === 'sidebar-right' || !config.layout?.templateType) && (
               <CollapsibleSection id="column-colors" label="Column Colors" defaultOpen={false} icon={<IconColorSwatch size={14} />}>
                 <div className="grid grid-cols-2 gap-px rounded overflow-hidden mb-1">
                   <ColorRoleBlock
                     label="Sidebar"
-                    value={config.layout.sidebarBackground || config.colors.secondary}
+                    value={config.layout?.sidebarBackground || config.colors?.secondary}
                     onChange={(value) => updateConfig('layout', { sidebarBackground: value })}
                     onChangeComplete={(value) => commitConfig('layout', { sidebarBackground: value })}
                   />
                   <ColorRoleBlock
                     label="Main"
-                    value={config.layout.mainBackground || config.colors.background}
+                    value={config.layout?.mainBackground || config.colors?.background}
                     onChange={(value) => updateConfig('layout', { mainBackground: value })}
                     onChangeComplete={(value) => commitConfig('layout', { mainBackground: value })}
                   />
@@ -423,7 +423,7 @@ export const TemplateConfigPanel: React.FC<TemplateConfigPanelProps> = ({
             <CollapsibleSection id="page-margins" label="Page Margins" defaultOpen={false} icon={<IconBoxMargin size={14} />}>
               <BoxModelControl
                 label="Margins"
-                value={config.layout.pageMargin}
+                value={config.layout?.pageMargin}
                 onChange={(value) =>
                   updateConfig('layout', { pageMargin: value })
                 }
@@ -434,7 +434,7 @@ export const TemplateConfigPanel: React.FC<TemplateConfigPanelProps> = ({
             <CollapsibleSection id="pdf-export" label="PDF Export" defaultOpen={false} icon={<IconFileExport size={14} />}>
               <ToggleControl
                 label="Print Color Adjust"
-                value={config.pdf.printColorAdjust}
+                value={config.pdf?.printColorAdjust}
                 onChange={(value) =>
                   updateConfig('pdf', { printColorAdjust: value })
                 }
@@ -442,10 +442,10 @@ export const TemplateConfigPanel: React.FC<TemplateConfigPanelProps> = ({
               />
               <ToggleControl
                 label="Show Page Numbers"
-                value={config.pdf.pageNumbers.enabled}
+                value={config.pdf?.pageNumbers?.enabled}
                 onChange={(value) =>
                   updateConfig('pdf', {
-                    pageNumbers: { ...config.pdf.pageNumbers, enabled: value },
+                    pageNumbers: { ...(config.pdf?.pageNumbers || {}), enabled: value },
                   })
                 }
                 description="Style in Styles → Page #"
@@ -462,15 +462,15 @@ export const TemplateConfigPanel: React.FC<TemplateConfigPanelProps> = ({
               </p>
 
               <FontManager
-                availableFonts={config.typography.availableFonts || []}
+                availableFonts={config.typography?.availableFonts || []}
                 onAdd={(fontFamily) => {
-                  const currentFonts = config.typography.availableFonts || [];
+                  const currentFonts = config.typography?.availableFonts || [];
                   updateConfig('typography', {
                     availableFonts: [...currentFonts, fontFamily],
                   });
                 }}
                 onRemove={(fontFamily) => {
-                  const currentFonts = config.typography.availableFonts || [];
+                  const currentFonts = config.typography?.availableFonts || [];
                   updateConfig('typography', {
                     availableFonts: currentFonts.filter(f => f !== fontFamily),
                   });
@@ -483,39 +483,39 @@ export const TemplateConfigPanel: React.FC<TemplateConfigPanelProps> = ({
               </h4>
               <FontSelector
                 label="Heading Font"
-                value={config.typography.fontFamily.heading}
+                value={config.typography?.fontFamily?.heading}
                 onChange={(value) =>
                   updateConfig('typography', {
-                    fontFamily: { ...config.typography.fontFamily, heading: value },
+                    fontFamily: { ...(config.typography?.fontFamily || {}), heading: value },
                   })
                 }
                 fontType="heading"
                 description="Font used for headings and titles"
-                availableFonts={config.typography.availableFonts}
+                availableFonts={config.typography?.availableFonts}
               />
               <FontSelector
                 label="Body Font"
-                value={config.typography.fontFamily.body}
+                value={config.typography?.fontFamily?.body}
                 onChange={(value) =>
                   updateConfig('typography', {
-                    fontFamily: { ...config.typography.fontFamily, body: value },
+                    fontFamily: { ...(config.typography?.fontFamily || {}), body: value },
                   })
                 }
                 fontType="body"
                 description="Font used for body text and descriptions"
-                availableFonts={config.typography.availableFonts}
+                availableFonts={config.typography?.availableFonts}
               />
               <FontSelector
                 label="Monospace Font"
-                value={config.typography.fontFamily.monospace}
+                value={config.typography?.fontFamily?.monospace}
                 onChange={(value) =>
                   updateConfig('typography', {
-                    fontFamily: { ...config.typography.fontFamily, monospace: value },
+                    fontFamily: { ...(config.typography?.fontFamily || {}), monospace: value },
                   })
                 }
                 fontType="monospace"
                 description="Font used for code and technical content"
-                availableFonts={config.typography.availableFonts}
+                availableFonts={config.typography?.availableFonts}
               />
             </CollapsibleSection>
 

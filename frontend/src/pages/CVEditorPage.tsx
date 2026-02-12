@@ -148,7 +148,7 @@ export const CVEditorPage: React.FC = () => {
     () => debounce((newContent: string) => {
       updateContentRef.current(newContent)
     }, 300),
-    [] // Stable — never recreated
+    [] // Stable - never recreated
   )
 
   useEffect(() => {
@@ -311,7 +311,7 @@ export const CVEditorPage: React.FC = () => {
     }
   }, [])
 
-  // Handle pane resizing — track cleanup to prevent event listener leaks
+  // Handle pane resizing - track cleanup to prevent event listener leaks
   const resizeCleanupRef = useRef<(() => void) | null>(null)
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {

@@ -33,7 +33,7 @@ const DEFAULT_CV_CONTENT = `---
 name: Alex Morgan
 title: Senior Full-Stack Developer
 email: alex.morgan@example.com
-phone: +1-555-0199
+phone: +1 (555) 012-0199
 location: San Francisco, CA
 website: alexmorgan.dev
 linkedin: linkedin.com/in/alexmorgan
@@ -47,7 +47,7 @@ Versatile full-stack developer with 8+ years of experience building **scalable w
 ## Experience
 
 ### Senior Full-Stack Developer | Acme Technologies
-*Jan 2021 — Present*
+*Jan 2021 - Present*
 San Francisco, CA
 
 Architected and delivered the company's next-generation SaaS platform serving 50,000+ active users.
@@ -60,7 +60,7 @@ Architected and delivered the company's next-generation SaaS platform serving 50
   - Added service worker caching for static assets
 
 ### Front-End Developer | Digital Solutions Inc.
-*Mar 2018 — Dec 2020*
+*Mar 2018 - Dec 2020*
 New York, NY
 
 Built customer-facing dashboards and internal tools for a fintech startup.
@@ -71,7 +71,7 @@ Built customer-facing dashboards and internal tools for a fintech startup.
 - Reduced frontend bundle size by 45% through tree-shaking and dynamic imports
 
 ### Junior Web Developer | CreativeWeb Agency
-*Jun 2016 — Feb 2018*
+*Jun 2016 - Feb 2018*
 Austin, TX
 
 - Built 30+ client websites using modern HTML5, CSS3, and JavaScript
@@ -81,18 +81,18 @@ Austin, TX
 ## Education
 
 ### B.Sc. Computer Science | University of California, Berkeley
-*2012 — 2016*
+*2012 - 2016*
 Berkeley, CA
 
 - GPA: 3.7/4.0, Dean's List (6 semesters)
 - Senior thesis: *"Optimizing Real-Time Data Pipelines for Web Applications"*
 
 ### Professional Development
-*2020 — 2024*
+*2020 - 2024*
 
-- **AWS Solutions Architect Associate** — Amazon Web Services
-- **Advanced React Patterns** — Frontend Masters
-- **System Design for Interviews** — Educative.io
+- **AWS Solutions Architect Associate** - Amazon Web Services
+- **Advanced React Patterns** - Frontend Masters
+- **System Design for Interviews** - Educative.io
 
 ## Technical Skills
 
@@ -120,9 +120,9 @@ End-to-end analytics platform for monitoring application performance metrics.
 
 ## Certifications & Awards
 
-- **AWS Solutions Architect Associate** — Amazon Web Services, 2023
-- **Best Technical Innovation Award** — Acme Technologies Hackathon, 2022
-- **Google Developer Expert** — Web Technologies, 2021
+- **AWS Solutions Architect Associate** - Amazon Web Services, 2023
+- **Best Technical Innovation Award** - Acme Technologies Hackathon, 2022
+- **Google Developer Expert** - Web Technologies, 2021
 
 ## Languages
 
@@ -145,13 +145,14 @@ export function useCVEditor(cvId?: string): UseCVEditorReturn {
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle')
 
   const hasUnsavedChangesRef = useRef(false)
+  const duplicatingRef = useRef(false)
 
   // Load CV by ID, or redirect to the seeded sample CV
   useEffect(() => {
     if (cvId) {
       loadCv(cvId)
     } else {
-      // No CV ID — redirect to the sample CV
+      // No CV ID - redirect to the sample CV
       window.history.replaceState(null, '', `/editor/${SAMPLE_CV_ID}`)
       loadCv(SAMPLE_CV_ID)
     }
@@ -161,6 +162,24 @@ export function useCVEditor(cvId?: string): UseCVEditorReturn {
     try {
       setLoading(true)
       setError(null)
+
+      // Sample CV: auto-duplicate so the original stays pristine
+      // Guard against React StrictMode double-firing the effect
+      if (id === SAMPLE_CV_ID) {
+        if (duplicatingRef.current) return
+        duplicatingRef.current = true
+        const duplicateName = `New CV - ${new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
+        const dupResponse = await cvApi.duplicate(id, duplicateName)
+        const dupData = dupResponse.data
+        window.history.replaceState(null, '', `/editor/${dupData.id}`)
+        setCv(dupData)
+        setContent(dupData.content)
+        setSettings(dupData.settings || {})
+        setConfig(migrateTemplateConfig(dupData.config))
+        setLoading(false)
+        duplicatingRef.current = false
+        return
+      }
 
       const response = await cvApi.get(id)
       const cvData = response.data
@@ -195,7 +214,7 @@ export function useCVEditor(cvId?: string): UseCVEditorReturn {
         await new Promise(resolve => setTimeout(resolve, 1000))
         return loadCv(id, retries - 1)
       }
-      // CV not found or invalid ID — fall back to the seeded sample CV
+      // CV not found or invalid ID - fall back to the sample CV (which will auto-duplicate)
       if (isClientError && id !== SAMPLE_CV_ID) {
         console.warn(`[useCVEditor] CV "${id}" not found, redirecting to sample CV`)
         window.history.replaceState(null, '', `/editor/${SAMPLE_CV_ID}`)
@@ -247,12 +266,16 @@ export function useCVEditor(cvId?: string): UseCVEditorReturn {
       hasUnsavedChangesRef.current = false
 
       if (cv) {
-        // Update existing CV
-        const response = await cvApi.update(cv.id, {
-          content,
+        // When only config changed (configOverride provided), skip sending content
+        // to avoid unnecessary re-parsing on the backend
+        const updatePayload: Record<string, unknown> = {
           settings: settings as TemplateSettings,
           config: configToSave
-        })
+        }
+        if (!configOverride) {
+          updatePayload.content = content
+        }
+        const response = await cvApi.update(cv.id, updatePayload)
         setCv(response.data)
       } else {
         // Create new CV
@@ -299,7 +322,7 @@ export function useCVEditor(cvId?: string): UseCVEditorReturn {
     return () => {
       clearInterval(autoSaveTimer)
     }
-  }, []) // Run once on mount — refs keep it current
+  }, []) // Run once on mount - refs keep it current
 
   const exportCv = useCallback(async (type: 'pdf' | 'web_package') => {
     if (!cv) return

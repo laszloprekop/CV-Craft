@@ -27,12 +27,12 @@ export function sanitizeUrl(url: string): string {
     return trimmed
   }
 
-  // URLs without protocol prefix — allow if they don't match blocked patterns
+  // URLs without protocol prefix - allow if they don't match blocked patterns
   // (e.g. "example.com", "path/to/page")
   if (!trimmed.includes(':')) {
     return trimmed
   }
 
-  // Unknown protocol — block it
+  // Unknown protocol - block it
   return '#'
 }

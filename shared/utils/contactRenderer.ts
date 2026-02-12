@@ -8,7 +8,7 @@
 import type { CVFrontmatter } from '../types'
 
 // SVG Icons for contact information
-// Source: @phosphor-icons/react v2.1.10 — regular weight
+// Source: @phosphor-icons/react v2.1.10 - regular weight
 // Extracted from node_modules/@phosphor-icons/react/dist/defs/*.es.js
 // To update: check the "regular" entry in each icon's defs file
 export const CONTACT_ICONS = {

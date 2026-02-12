@@ -353,12 +353,10 @@ export class CVParser {
     }
 
     // Required fields validation (only if frontmatter exists)
-    const required = ['name', 'email'];
+    // Only 'name' is required; email is optional (users may not include it)
     if (validateRequired) {
-      for (const field of required) {
-        if (!data[field] || typeof data[field] !== 'string' || data[field].trim() === '') {
-          throw new CVParserError(`Frontmatter field '${field}' is required and must be a non-empty string`);
-        }
+      if (!data.name || typeof data.name !== 'string' || data.name.trim() === '') {
+        throw new CVParserError(`Frontmatter field 'name' is required and must be a non-empty string`);
       }
     }
 
@@ -589,55 +587,12 @@ export class CVParser {
             flushSpacersToDescription();
             if (text.trim()) {
               if (currentEntry) {
-                // We're inside a structured entry
-
-                // 1) "**Company** | Date" or "**Company** · Date" pattern
-                //    e.g. "**ArrivalGuides AB** | August 2018 – April 2023"
-                const companyDateMatch = text.match(
-                  /^\*\*(.+?)\*\*\s*(?:\||·|•|—)\s*(.+)$/
-                );
-                if (companyDateMatch && companyDateMatch[2].match(/\d{4}/)) {
-                  if (!currentEntry.company) {
-                    currentEntry.company = companyDateMatch[1].trim();
-                  }
-                  if (!currentEntry.date) {
-                    currentEntry.date = companyDateMatch[2].trim();
-                  }
-                }
-                // 2) Standalone bold company: "**Company Name**"
-                else if (text.match(/^\*\*[^*]+\*\*$/) && !currentEntry.company) {
-                  currentEntry.company = text.replace(/^\*\*|\*\*$/g, '').trim();
-                }
-                // 3) Plain "Company | Date" (no bold)
-                else if (text.includes('|') && !currentEntry.company) {
-                  const pipeIdx = text.indexOf('|');
-                  const before = text.substring(0, pipeIdx).trim();
-                  const after = text.substring(pipeIdx + 1).trim();
-                  if (before && after.match(/\d{4}/)) {
-                    currentEntry.company = before;
-                    if (!currentEntry.date) {
-                      currentEntry.date = after;
-                    }
-                  } else {
-                    // Not a company|date line, treat as description
-                    if (!currentEntry.description) {
-                      currentEntry.description = [];
-                    }
-                    currentEntry.description.push(text);
-                  }
-                }
-                // 4) Date-only line (often in bold or italic)
-                else {
-                  const dateMatch = text.match(/^[\*_]*(.*?[\d]{4}.*?)[\*_]*$/);
-                  if (dateMatch && !currentEntry.date) {
-                    currentEntry.date = dateMatch[1].trim();
-                  } else {
-                    // Description text
-                    if (!currentEntry.description) {
-                      currentEntry.description = [];
-                    }
-                    currentEntry.description.push(text);
-                  }
+                // remarkBreaks merges consecutive lines into one paragraph with \n.
+                // Split on \n and process each line independently so that
+                // date, location, and description lines are correctly identified.
+                const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+                for (const line of lines) {
+                  this.processEntryLine(line, currentEntry);
                 }
               } else {
                 // Plain paragraph in section
@@ -813,6 +768,65 @@ export class CVParser {
 
 
   /**
+   * Process a single line within a structured entry paragraph.
+   * Identifies company/date, date-only, location, or description lines.
+   */
+  private processEntryLine(line: string, entry: any): void {
+    // 1) "**Company** | Date" or "**Company** · Date" pattern
+    const companyDateMatch = line.match(
+      /^\*\*(.+?)\*\*\s*(?:\||·|•|—)\s*(.+)$/
+    );
+    if (companyDateMatch && companyDateMatch[2].match(/\d{4}/)) {
+      if (!entry.company) {
+        entry.company = companyDateMatch[1].trim();
+      }
+      if (!entry.date) {
+        entry.date = companyDateMatch[2].trim();
+      }
+      return;
+    }
+
+    // 2) Standalone bold company: "**Company Name**"
+    if (line.match(/^\*\*[^*]+\*\*$/) && !entry.company) {
+      entry.company = line.replace(/^\*\*|\*\*$/g, '').trim();
+      return;
+    }
+
+    // 3) Plain "Company | Date" (no bold)
+    if (line.includes('|') && !entry.company) {
+      const pipeIdx = line.indexOf('|');
+      const before = line.substring(0, pipeIdx).trim();
+      const after = line.substring(pipeIdx + 1).trim();
+      if (before && after.match(/\d{4}/)) {
+        entry.company = before;
+        if (!entry.date) {
+          entry.date = after;
+        }
+        return;
+      }
+    }
+
+    // 4) Date-only line (often in bold or italic)
+    const dateMatch = line.match(/^[\*_]*(.*?[\d]{4}.*?)[\*_]*$/);
+    if (dateMatch && !entry.date) {
+      entry.date = dateMatch[1].trim();
+      return;
+    }
+
+    // 5) Location line: "City, State/Country" pattern
+    if (!entry.location && line.match(/^[A-Z][\w\s]+,\s*[A-Z][\w\s]*$/) && line.length < 50) {
+      entry.location = line;
+      return;
+    }
+
+    // 6) Description text
+    if (!entry.description) {
+      entry.description = [];
+    }
+    entry.description.push(line);
+  }
+
+  /**
    * Extract text content from AST node, preserving inline markdown formatting.
    * Reconstructs **bold**, *italic*, `code`, and [link](url) syntax from AST nodes
    * so that downstream renderers (renderInlineMarkdown) can convert them to HTML.
@@ -948,8 +962,8 @@ export class CVParser {
   private isValidPhone(phone: string): boolean {
     // Remove common separators and spaces
     const cleaned = phone.replace(/[\s\-\(\)\+\.]/g, '');
-    // Should be 10-15 digits (international standards)
-    return /^\d{10,15}$/.test(cleaned);
+    // Should be 7-15 digits (7 for local, up to 15 for international per E.164)
+    return /^\d{7,15}$/.test(cleaned);
   }
 
   /**
@@ -960,7 +974,13 @@ export class CVParser {
       new URL(url);
       return true;
     } catch {
-      return false;
+      // Try with https:// prefix for bare domains like "alexmorgan.dev"
+      try {
+        new URL(`https://${url}`);
+        return true;
+      } catch {
+        return false;
+      }
     }
   }
 }
@@ -1003,11 +1023,7 @@ export function validateCVContent(content: string): { valid: boolean; errors: st
         errors.push('Frontmatter must include a valid "name" field');
       }
       
-      if (!data.email || typeof data.email !== 'string' || !data.email.trim()) {
-        errors.push('Frontmatter must include a valid "email" field');
-      }
-      
-      // Validate email format
+      // Validate email format (if provided)
       if (data.email) {
         const emailRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
         const emailParts = data.email.split('@');
@@ -1026,9 +1042,7 @@ export function validateCVContent(content: string): { valid: boolean; errors: st
         errors.push('CV must have a name as the first H1 heading (# Name) or in frontmatter');
       }
       
-      if (!hasEmail) {
-        errors.push('CV must include a valid email address in the content or frontmatter');
-      }
+      // Email is optional - don't require it in plain markdown either
     }
     
     return { valid: errors.length === 0, errors };

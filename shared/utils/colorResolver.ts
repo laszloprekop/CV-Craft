@@ -38,34 +38,39 @@ export function resolveSemanticColor(
   config: TemplateConfig,
   opacity: number = 1.0
 ): string {
+  // Safe access - config.colors or nested objects may be incomplete
+  const colors = config.colors || {} as any;
+  const text = colors.text || {} as any;
+  const defaultColor = text.primary || '#18181b';
+
   if (!colorKey) {
-    return config.colors.text.primary;
+    return defaultColor;
   }
 
   // Map semantic keys to actual color values
   const colorMap: Record<SemanticColorKey, string> = {
-    'primary': config.colors.primary,
-    'secondary': config.colors.secondary,
-    'tertiary': config.colors.tertiary,
-    'muted': config.colors.muted,
-    'text-primary': config.colors.text.primary,
-    'text-secondary': config.colors.text.secondary,
-    'text-muted': config.colors.text.muted,
-    'custom1': config.colors.custom1,
-    'custom2': config.colors.custom2,
-    'custom3': config.colors.custom3,
-    'custom4': config.colors.custom4,
-    'on-primary': config.colors.onPrimary,
-    'on-secondary': config.colors.onSecondary,
-    'on-tertiary': config.colors.onTertiary || '#ffffff',
-    'on-muted': config.colors.onMuted || '#334155',
-    'on-custom1': config.colors.onCustom1,
-    'on-custom2': config.colors.onCustom2,
-    'on-custom3': config.colors.onCustom3,
-    'on-custom4': config.colors.onCustom4,
+    'primary': colors.primary,
+    'secondary': colors.secondary,
+    'tertiary': colors.tertiary,
+    'muted': colors.muted,
+    'text-primary': text.primary,
+    'text-secondary': text.secondary,
+    'text-muted': text.muted,
+    'custom1': colors.custom1,
+    'custom2': colors.custom2,
+    'custom3': colors.custom3,
+    'custom4': colors.custom4,
+    'on-primary': colors.onPrimary,
+    'on-secondary': colors.onSecondary,
+    'on-tertiary': colors.onTertiary || '#ffffff',
+    'on-muted': colors.onMuted || '#334155',
+    'on-custom1': colors.onCustom1,
+    'on-custom2': colors.onCustom2,
+    'on-custom3': colors.onCustom3,
+    'on-custom4': colors.onCustom4,
   };
 
-  const hexColor = colorMap[colorKey] || config.colors.text.primary;
+  const hexColor = colorMap[colorKey] || defaultColor;
 
   // If opacity is 1.0, return the hex color as-is
   if (opacity === 1.0) {
@@ -111,33 +116,35 @@ export function resolveColorPair(
   colorPair: ColorPairKey,
   config: TemplateConfig
 ): { baseColor: string; onColor: string } {
+  const colors = config.colors || {} as any;
+
   switch (colorPair) {
     case 'primary':
-      return { baseColor: config.colors.primary, onColor: config.colors.onPrimary };
+      return { baseColor: colors.primary, onColor: colors.onPrimary };
     case 'secondary':
-      return { baseColor: config.colors.secondary, onColor: config.colors.onSecondary };
+      return { baseColor: colors.secondary, onColor: colors.onSecondary };
     case 'tertiary':
       return {
-        baseColor: config.colors.tertiary || config.colors.accent || '#f59e0b',
-        onColor: config.colors.onTertiary || '#ffffff'
+        baseColor: colors.tertiary || colors.accent || '#f59e0b',
+        onColor: colors.onTertiary || '#ffffff'
       };
     case 'muted':
       return {
-        baseColor: config.colors.muted || '#f1f5f9',
-        onColor: config.colors.onMuted || '#334155'
+        baseColor: colors.muted || '#f1f5f9',
+        onColor: colors.onMuted || '#334155'
       };
     case 'custom1':
-      return { baseColor: config.colors.custom1, onColor: config.colors.onCustom1 };
+      return { baseColor: colors.custom1, onColor: colors.onCustom1 };
     case 'custom2':
-      return { baseColor: config.colors.custom2, onColor: config.colors.onCustom2 };
+      return { baseColor: colors.custom2, onColor: colors.onCustom2 };
     case 'custom3':
-      return { baseColor: config.colors.custom3, onColor: config.colors.onCustom3 };
+      return { baseColor: colors.custom3, onColor: colors.onCustom3 };
     case 'custom4':
-      return { baseColor: config.colors.custom4, onColor: config.colors.onCustom4 };
+      return { baseColor: colors.custom4, onColor: colors.onCustom4 };
     default:
       return {
-        baseColor: config.colors.tertiary || config.colors.accent || '#f59e0b',
-        onColor: config.colors.onTertiary || '#ffffff'
+        baseColor: colors.tertiary || colors.accent || '#f59e0b',
+        onColor: colors.onTertiary || '#ffffff'
       };
   }
 }

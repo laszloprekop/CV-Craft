@@ -78,7 +78,7 @@ h1, h2, h3, h4, h5, h6 {
   break-inside: auto;
 }
 
-/* Entries flow freely — only their header group is kept together. */
+/* Entries flow freely - only their header group is kept together. */
 .entry {
   page-break-inside: auto;
   break-inside: auto;

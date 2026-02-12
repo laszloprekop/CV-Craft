@@ -190,7 +190,7 @@ Content
       const cv = `---
 name: Bad URL
 email: good@example.com
-website: not-a-url
+website: ://invalid
 ---
 
 # Bad URL
@@ -616,7 +616,7 @@ Some work.
       expect(result.errors.some(e => e.includes('H1 heading'))).toBe(true);
     });
 
-    it('should reject plain markdown without email', () => {
+    it('should accept plain markdown without email (email is optional)', () => {
       const cv = `# John Doe
 
 ## Experience
@@ -624,8 +624,8 @@ Some work.
 `;
 
       const result = validateCVContent(cv);
-      expect(result.valid).toBe(false);
-      expect(result.errors.some(e => e.includes('email'))).toBe(true);
+      expect(result.valid).toBe(true);
+      expect(result.errors).toEqual([]);
     });
   });
 });

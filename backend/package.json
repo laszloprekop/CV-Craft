@@ -1,10 +1,10 @@
 {
   "name": "cv-craft-backend",
-  "version": "1.27.0",
+  "version": "1.28.0",
   "description": "Backend API for CV Craft - Static CV Generator",
   "main": "dist/app.js",
   "scripts": {
-    "dev": "nodemon --watch src --watch ../shared --ext ts,json --exec ts-node src/app.ts",
+    "dev": "nodemon --watch src --watch ../shared --ext ts,json --exec tsx src/app.ts",
     "build": "tsc",
     "start": "node dist/app.js",
     "test": "vitest run",
@@ -63,6 +63,7 @@
     "prettier": "^3.1.1",
     "supertest": "^6.3.3",
     "ts-node": "^10.9.2",
+    "tsx": "^4.21.0",
     "typescript": "^5.3.3",
     "vitest": "^1.0.4"
   },

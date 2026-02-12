@@ -92,7 +92,14 @@ export function parseMarkdownContent(content: string): ParsedCVContent {
       } else if (sectionType === 'skills') {
         parsedContent = parseSkills(sectionContent) as CVSection['content']
       } else {
-        parsedContent = sectionContent.split('\n\n').filter((p: string) => p.trim())
+        // Check if content is a bullet list
+        const lines = sectionContent.split('\n').filter((l: string) => l.trim())
+        const isBulletList = lines.length > 0 && lines.every((l: string) => l.trim().match(/^[-*]\s+/))
+        if (isBulletList) {
+          parsedContent = lines.map((l: string) => ({ text: l.trim().replace(/^[-*]\s+/, '') }))
+        } else {
+          parsedContent = sectionContent.split('\n\n').filter((p: string) => p.trim())
+        }
       }
 
       sections.push({
@@ -159,35 +166,37 @@ function parseStructuredEntries(content: string): StructuredEntry[] {
       title = titleLine
     }
 
+    const descLines: string[] = []
+    const bullets: string[] = []
+
     for (let i = 1; i < lines.length; i++) {
-      const line = lines[i].trim()
-      if (line.match(/^\*?.*\d{4}.*\*?$/) && !date) {
-        date = line.replace(/\*/g, '').trim()
-      } else if (
-        line.includes('Gothenburg') ||
-        line.includes('Sweden') ||
-        line.includes('Stockholm')
-      ) {
-        location = line.trim()
+      const trimmed = lines[i].trim()
+
+      // Date line (contains a year, often wrapped in italics)
+      if (trimmed.match(/^\*?.*\d{4}.*\*?$/) && !date) {
+        date = trimmed.replace(/\*/g, '').trim()
+      }
+      // Bullet list item (starts with - or *)
+      else if (trimmed.match(/^[-*]\s+/)) {
+        bullets.push(trimmed.replace(/^[-*]\s+/, ''))
+      }
+      // Location line: "City, State" or "City, Country" pattern (short, no bullet, has comma)
+      else if (!location && trimmed.match(/^[A-Z][\w\s]+,\s*[A-Z][\w\s]*$/) && trimmed.length < 50) {
+        location = trimmed
+      }
+      // Description text
+      else if (trimmed.length > 0) {
+        descLines.push(trimmed)
       }
     }
-
-    const descLines = lines.slice(1).filter((line) => {
-      const trimmed = line.trim()
-      return (
-        !trimmed.match(/^\*?.*\d{4}.*\*?$/) &&
-        !trimmed.includes('Gothenburg') &&
-        !trimmed.includes('Sweden') &&
-        trimmed.length > 0
-      )
-    })
 
     entries.push({
       title,
       company,
       date,
       location,
-      description: descLines.join(' ').trim(),
+      description: descLines.join(' ').trim() || undefined,
+      bullets: bullets.length > 0 ? bullets : undefined,
     })
   })
 

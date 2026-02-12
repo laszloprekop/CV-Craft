@@ -41,7 +41,7 @@ export const ColorControl: React.FC<ColorControlProps> = ({
           padding: 0,
           margin: 0,
         }}
-        title={`${safeValue} — click to pick color`}
+        title={`${safeValue} - click to pick color`}
       />
       <ColorPickerPopup
         value={safeValue}

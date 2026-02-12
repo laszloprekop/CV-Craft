@@ -34,27 +34,27 @@ describe('resolveSemanticColor', () => {
 
   it('resolves "primary" to the primary color', () => {
     const result = resolveSemanticColor('primary', DEFAULT_TEMPLATE_CONFIG)
-    expect(result).toBe('#2563eb')
+    expect(result).toBe('#2b3a4e')
   })
 
   it('resolves "text-secondary" to the text secondary color', () => {
     const result = resolveSemanticColor('text-secondary', DEFAULT_TEMPLATE_CONFIG)
-    expect(result).toBe('#475569')
+    expect(result).toBe('#52525b')
   })
 
   it('resolves "text-muted" to the text muted color', () => {
     const result = resolveSemanticColor('text-muted', DEFAULT_TEMPLATE_CONFIG)
-    expect(result).toBe('#94a3b8')
+    expect(result).toBe('#71717a')
   })
 
   it('returns rgba string when opacity is less than 1', () => {
     const result = resolveSemanticColor('primary', DEFAULT_TEMPLATE_CONFIG, 0.5)
-    expect(result).toBe('rgba(37, 99, 235, 0.5)')
+    expect(result).toBe('rgba(43, 58, 78, 0.5)')
   })
 
   it('returns hex string as-is when opacity is exactly 1.0', () => {
     const result = resolveSemanticColor('secondary', DEFAULT_TEMPLATE_CONFIG, 1.0)
-    expect(result).toBe('#64748b')
+    expect(result).toBe('#eae8e4')
   })
 
   it('falls back to on-tertiary default when config value is falsy', () => {
@@ -78,23 +78,23 @@ describe('resolveColorPair', () => {
   it('returns primary baseColor and onPrimary onColor', () => {
     const result = resolveColorPair('primary', DEFAULT_TEMPLATE_CONFIG)
     expect(result).toEqual({
-      baseColor: '#2563eb',
-      onColor: '#ffffff',
+      baseColor: '#2b3a4e',
+      onColor: '#f0f4f8',
     })
   })
 
   it('returns secondary baseColor and onSecondary onColor', () => {
     const result = resolveColorPair('secondary', DEFAULT_TEMPLATE_CONFIG)
     expect(result).toEqual({
-      baseColor: '#64748b',
-      onColor: '#ffffff',
+      baseColor: '#eae8e4',
+      onColor: '#2d3748',
     })
   })
 
   it('returns tertiary baseColor and onTertiary onColor', () => {
     const result = resolveColorPair('tertiary', DEFAULT_TEMPLATE_CONFIG)
     expect(result).toEqual({
-      baseColor: '#f59e0b',
+      baseColor: '#3d7a8a',
       onColor: '#ffffff',
     })
   })
@@ -102,15 +102,15 @@ describe('resolveColorPair', () => {
   it('returns muted baseColor and onMuted onColor', () => {
     const result = resolveColorPair('muted', DEFAULT_TEMPLATE_CONFIG)
     expect(result).toEqual({
-      baseColor: '#f1f5f9',
-      onColor: '#334155',
+      baseColor: '#ddd9d4',
+      onColor: '#3f3f46',
     })
   })
 
   it('returns custom1 baseColor and onCustom1 onColor', () => {
     const result = resolveColorPair('custom1', DEFAULT_TEMPLATE_CONFIG)
     expect(result).toEqual({
-      baseColor: '#8b5cf6',
+      baseColor: '#6b5fa6',
       onColor: '#ffffff',
     })
   })
@@ -119,8 +119,8 @@ describe('resolveColorPair', () => {
     const config = structuredClone(DEFAULT_TEMPLATE_CONFIG) as TemplateConfig & { colors: { tertiary: string } }
     config.colors.tertiary = ''
     const result = resolveColorPair('tertiary', config)
-    // tertiary is falsy, so falls back to accent ('#f59e0b')
-    expect(result.baseColor).toBe('#f59e0b')
+    // tertiary is falsy, so falls back to accent ('#3d7a8a')
+    expect(result.baseColor).toBe('#3d7a8a')
   })
 
   it('falls back to hardcoded default for tertiary when both tertiary and accent are falsy', () => {

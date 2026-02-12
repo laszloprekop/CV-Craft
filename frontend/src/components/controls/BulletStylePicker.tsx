@@ -58,7 +58,7 @@ export const BulletStylePicker: React.FC<BulletStylePickerProps> = ({
     <div className="mb-2">
       <h6 className="text-[10px] font-semibold text-text-primary mb-1">{label}</h6>
 
-      {/* Bullet style selector — horizontal row */}
+      {/* Bullet style selector - horizontal row */}
       <div className="flex gap-1 mb-1.5">
         {STYLE_OPTIONS.map((option) => (
           <button

@@ -51,7 +51,7 @@ export const ColorRoleBlock: React.FC<ColorRoleBlockProps> = ({
           border: 'none',
           margin: 0,
         }}
-        title={`${label}: ${safeValue} — click to edit`}
+        title={`${label}: ${safeValue} - click to edit`}
       >
         {label}
       </button>

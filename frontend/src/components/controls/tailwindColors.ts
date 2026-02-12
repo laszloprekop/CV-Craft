@@ -1,4 +1,4 @@
-// Tailwind CSS color palette — 22 families × 11 shades (50, 100–900, 950)
+// Tailwind CSS color palette - 22 families × 11 shades (50, 100–900, 950)
 // Each row is a color family, each column is a shade from lightest to darkest
 
 export interface ColorFamily {

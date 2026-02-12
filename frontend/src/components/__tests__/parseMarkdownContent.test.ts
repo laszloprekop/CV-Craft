@@ -435,6 +435,118 @@ Graduated with honors.`
     expect(entries[0].company).toBe('University of Example')
     expect(entries[0].date).toBe('2016 - 2020')
   })
+
+  it('extracts bullet list items from entries', () => {
+    const content = `---
+name: Test
+email: test@test.com
+---
+
+## Experience
+
+### Senior Developer | Acme Technologies
+*Jan 2021 - Present*
+San Francisco, CA
+
+Architected the next-generation SaaS platform.
+
+- Led migration to **microservices**, reducing deployment time by 70%
+- Designed real-time collaboration features using WebSockets
+- Mentored a team of 6 junior developers`
+
+    const result = parseMarkdownContent(content)
+    const entries = result.sections[0].content as any[]
+    expect(entries).toHaveLength(1)
+    expect(entries[0].title).toBe('Senior Developer')
+    expect(entries[0].company).toBe('Acme Technologies')
+    expect(entries[0].location).toBe('San Francisco, CA')
+    expect(entries[0].description).toBe('Architected the next-generation SaaS platform.')
+    expect(entries[0].bullets).toHaveLength(3)
+    expect(entries[0].bullets[0]).toBe('Led migration to **microservices**, reducing deployment time by 70%')
+    expect(entries[0].bullets[1]).toBe('Designed real-time collaboration features using WebSockets')
+    expect(entries[0].bullets[2]).toBe('Mentored a team of 6 junior developers')
+  })
+
+  it('separates description paragraphs from bullet items', () => {
+    const content = `---
+name: Test
+email: test@test.com
+---
+
+## Experience
+
+### Developer | Startup
+*2020 - 2023*
+
+Built an application for data processing.
+
+- Implemented REST API with Express
+- Added unit tests with Jest`
+
+    const result = parseMarkdownContent(content)
+    const entries = result.sections[0].content as any[]
+    expect(entries[0].description).toBe('Built an application for data processing.')
+    expect(entries[0].bullets).toHaveLength(2)
+    expect(entries[0].bullets[0]).toBe('Implemented REST API with Express')
+    expect(entries[0].bullets[1]).toBe('Added unit tests with Jest')
+  })
+
+  it('handles entries with only bullets and no description', () => {
+    const content = `---
+name: Test
+email: test@test.com
+---
+
+## Experience
+
+### Junior Dev | Agency
+*2018 - 2020*
+
+- Built 30+ client websites
+- Developed custom WordPress themes`
+
+    const result = parseMarkdownContent(content)
+    const entries = result.sections[0].content as any[]
+    expect(entries[0].description).toBeFalsy()
+    expect(entries[0].bullets).toHaveLength(2)
+  })
+
+  it('handles entries with no bullets', () => {
+    const content = `---
+name: Test
+email: test@test.com
+---
+
+## Experience
+
+### Freelance Developer
+*2020 - 2023*
+Did freelance work.`
+
+    const result = parseMarkdownContent(content)
+    const entries = result.sections[0].content as any[]
+    expect(entries[0].description).toBe('Did freelance work.')
+    expect(entries[0].bullets).toBeUndefined()
+  })
+
+  it('detects location in "City, State" format', () => {
+    const content = `---
+name: Test
+email: test@test.com
+---
+
+## Experience
+
+### Engineer | Corp
+*2020 - 2023*
+New York, NY
+
+Built things.`
+
+    const result = parseMarkdownContent(content)
+    const entries = result.sections[0].content as any[]
+    expect(entries[0].location).toBe('New York, NY')
+  })
 })
 
 describe('skills parsing', () => {

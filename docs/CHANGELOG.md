@@ -2,6 +2,34 @@
 
 All notable changes to CV-Craft will be documented in this file.
 
+## [1.28.0] - 2026-02-12
+
+### Added
+- **CV deletion with confirmation** — Trash icon on each CV row in CVManagerPage; inline "Delete? Yes/No" confirmation before soft-deleting
+- **Template CV rename** — Sample CV renamed to "Template CV*" with footnote explaining auto-duplication behavior
+- **Location detection in frontend parser** — Generic `City, State/Country` regex replaces hardcoded city names
+
+### Fixed
+- **Default theme not applied on new CV** — CVPreview no longer requires `template` to generate CSS variables; template `default_config` now updated on every server start to stay in sync with code
+- **Org/Date on separate lines in PDF** — Backend parser now splits `remarkBreaks`-merged paragraphs on `\n` and processes each line independently via `processEntryLine()`, correctly extracting date, location, and description fields
+- **Double CV creation from Template CV** — React 18 StrictMode guard prevents `loadCv(SAMPLE_CV_ID)` from duplicating twice
+- **Saved theme inherited by new CVs** — `CVInstance.duplicate()` now strips `active_theme_id` from copied metadata
+- **Certifications in sidebar** — Removed `certifications` from `SIDEBAR_SECTION_TYPES` in layoutRenderer
+- **CVListItem objects dropped by renderer** — `sectionRenderer.ts` now detects objects with `.text` property and renders as `<ul><li>` list
+- **422 on preview-pdf for unparsed CVs** — `CVService.exportCV()` and `getStats()` auto-reparse CVs missing `parsed_content`
+- **Phone validation too strict** — Minimum digits reduced from 10 to 7 for international numbers
+- **URL validation rejects bare domains** — `isValidUrl()` tries `https://` prefix for domains like `alexmorgan.dev`
+- **Em dash replacement** — All `—` replaced with `-` across template content and source files
+
+### Performance
+- **CV list API response 85x smaller** — `SELECT *` replaced with 8 needed columns; response dropped from 350KB to 4KB
+- **Dev server startup faster** — Switched from `ts-node` to `tsx` (esbuild-based) for backend dev script
+
+### Technical Insights
+- `remarkBreaks` converts single newlines to AST break nodes, which `extractTextFromNode()` converts to `\n`. The backend paragraph handler must split on `\n` before matching date/location patterns
+- Template `default_config` in the database was only set on first INSERT; code changes to `DEFAULT_TEMPLATE_CONFIG` were never reflected. Now updated on every startup
+- React 18 StrictMode double-fires effects in development; async operations like API calls need ref guards to prevent duplicate side effects
+
 ## [1.27.0] - 2026-02-12
 
 ### Added

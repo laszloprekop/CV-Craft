@@ -7,6 +7,7 @@
 import Database from 'better-sqlite3';
 import fs from 'fs';
 import path from 'path';
+import { DEFAULT_TEMPLATE_CONFIG } from '../../../shared/types/defaultTemplateConfig';
 
 export class DatabaseManager {
   private static instance: DatabaseManager;
@@ -135,7 +136,23 @@ export class DatabaseManager {
     // Check if default template already exists
     const existingTemplate = this.db.prepare('SELECT id FROM templates WHERE id = ?').get('default-modern');
     if (existingTemplate) {
-      // Template exists — still check if sample CV needs seeding
+      // Update default_config and default_settings to keep them in sync with code
+      this.db.prepare(`
+        UPDATE templates SET default_config = ?, default_settings = ? WHERE id = ?
+      `).run(
+        JSON.stringify(DEFAULT_TEMPLATE_CONFIG),
+        JSON.stringify({
+          primaryColor: "#2b3a4e",
+          accentColor: "#3d7a8a",
+          backgroundColor: "#fafaf9",
+          surfaceColor: "#eae8e4",
+          fontFamily: "Inter",
+          titleFontSize: 20,
+          bodyFontSize: 10
+        }),
+        'default-modern'
+      );
+      // Template exists - still check if sample CV needs seeding
       this.seedSampleCV();
       return;
     }
@@ -146,9 +163,6 @@ export class DatabaseManager {
         id, name, description, css, config_schema, default_config, default_settings, is_active, created_at, version
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
-
-    // Import default config
-    const { DEFAULT_TEMPLATE_CONFIG } = require('../../../shared/types/defaultTemplateConfig');
 
     const defaultTemplate = {
       id: 'default-modern',
@@ -228,8 +242,14 @@ export class DatabaseManager {
     if (!this.db) return;
 
     const SAMPLE_CV_ID = '00000000-0000-4000-a000-000000000001';
-    const existing = this.db.prepare('SELECT id FROM cv_instances WHERE id = ?').get(SAMPLE_CV_ID);
-    if (existing) return;
+    const LEGACY_SAMPLE_CV_ID = 'sample-cv-001';
+
+    // Migrate legacy sample CV: if old ID exists, remove it (new ID takes over)
+    const legacy = this.db.prepare('SELECT id FROM cv_instances WHERE id = ?').get(LEGACY_SAMPLE_CV_ID);
+    if (legacy) {
+      this.db.prepare('DELETE FROM cv_instances WHERE id = ?').run(LEGACY_SAMPLE_CV_ID);
+      console.log('Removed legacy sample CV');
+    }
 
     // Get default config from template
     const template = this.db.prepare('SELECT default_config, default_settings FROM templates WHERE id = ?').get('default-modern') as any;
@@ -239,7 +259,7 @@ export class DatabaseManager {
 name: Alex Morgan
 title: Senior Full-Stack Developer
 email: alex.morgan@example.com
-phone: +1-555-0199
+phone: +1 (555) 012-0199
 location: San Francisco, CA
 website: alexmorgan.dev
 linkedin: linkedin.com/in/alexmorgan
@@ -253,7 +273,7 @@ Versatile full-stack developer with 8+ years of experience building **scalable w
 ## Experience
 
 ### Senior Full-Stack Developer | Acme Technologies
-*Jan 2021 — Present*
+*Jan 2021 - Present*
 San Francisco, CA
 
 Architected and delivered the company's next-generation SaaS platform serving 50,000+ active users.
@@ -266,7 +286,7 @@ Architected and delivered the company's next-generation SaaS platform serving 50
   - Added service worker caching for static assets
 
 ### Front-End Developer | Digital Solutions Inc.
-*Mar 2018 — Dec 2020*
+*Mar 2018 - Dec 2020*
 New York, NY
 
 Built customer-facing dashboards and internal tools for a fintech startup.
@@ -277,7 +297,7 @@ Built customer-facing dashboards and internal tools for a fintech startup.
 - Reduced frontend bundle size by 45% through tree-shaking and dynamic imports
 
 ### Junior Web Developer | CreativeWeb Agency
-*Jun 2016 — Feb 2018*
+*Jun 2016 - Feb 2018*
 Austin, TX
 
 - Built 30+ client websites using modern HTML5, CSS3, and JavaScript
@@ -287,18 +307,18 @@ Austin, TX
 ## Education
 
 ### B.Sc. Computer Science | University of California, Berkeley
-*2012 — 2016*
+*2012 - 2016*
 Berkeley, CA
 
 - GPA: 3.7/4.0, Dean's List (6 semesters)
 - Senior thesis: *"Optimizing Real-Time Data Pipelines for Web Applications"*
 
 ### Professional Development
-*2020 — 2024*
+*2020 - 2024*
 
-- **AWS Solutions Architect Associate** — Amazon Web Services
-- **Advanced React Patterns** — Frontend Masters
-- **System Design for Interviews** — Educative.io
+- **AWS Solutions Architect Associate** - Amazon Web Services
+- **Advanced React Patterns** - Frontend Masters
+- **System Design for Interviews** - Educative.io
 
 ## Technical Skills
 
@@ -326,9 +346,9 @@ End-to-end analytics platform for monitoring application performance metrics.
 
 ## Certifications & Awards
 
-- **AWS Solutions Architect Associate** — Amazon Web Services, 2023
-- **Best Technical Innovation Award** — Acme Technologies Hackathon, 2022
-- **Google Developer Expert** — Web Technologies, 2021
+- **AWS Solutions Architect Associate** - Amazon Web Services, 2023
+- **Best Technical Innovation Award** - Acme Technologies Hackathon, 2022
+- **Google Developer Expert** - Web Technologies, 2021
 
 ## Languages
 
@@ -342,24 +362,41 @@ Open source development, tech mentorship, competitive programming, hiking, photo
 `;
 
     const now = Date.now();
-    this.db.prepare(`
-      INSERT OR IGNORE INTO cv_instances (
-        id, name, content, template_id, config, settings, status, created_at, updated_at, metadata
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(
-      SAMPLE_CV_ID,
-      'Sample CV',
-      sampleCVContent,
-      'default-modern',
-      template.default_config,
-      template.default_settings,
-      'active',
-      now,
-      now,
-      JSON.stringify({ sections_count: 9, word_count: 450 })
-    );
+    const existing = this.db.prepare('SELECT id FROM cv_instances WHERE id = ?').get(SAMPLE_CV_ID);
 
-    console.log('Sample CV seeded successfully');
+    if (existing) {
+      // Update existing template CV: reset content, config, settings, and metadata to clean defaults
+      this.db.prepare(`
+        UPDATE cv_instances SET name = ?, content = ?, config = ?, settings = ?, metadata = ?, status = 'active', updated_at = ? WHERE id = ?
+      `).run(
+        'Template CV',
+        sampleCVContent,
+        template.default_config,
+        template.default_settings,
+        JSON.stringify({ sections_count: 9, word_count: 450 }),
+        now,
+        SAMPLE_CV_ID
+      );
+      console.log('Template CV content updated');
+    } else {
+      this.db.prepare(`
+        INSERT INTO cv_instances (
+          id, name, content, template_id, config, settings, status, created_at, updated_at, metadata
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `).run(
+        SAMPLE_CV_ID,
+        'Template CV',
+        sampleCVContent,
+        'default-modern',
+        template.default_config,
+        template.default_settings,
+        'active',
+        now,
+        now,
+        JSON.stringify({ sections_count: 9, word_count: 450 })
+      );
+      console.log('Sample CV seeded successfully');
+    }
   }
 
   /**

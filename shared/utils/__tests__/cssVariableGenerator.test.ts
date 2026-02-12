@@ -42,27 +42,27 @@ describe('generateCSSVariables', () => {
     const vars = generateCSSVariables(DEFAULT_TEMPLATE_CONFIG)
 
     it('generates --primary-color from config.colors.primary', () => {
-      expect(vars['--primary-color']).toBe('#2563eb')
+      expect(vars['--primary-color']).toBe('#2b3a4e')
     })
 
     it('generates --on-primary-color from config.colors.onPrimary', () => {
-      expect(vars['--on-primary-color']).toBe('#ffffff')
+      expect(vars['--on-primary-color']).toBe('#f0f4f8')
     })
 
     it('generates --secondary-color from config.colors.secondary', () => {
-      expect(vars['--secondary-color']).toBe('#64748b')
+      expect(vars['--secondary-color']).toBe('#eae8e4')
     })
 
     it('generates --tertiary-color from config.colors.tertiary', () => {
-      expect(vars['--tertiary-color']).toBe('#f59e0b')
+      expect(vars['--tertiary-color']).toBe('#3d7a8a')
     })
 
     it('generates --font-family from config.typography.fontFamily.body', () => {
-      expect(vars['--font-family']).toBe('Georgia, "Times New Roman", serif')
+      expect(vars['--font-family']).toBe('Inter, system-ui, -apple-system, sans-serif')
     })
 
     it('generates --heading-font-family from config.typography.fontFamily.heading', () => {
-      expect(vars['--heading-font-family']).toBe('Inter, system-ui, -apple-system, sans-serif')
+      expect(vars['--heading-font-family']).toBe('"IBM Plex Sans", system-ui, -apple-system, sans-serif')
     })
 
     it('generates --base-font-size from config.typography.baseFontSize', () => {
@@ -74,27 +74,27 @@ describe('generateCSSVariables', () => {
     })
 
     it('generates --sidebar-width from config.layout.sidebarWidth', () => {
-      expect(vars['--sidebar-width']).toBe('84mm')
+      expect(vars['--sidebar-width']).toBe('40%')
     })
 
     it('generates --page-margin-top from config.layout.pageMargin.top', () => {
-      expect(vars['--page-margin-top']).toBe('20mm')
+      expect(vars['--page-margin-top']).toBe('15mm')
     })
 
     it('generates --page-margin-right from config.layout.pageMargin.right', () => {
-      expect(vars['--page-margin-right']).toBe('20mm')
+      expect(vars['--page-margin-right']).toBe('14mm')
     })
 
     it('generates --text-color from config.colors.text.primary', () => {
-      expect(vars['--text-color']).toBe('#0f172a')
+      expect(vars['--text-color']).toBe('#18181b')
     })
 
     it('generates --border-color from config.colors.borders', () => {
-      expect(vars['--border-color']).toBe('#e2e8f0')
+      expect(vars['--border-color']).toBe('#c8c3bd')
     })
 
     it('generates --section-spacing from config.layout.sectionSpacing', () => {
-      expect(vars['--section-spacing']).toBe('24px')
+      expect(vars['--section-spacing']).toBe('20px')
     })
 
     it('generates --tag-border-radius from config.components.tags.borderRadius', () => {
@@ -228,44 +228,44 @@ describe('generateCSSVariables', () => {
   // Font scale / calculateFontSize
   // -----------------------------------------------------------------------
   describe('font size calculations (calculateFontSize)', () => {
-    it('calculates --title-font-size from h1 scale (3.2 * 10 = 32.0pt)', () => {
+    it('calculates --title-font-size from h1 scale (2.0 * 10 = 20.0pt)', () => {
       const vars = generateCSSVariables(DEFAULT_TEMPLATE_CONFIG)
-      expect(vars['--title-font-size']).toBe('32.0pt')
+      expect(vars['--title-font-size']).toBe('20.0pt')
     })
 
-    it('calculates --h2-font-size from h2 scale (2.4 * 10 = 24.0pt)', () => {
+    it('calculates --h2-font-size from h2 scale (1.3 * 10 = 13.0pt)', () => {
       const vars = generateCSSVariables(DEFAULT_TEMPLATE_CONFIG)
-      expect(vars['--h2-font-size']).toBe('24.0pt')
+      expect(vars['--h2-font-size']).toBe('13.0pt')
     })
 
-    it('calculates --h3-font-size from h3 scale (2.0 * 10 = 20.0pt)', () => {
+    it('calculates --h3-font-size from h3 scale (1.1 * 10 = 11.0pt)', () => {
       const vars = generateCSSVariables(DEFAULT_TEMPLATE_CONFIG)
-      expect(vars['--h3-font-size']).toBe('20.0pt')
+      expect(vars['--h3-font-size']).toBe('11.0pt')
     })
 
-    it('calculates --body-font-size from body scale (1.6 * 10 = 16.0pt)', () => {
+    it('calculates --body-font-size from body scale (1.0 * 10 = 10.0pt)', () => {
       const vars = generateCSSVariables(DEFAULT_TEMPLATE_CONFIG)
-      expect(vars['--body-font-size']).toBe('16.0pt')
+      expect(vars['--body-font-size']).toBe('10.0pt')
     })
 
-    it('calculates --small-font-size from small scale (1.4 * 10 = 14.0pt)', () => {
+    it('calculates --small-font-size from small scale (0.9 * 10 = 9.0pt)', () => {
       const vars = generateCSSVariables(DEFAULT_TEMPLATE_CONFIG)
-      expect(vars['--small-font-size']).toBe('14.0pt')
+      expect(vars['--small-font-size']).toBe('9.0pt')
     })
 
-    it('calculates --tiny-font-size from tiny scale (1.2 * 10 = 12.0pt)', () => {
+    it('calculates --tiny-font-size from tiny scale (0.8 * 10 = 8.0pt)', () => {
       const vars = generateCSSVariables(DEFAULT_TEMPLATE_CONFIG)
-      expect(vars['--tiny-font-size']).toBe('12.0pt')
+      expect(vars['--tiny-font-size']).toBe('8.0pt')
     })
 
     it('calculates font sizes with a different base size (px)', () => {
       const vars = generateCSSVariables(
         configWith({ typography: { baseFontSize: '12px' } })
       )
-      // h1: 3.2 * 12 = 38.4px
-      expect(vars['--title-font-size']).toBe('38.4px')
-      // body: 1.6 * 12 = 19.2px
-      expect(vars['--body-font-size']).toBe('19.2px')
+      // h1: 2.0 * 12 = 24.0px
+      expect(vars['--title-font-size']).toBe('24.0px')
+      // body: 1.0 * 12 = 12.0px
+      expect(vars['--body-font-size']).toBe('12.0px')
     })
 
     it('calculates font sizes with custom font scale values', () => {
@@ -290,24 +290,24 @@ describe('generateCSSVariables', () => {
   describe('tag color pairs', () => {
     it('uses tertiary color pair by default for tag background (with opacity)', () => {
       const vars = generateCSSVariables(DEFAULT_TEMPLATE_CONFIG)
-      // Default: tertiary=#f59e0b, bgOpacity=0.2 => rgba(245, 158, 11, 0.2)
-      expect(vars['--tag-bg-color']).toBe('rgba(245, 158, 11, 0.2)')
+      // Default: tertiary=#3d7a8a, bgOpacity=0.15 => rgba(61, 122, 138, 0.15)
+      expect(vars['--tag-bg-color']).toBe('rgba(61, 122, 138, 0.15)')
     })
 
-    it('uses tertiary onColor for tag text (with opacity)', () => {
+    it('uses text-primary for tag text when textColorKey is set', () => {
       const vars = generateCSSVariables(DEFAULT_TEMPLATE_CONFIG)
-      // Default: onTertiary=#ffffff, textOpacity=1.0 => rgba(255, 255, 255, 1)
-      expect(vars['--tag-text-color']).toBe('rgba(255, 255, 255, 1)')
+      // Default: textColorKey='text-primary' (#18181b), textOpacity=1.0
+      expect(vars['--tag-text-color']).toBe('rgba(24, 24, 27, 1)')
     })
 
     it('uses primary color pair when tags.colorPair is "primary"', () => {
       const vars = generateCSSVariables(
         configWith({ components: { tags: { colorPair: 'primary' } } })
       )
-      // primary=#2563eb with 0.2 opacity => rgba(37, 99, 235, 0.2)
-      expect(vars['--tag-bg-color']).toBe('rgba(37, 99, 235, 0.2)')
-      // onPrimary=#ffffff with 1.0 opacity => rgba(255, 255, 255, 1)
-      expect(vars['--tag-text-color']).toBe('rgba(255, 255, 255, 1)')
+      // primary=#2b3a4e with 0.15 opacity => rgba(43, 58, 78, 0.15)
+      expect(vars['--tag-bg-color']).toBe('rgba(43, 58, 78, 0.15)')
+      // textColorKey='text-primary' (#18181b) preserved from defaults via deep merge
+      expect(vars['--tag-text-color']).toBe('rgba(24, 24, 27, 1)')
     })
 
     it('uses custom opacity values for tags', () => {
@@ -318,8 +318,9 @@ describe('generateCSSVariables', () => {
           },
         })
       )
-      expect(vars['--tag-bg-color']).toBe('rgba(245, 158, 11, 0.5)')
-      expect(vars['--tag-text-color']).toBe('rgba(255, 255, 255, 0.8)')
+      expect(vars['--tag-bg-color']).toBe('rgba(61, 122, 138, 0.5)')
+      // textColorKey='text-primary' (#18181b) with 0.8 opacity
+      expect(vars['--tag-text-color']).toBe('rgba(24, 24, 27, 0.8)')
     })
 
     it('applies custom tag typography properties', () => {
@@ -364,7 +365,7 @@ describe('generateCSSVariables', () => {
       const vars = generateCSSVariables(
         configWith({ components: { sectionHeader: { colorKey: 'primary' } } })
       )
-      expect(vars['--section-header-color']).toBe('#2563eb')
+      expect(vars['--section-header-color']).toBe('#2b3a4e')
     })
 
     it('includes --section-header-background-color when backgroundColorKey is set', () => {
@@ -373,7 +374,7 @@ describe('generateCSSVariables', () => {
           components: { sectionHeader: { backgroundColorKey: 'muted' } },
         })
       )
-      expect(vars['--section-header-background-color']).toBe('#f1f5f9')
+      expect(vars['--section-header-background-color']).toBe('#ddd9d4')
     })
 
     it('applies opacity to section header color when provided', () => {
@@ -384,8 +385,8 @@ describe('generateCSSVariables', () => {
           },
         })
       )
-      // primary=#2563eb with 0.5 opacity => rgba(37, 99, 235, 0.5)
-      expect(vars['--section-header-color']).toBe('rgba(37, 99, 235, 0.5)')
+      // primary=#2b3a4e with 0.5 opacity => rgba(43, 58, 78, 0.5)
+      expect(vars['--section-header-color']).toBe('rgba(43, 58, 78, 0.5)')
     })
 
     it('applies opacity to section header background when provided', () => {
@@ -396,7 +397,7 @@ describe('generateCSSVariables', () => {
           },
         })
       )
-      expect(vars['--section-header-background-color']).toBe('rgba(37, 99, 235, 0.3)')
+      expect(vars['--section-header-background-color']).toBe('rgba(43, 58, 78, 0.3)')
     })
   })
 
@@ -453,8 +454,8 @@ describe('generateCSSVariables', () => {
   describe('sectionHeader margin modes', () => {
     it('uses individual margins by default', () => {
       const vars = generateCSSVariables(DEFAULT_TEMPLATE_CONFIG)
-      expect(vars['--section-header-margin-top']).toBe('24px')
-      expect(vars['--section-header-margin-bottom']).toBe('12px')
+      expect(vars['--section-header-margin-top']).toBe('20px')
+      expect(vars['--section-header-margin-bottom']).toBe('10px')
       expect(vars['--section-header-margin-left']).toBe('0px')
       expect(vars['--section-header-margin-right']).toBe('0px')
     })
@@ -545,8 +546,8 @@ describe('generateCSSVariables', () => {
   describe('sectionHeader padding modes', () => {
     it('uses legacy padding value by default', () => {
       const vars = generateCSSVariables(DEFAULT_TEMPLATE_CONFIG)
-      // Default sectionHeader.padding = '0 0 4px 0'
-      expect(vars['--section-header-padding']).toBe('0 0 4px 0')
+      // Default sectionHeader.padding = '4px 8px'
+      expect(vars['--section-header-padding']).toBe('4px 8px')
     })
 
     it('uses individual padding when paddingMode is "individual"', () => {
@@ -667,10 +668,10 @@ describe('generateCSSVariables', () => {
   // calculateMainWidth (tested via --main-width)
   // -----------------------------------------------------------------------
   describe('main width calculation (calculateMainWidth)', () => {
-    it('subtracts sidebar from page width when both are mm', () => {
+    it('uses calc() for default config (mm page width, % sidebar)', () => {
       const vars = generateCSSVariables(DEFAULT_TEMPLATE_CONFIG)
-      // 210mm - 84mm = 126mm
-      expect(vars['--main-width']).toBe('126mm')
+      // 210mm page width with 40% sidebar = calc(210mm - 40%)
+      expect(vars['--main-width']).toBe('calc(210mm - 40%)')
     })
 
     it('subtracts when both are px', () => {
@@ -726,12 +727,12 @@ describe('generateCSSVariables', () => {
   describe('line heights', () => {
     it('generates heading line height as string', () => {
       const vars = generateCSSVariables(DEFAULT_TEMPLATE_CONFIG)
-      expect(vars['--heading-line-height']).toBe('1.2')
+      expect(vars['--heading-line-height']).toBe('1.3')
     })
 
     it('generates body line height as string', () => {
       const vars = generateCSSVariables(DEFAULT_TEMPLATE_CONFIG)
-      expect(vars['--body-line-height']).toBe('1.6')
+      expect(vars['--body-line-height']).toBe('1.5')
     })
 
     it('generates compact line height as string', () => {
@@ -789,7 +790,7 @@ describe('generateCSSVariables', () => {
           components: { name: { backgroundColorKey: 'primary' } },
         })
       )
-      expect(vars['--name-background-color']).toBe('#2563eb')
+      expect(vars['--name-background-color']).toBe('#2b3a4e')
     })
 
     it('hides divider when dividerStyle is "none" or not set', () => {
@@ -811,10 +812,10 @@ describe('generateCSSVariables', () => {
   // Section header divider display
   // -----------------------------------------------------------------------
   describe('section header divider display', () => {
-    it('shows divider when dividerStyle is "underline" (default has this)', () => {
+    it('hides divider by default (dividerStyle is "none")', () => {
       const vars = generateCSSVariables(DEFAULT_TEMPLATE_CONFIG)
-      // Default sectionHeader.dividerStyle = 'underline'
-      expect(vars['--section-header-divider-display']).toBe('block')
+      // Default sectionHeader.dividerStyle = 'none' (two-column CSS provides background decorator)
+      expect(vars['--section-header-divider-display']).toBe('none')
     })
 
     it('hides divider when dividerStyle is "none"', () => {
@@ -842,7 +843,7 @@ describe('generateCSSVariables', () => {
           components: { jobTitle: { backgroundColorKey: 'muted' } },
         })
       )
-      expect(vars['--job-title-background-color']).toBe('#f1f5f9')
+      expect(vars['--job-title-background-color']).toBe('#ddd9d4')
     })
 
     it('hides divider when dividerStyle is not set', () => {
