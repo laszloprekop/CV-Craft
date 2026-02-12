@@ -1,25 +1,37 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { cvApi, templateApi } from '../services/api'
 import { LoadingSpinner } from '../components/LoadingSpinner'
 import { ErrorMessage } from '../components/ErrorMessage'
-import { 
-  Sparkle, 
-  Folder, 
+import {
+  Sparkle,
+  Folder,
   Copy,
-  PencilSimple
+  PencilSimple,
+  CursorText,
+  Check,
+  X,
+  CaretUp,
+  CaretDown
 } from '@phosphor-icons/react'
 import type { CVInstance, Template } from '../../../shared/types'
 
+type SortKey = 'name' | 'updated_at' | 'created_at' | 'sections_count' | 'word_count' | 'status'
+type SortDir = 'asc' | 'desc'
 
 export const CVManagerPage: React.FC = () => {
   const navigate = useNavigate()
   const fileInputRef = useRef<HTMLInputElement>(null)
-  
+  const renameInputRef = useRef<HTMLInputElement>(null)
+
   const [cvs, setCvs] = useState<CVInstance[]>([])
   const [templates, setTemplates] = useState<Template[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [renamingId, setRenamingId] = useState<string | null>(null)
+  const [renameValue, setRenameValue] = useState('')
+  const [sortKey, setSortKey] = useState<SortKey>('updated_at')
+  const [sortDir, setSortDir] = useState<SortDir>('desc')
 
   useEffect(() => {
     loadData()
@@ -31,7 +43,7 @@ export const CVManagerPage: React.FC = () => {
       setError(null)
 
       const [cvsResponse, templatesResponse] = await Promise.all([
-        cvApi.list(), // Results are sorted by updated_at DESC by default on backend
+        cvApi.list(),
         templateApi.list({ active_only: true })
       ])
 
@@ -45,6 +57,43 @@ export const CVManagerPage: React.FC = () => {
       }
       setError(err instanceof Error ? err.message : 'Failed to load data')
       setLoading(false)
+    }
+  }
+
+  const sortedCvs = useMemo(() => {
+    const sorted = [...cvs].sort((a, b) => {
+      let cmp = 0
+      switch (sortKey) {
+        case 'name':
+          cmp = a.name.localeCompare(b.name)
+          break
+        case 'updated_at':
+          cmp = new Date(a.updated_at).getTime() - new Date(b.updated_at).getTime()
+          break
+        case 'created_at':
+          cmp = new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+          break
+        case 'sections_count':
+          cmp = (a.metadata?.sections_count || 0) - (b.metadata?.sections_count || 0)
+          break
+        case 'word_count':
+          cmp = (a.metadata?.word_count || 0) - (b.metadata?.word_count || 0)
+          break
+        case 'status':
+          cmp = a.status.localeCompare(b.status)
+          break
+      }
+      return sortDir === 'asc' ? cmp : -cmp
+    })
+    return sorted
+  }, [cvs, sortKey, sortDir])
+
+  const handleSort = (key: SortKey) => {
+    if (sortKey === key) {
+      setSortDir(d => d === 'asc' ? 'desc' : 'asc')
+    } else {
+      setSortKey(key)
+      setSortDir(key === 'name' ? 'asc' : 'desc')
     }
   }
 
@@ -63,7 +112,7 @@ export const CVManagerPage: React.FC = () => {
     try {
       const content = await file.text()
       const defaultTemplate = templates.find(t => t.id === 'default-modern') || templates[0]
-      
+
       if (!defaultTemplate) {
         setError('No templates available')
         return
@@ -85,14 +134,52 @@ export const CVManagerPage: React.FC = () => {
     navigate(`/editor/${cvId}`)
   }
 
-  const handleDuplicateCV = async (cv: CVInstance) => {
+  const generateDuplicateName = (baseName: string): string => {
+    const rootName = baseName.replace(/\s*\(\d+\)$/, '')
+    const existingNames = new Set(cvs.map(c => c.name))
+
+    for (let i = 2; i <= 100; i++) {
+      const candidate = `${rootName} (${i})`
+      if (!existingNames.has(candidate)) return candidate
+    }
+    return `${rootName} (${Date.now()})`
+  }
+
+  const handleDuplicateCV = async (e: React.MouseEvent, cv: CVInstance) => {
+    e.stopPropagation()
     try {
-      const response = await cvApi.duplicate(cv.id, `${cv.name} (Copy)`)
+      const response = await cvApi.duplicate(cv.id, generateDuplicateName(cv.name))
       navigate(`/editor/${response.data.id}`)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to duplicate CV')
     }
   }
+
+  const handleStartRename = (e: React.MouseEvent, cv: CVInstance) => {
+    e.stopPropagation()
+    setRenamingId(cv.id)
+    setRenameValue(cv.name)
+  }
+
+  const handleRenameSubmit = async () => {
+    const name = renameValue.trim()
+    if (!name || !renamingId) return
+    try {
+      await cvApi.update(renamingId, { name } as any)
+      setCvs(prev => prev.map(cv => cv.id === renamingId ? { ...cv, name } : cv))
+      setRenamingId(null)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to rename CV')
+    }
+  }
+
+  const handleRenameCancel = () => {
+    setRenamingId(null)
+  }
+
+  useEffect(() => {
+    if (renamingId && renameInputRef.current) renameInputRef.current.focus()
+  }, [renamingId])
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -101,6 +188,16 @@ export const CVManagerPage: React.FC = () => {
       day: 'numeric'
     })
   }
+
+  const SortIndicator: React.FC<{ column: SortKey }> = ({ column }) => {
+    if (sortKey !== column) return <span className="ml-1 text-gray-300 inline-flex"><CaretDown size={12} /></span>
+    return sortDir === 'asc'
+      ? <span className="ml-1 text-emerald-600 inline-flex"><CaretUp size={12} weight="bold" /></span>
+      : <span className="ml-1 text-emerald-600 inline-flex"><CaretDown size={12} weight="bold" /></span>
+  }
+
+  const thClass = "px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider cursor-pointer select-none hover:text-gray-700 transition-colors whitespace-nowrap"
+  const thClassRight = "px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider cursor-pointer select-none hover:text-gray-700 transition-colors whitespace-nowrap"
 
   if (loading) {
     return (
@@ -122,14 +219,14 @@ export const CVManagerPage: React.FC = () => {
       )}
 
       <div className="flex gap-3 justify-center mb-8 flex-wrap">
-        <button 
+        <button
           onClick={handleCreateNew}
           className="flex items-center gap-2 px-6 py-3 bg-emerald-500 text-white border-none rounded-lg text-base font-semibold cursor-pointer hover:bg-emerald-600 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
         >
           <Sparkle size={20} />
           Create New CV
         </button>
-        <button 
+        <button
           onClick={handleImportFile}
           className="flex items-center gap-2 px-6 py-3 bg-white text-gray-700 border-2 border-gray-300 rounded-lg text-base font-semibold cursor-pointer hover:border-emerald-500 hover:bg-emerald-50 transition-all duration-200"
         >
@@ -149,72 +246,128 @@ export const CVManagerPage: React.FC = () => {
       <div>
         <h2 className="text-xl font-semibold text-text-primary mb-4">Your CVs ({cvs.length})</h2>
         {cvs.length === 0 ? (
-          <p className="text-text-secondary">No CVs created yet. Click "Create New CV" to get started!</p>
+          <p className="text-text-secondary">No CVs created yet. Click &ldquo;Create New CV&rdquo; to get started!</p>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mt-6">
-            {cvs.map((cv) => (
-              <div 
-                key={cv.id} 
-                onClick={() => handleEditCV(cv.id)}
-                className="bg-white border border-gray-200 rounded-xl p-6 cursor-pointer transition-all duration-200 hover:border-emerald-500 hover:shadow-lg hover:-translate-y-1 group"
-              >
-                {/* CV Card Header */}
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-1 group-hover:text-emerald-600 transition-colors">
-                      {cv.name}
-                    </h3>
-                    <p className="text-sm text-gray-500">
-                      Template: {templates.find(t => t.id === cv.template_id)?.name || 'Unknown'}
-                    </p>
-                  </div>
-                  <div className="w-2 h-2 rounded-full bg-emerald-500 flex-shrink-0 mt-2"></div>
-                </div>
-
-                {/* CV Stats */}
-                <div className="bg-gray-50 rounded-lg p-3 mb-4">
-                  <div className="grid grid-cols-3 gap-3 text-center">
-                    <div>
-                      <div className="text-lg font-semibold text-emerald-600">{cv.metadata?.sections_count || 0}</div>
-                      <div className="text-xs text-gray-500">Sections</div>
-                    </div>
-                    <div>
-                      <div className="text-lg font-semibold text-emerald-600">{cv.metadata?.word_count || 0}</div>
-                      <div className="text-xs text-gray-500">Words</div>
-                    </div>
-                    <div>
-                      <div className="text-lg font-semibold text-emerald-600">
-                        {cv.status === 'active' ? '✅' : cv.status === 'archived' ? '📦' : '🗑️'}
+          <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-gray-200 bg-gray-50">
+                  <th className={thClass} onClick={() => handleSort('name')}>
+                    <span className="inline-flex items-center">Name<SortIndicator column="name" /></span>
+                  </th>
+                  <th className={thClassRight} onClick={() => handleSort('sections_count')}>
+                    <span className="inline-flex items-center justify-end">Sections<SortIndicator column="sections_count" /></span>
+                  </th>
+                  <th className={thClassRight} onClick={() => handleSort('word_count')}>
+                    <span className="inline-flex items-center justify-end">Words<SortIndicator column="word_count" /></span>
+                  </th>
+                  <th className={thClass} onClick={() => handleSort('status')}>
+                    <span className="inline-flex items-center">Status<SortIndicator column="status" /></span>
+                  </th>
+                  <th className={thClass} onClick={() => handleSort('updated_at')}>
+                    <span className="inline-flex items-center">Last Modified<SortIndicator column="updated_at" /></span>
+                  </th>
+                  <th className="px-4 py-3 w-40"></th>
+                </tr>
+              </thead>
+              <tbody>
+                {sortedCvs.map((cv) => (
+                  <tr
+                    key={cv.id}
+                    onClick={() => handleEditCV(cv.id)}
+                    className="border-b border-gray-100 last:border-b-0 cursor-pointer hover:bg-emerald-50 transition-colors group"
+                  >
+                    {/* Name */}
+                    <td className="px-4 py-3">
+                      {renamingId === cv.id ? (
+                        <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                          <input
+                            ref={renameInputRef}
+                            type="text"
+                            value={renameValue}
+                            onChange={(e) => setRenameValue(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') handleRenameSubmit()
+                              if (e.key === 'Escape') handleRenameCancel()
+                            }}
+                            className="flex-1 min-w-0 px-2 py-1 text-sm font-medium border border-emerald-500 rounded bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                            maxLength={100}
+                          />
+                          <button
+                            onClick={handleRenameSubmit}
+                            className="p-1 text-emerald-600 hover:bg-emerald-100 rounded"
+                            title="Confirm"
+                          >
+                            <Check size={14} weight="bold" />
+                          </button>
+                          <button
+                            onClick={handleRenameCancel}
+                            className="p-1 text-gray-400 hover:bg-gray-100 rounded"
+                            title="Cancel"
+                          >
+                            <X size={14} weight="bold" />
+                          </button>
+                        </div>
+                      ) : (
+                        <span className="text-sm font-medium text-gray-900 group-hover:text-emerald-700 transition-colors">
+                          {cv.name}
+                        </span>
+                      )}
+                    </td>
+                    {/* Sections */}
+                    <td className="px-4 py-3 text-sm text-gray-500 text-right tabular-nums">
+                      {cv.metadata?.sections_count || 0}
+                    </td>
+                    {/* Words */}
+                    <td className="px-4 py-3 text-sm text-gray-500 text-right tabular-nums">
+                      {cv.metadata?.word_count || 0}
+                    </td>
+                    {/* Status */}
+                    <td className="px-4 py-3">
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                        cv.status === 'active'
+                          ? 'bg-emerald-100 text-emerald-700'
+                          : cv.status === 'archived'
+                            ? 'bg-amber-100 text-amber-700'
+                            : 'bg-gray-100 text-gray-500'
+                      }`}>
+                        {cv.status}
+                      </span>
+                    </td>
+                    {/* Last Modified */}
+                    <td className="px-4 py-3 text-sm text-gray-500 whitespace-nowrap">
+                      {formatDate(cv.updated_at)}
+                    </td>
+                    {/* Actions */}
+                    <td className="px-4 py-3">
+                      <div className="flex gap-1 justify-end opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button
+                          onClick={(e) => { e.stopPropagation(); handleEditCV(cv.id) }}
+                          className="p-1.5 text-gray-400 hover:text-emerald-600 hover:bg-emerald-100 rounded transition-colors"
+                          title="Edit"
+                        >
+                          <PencilSimple size={16} />
+                        </button>
+                        <button
+                          onClick={(e) => handleStartRename(e, cv)}
+                          className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-100 rounded transition-colors"
+                          title="Rename"
+                        >
+                          <CursorText size={16} />
+                        </button>
+                        <button
+                          onClick={(e) => handleDuplicateCV(e, cv)}
+                          className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-200 rounded transition-colors"
+                          title="Duplicate"
+                        >
+                          <Copy size={16} />
+                        </button>
                       </div>
-                      <div className="text-xs text-gray-500 capitalize">{cv.status}</div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* CV Footer */}
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-gray-400">
-                    Updated {formatDate(cv.updated_at)}
-                  </span>
-                  <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button 
-                      onClick={(e) => { e.stopPropagation(); handleEditCV(cv.id) }}
-                      className="flex items-center gap-1 px-2 py-1 bg-emerald-100 text-emerald-700 rounded-md text-xs font-medium hover:bg-emerald-200 transition-colors"
-                    >
-                      <PencilSimple size={12} />
-                      Edit
-                    </button>
-                    <button 
-                      onClick={(e) => { e.stopPropagation(); handleDuplicateCV(cv) }}
-                      className="flex items-center gap-1 px-2 py-1 bg-gray-100 text-gray-600 rounded-md text-xs font-medium hover:bg-gray-200 transition-colors"
-                    >
-                      <Copy size={12} />
-                      Duplicate
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         )}
       </div>

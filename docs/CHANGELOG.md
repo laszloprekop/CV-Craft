@@ -2,6 +2,20 @@
 
 All notable changes to CV-Craft will be documented in this file.
 
+## [1.26.0] - 2026-02-12
+
+### Added
+- **CV Manager table layout** — Redesigned CV list from card grid to a sortable table with columns: Name, Sections, Words, Status, Last Modified; sorted by last modified DESC by default
+- **CV rename** — Inline rename via CursorText icon button or double-click on name; Enter to confirm, Escape to cancel
+- **Incremental duplicate naming** — Duplicating "My CV" generates "My CV (2)", "My CV (3)", etc. instead of "My CV (Copy)"
+
+### Fixed
+- **Remove DUPLICATE_NAME constraint** — CVs can now share the same name; removed application-level uniqueness checks from `CVInstance.create()` and `CVInstance.update()`, dropped `idx_cv_name_active` unique index from schema, added migration to drop the index from existing databases
+
+### Technical Insights
+- The UNIQUE constraint existed at three levels: application code in `create()`, application code in `update()`, and a SQLite partial unique index (`WHERE status = 'active'`); all three had to be removed
+- Database migration is handled inline in `connection.ts` via `DROP INDEX IF EXISTS` which runs safely on every startup
+
 ## [1.25.0] - 2026-02-12
 
 ### Added

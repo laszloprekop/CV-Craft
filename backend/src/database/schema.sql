@@ -74,9 +74,6 @@ CREATE TABLE IF NOT EXISTS exports (
 -- CV lookups by status and date
 CREATE INDEX IF NOT EXISTS idx_cv_status_updated ON cv_instances(status, updated_at);
 
--- CV name uniqueness within active status
-CREATE UNIQUE INDEX IF NOT EXISTS idx_cv_name_active ON cv_instances(name) WHERE status = 'active';
-
 -- Asset lookups by CV and type
 CREATE INDEX IF NOT EXISTS idx_assets_cv_type ON assets(cv_id, file_type);
 

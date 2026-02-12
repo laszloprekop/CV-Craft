@@ -102,6 +102,14 @@ export class DatabaseManager {
     });
 
     transaction();
+
+    // Migration: drop unique name constraint on cv_instances (allow duplicate names)
+    try {
+      this.db!.exec('DROP INDEX IF EXISTS idx_cv_name_active');
+    } catch {
+      // Index may not exist, ignore
+    }
+
     console.log('Database schema initialized successfully');
   }
 

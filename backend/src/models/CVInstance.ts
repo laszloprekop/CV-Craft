@@ -73,12 +73,6 @@ export class CVInstanceModel {
 
     // Use transaction to ensure atomicity
     const transaction = this.db.transaction(() => {
-      // Check for duplicate name in active status
-      const existing = this.findByNameAndStatus(data.name.trim(), 'active');
-      if (existing) {
-        throw new CVInstanceError('A CV with this name already exists', 'DUPLICATE_NAME');
-      }
-
       // Verify template exists
       const template = this.db.prepare('SELECT id FROM templates WHERE id = ? AND is_active = 1').get(data.template_id);
       if (!template) {
@@ -134,7 +128,7 @@ export class CVInstanceModel {
   /**
    * Find CV instance by name and status
    */
-  findByNameAndStatus(name: string, status: 'active' | 'archived' | 'deleted'): CVInstance | null {
+  findByNameAndStatus(name: string, status: string): CVInstance | null {
     const stmt = this.db.prepare(`
       SELECT * FROM cv_instances WHERE name = ? AND status = ?
     `);
@@ -258,14 +252,6 @@ export class CVInstanceModel {
 
     // Use transaction for atomic update with validation
     const transaction = this.db.transaction(() => {
-      // Check for duplicate name if name is being changed
-      if (data.name && data.name.trim() !== existing.name) {
-        const duplicate = this.findByNameAndStatus(data.name.trim(), existing.status);
-        if (duplicate && duplicate.id !== id) {
-          throw new CVInstanceError('A CV with this name already exists', 'DUPLICATE_NAME');
-        }
-      }
-
       // Verify template exists if template is being changed
       if (data.template_id && data.template_id !== existing.template_id) {
         const template = this.db.prepare('SELECT id FROM templates WHERE id = ? AND is_active = 1').get(data.template_id);
