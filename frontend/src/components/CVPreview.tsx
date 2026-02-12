@@ -32,12 +32,17 @@ import type {
   CVSection,
   ParsedCVContent,
 } from "../../../shared/types"
-import { assetApi, cvApi } from "../services/api"
+import { cvApi } from "../services/api"
 import { loadFonts } from "../services/GoogleFontsService"
 import { resolveSemanticColor } from "../utils/colorResolver"
 import { generateCSSVariables } from "../../../shared/utils/cssVariableGenerator"
 import { renderSections } from "../../../shared/utils/sectionRenderer"
+import { sanitizeUrl } from "../../../shared/utils/sanitizeUrl"
 import { injectSemanticCSS } from "../utils/injectSemanticCSS"
+import DOMPurify from "dompurify"
+import { useProfilePhoto } from "./useProfilePhoto"
+import { usePageBreaks } from "./usePageBreaks"
+import { parseMarkdownContent } from "./parseMarkdownContent"
 
 // Inject shared semantic CSS on module load
 injectSemanticCSS()
@@ -51,16 +56,6 @@ type CSSCustomProperties = Record<string, any>
 interface SkillCategory {
   category: string
   skills: (string | { name?: string; text?: string })[]
-}
-
-// Type for structured entry (job, education, project)
-interface StructuredEntry {
-  title: string
-  company?: string
-  date?: string
-  location?: string
-  description?: string
-  bullets?: (string | { text: string })[]
 }
 
 // Preview mode types - two modes: HTML preview vs exact PDF
@@ -95,10 +90,6 @@ const getInitialPageMarkersVisible = (): boolean => {
   return true
 }
 
-// A4 page dimensions in mm
-const A4_HEIGHT_MM = 297
-const PAGE_MARGIN_MM = 20 // Top and bottom margins
-
 interface CVPreviewProps {
   cv: CVInstance | null
   template: Template | null
@@ -122,8 +113,8 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
   zoomPercentage = 100,
   onSettingsChange,
 }) => {
-  // State for profile photo URL
-  const [photoUrl, setPhotoUrl] = useState<string | null>(null)
+  // Profile photo URL loaded from asset
+  const photoUrl = useProfilePhoto(cv)
 
   // Preview mode state with localStorage persistence
   const [previewMode, setPreviewMode] = useState<PreviewMode>(
@@ -137,7 +128,6 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
 
   // Ref for measuring content height for page markers
   const contentRef = React.useRef<HTMLDivElement>(null)
-  const [pageBreaks, setPageBreaks] = useState<number[]>([])
 
   // Exact PDF mode state
   const [pdfUrl, setPdfUrl] = useState<string | null>(null)
@@ -215,10 +205,6 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
     }
 
     if (fontsToLoad.length > 0) {
-      console.log(
-        "[CVPreview] Loading Google Fonts (with italic variants):",
-        fontsToLoad,
-      )
       loadFonts(fontsToLoad)
     }
   }, [
@@ -227,139 +213,6 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
     template?.default_config?.typography.availableFonts,
     template?.default_config?.typography.fontFamily,
   ])
-
-  // Load photo from asset when cv.photo_asset_id changes
-  useEffect(() => {
-    console.log(
-      "[CVPreview] Photo useEffect triggered, cv.photo_asset_id:",
-      cv?.photo_asset_id,
-    )
-
-    // Reset immediately to avoid stale photo URL
-    setPhotoUrl(null)
-
-    // If no photo_asset_id, nothing to load
-    if (!cv?.photo_asset_id) {
-      console.log("[CVPreview] No photo_asset_id, skipping load")
-      return
-    }
-
-    // Load asynchronously without blocking render
-    const loadPhoto = async () => {
-      try {
-        console.log("[CVPreview] Fetching asset:", cv.photo_asset_id)
-        const response = await assetApi.get(cv.photo_asset_id!)
-        const photoAsset = response.data
-        const photoUrl = assetApi.getFileUrl(photoAsset)
-        console.log("[CVPreview] Photo loaded, URL:", photoUrl)
-        setPhotoUrl(photoUrl)
-      } catch (error) {
-        console.error("[CVPreview] Failed to load profile photo:", error)
-        // Don't set to null here - keep previous state to avoid flicker
-      }
-    }
-
-    loadPhoto()
-  }, [cv?.photo_asset_id])
-
-  // Simple client-side markdown parser for live preview
-  const parseMarkdownContent = (content: string): ParsedCVContent => {
-    // Extract frontmatter
-    const frontmatterMatch = content.match(/^---\n([\s\S]*?)\n---/)
-    let frontmatter: CVFrontmatter = { name: "", email: "" }
-    let markdownContent = content
-
-    if (frontmatterMatch) {
-      // Parse YAML frontmatter (basic parsing)
-      const yamlContent = frontmatterMatch[1]
-      markdownContent = content.slice(frontmatterMatch[0].length)
-
-      yamlContent.split("\n").forEach((line: string) => {
-        const [key, ...valueParts] = line.split(":")
-        if (key && valueParts.length > 0) {
-          const value = valueParts.join(":").trim()
-          const keyTrimmed = key.trim()
-          // Handle photo URLs which might start with http:// or https://
-          frontmatter[keyTrimmed] = value
-        }
-      })
-    } else {
-      // Extract from plain markdown (first H1 as name, email from content)
-      const h1Match = markdownContent.match(/^#\s+(.+)$/m)
-      const emailMatch = markdownContent.match(/[\w\.-]+@[\w\.-]+\.\w+/)
-      const phoneMatch = markdownContent.match(
-        /(?:📱|phone)[\s\*]*:?\s*([\+\d\s\-\(\)\.]+)/i,
-      )
-      const locationMatch = markdownContent.match(
-        /(?:📍|location)[\s\*]*:?\s*([^,\n]+)/i,
-      )
-      // Extract photo from markdown image syntax: ![alt](url)
-      const photoMatch = markdownContent.match(
-        /!\[(?:Profile|Photo|profile|photo)[^\]]*\]\(([^)]+)\)/,
-      )
-
-      frontmatter = {
-        name: h1Match ? h1Match[1].trim() : "",
-        email: emailMatch ? emailMatch[0] : "",
-        phone: phoneMatch ? phoneMatch[1].trim() : "",
-        location: locationMatch ? locationMatch[1].trim() : "",
-        photo: photoMatch ? photoMatch[1].trim() : undefined,
-      }
-    }
-
-    // Parse sections with better structure parsing
-    // Split on ## headings, detecting <!-- break --> markers at each boundary
-    const sections: CVSection[] = []
-    const sectionMatches = markdownContent.split(/^##\s+/m).slice(1)
-
-    sectionMatches.forEach((sectionText: string) => {
-      // Check if this section's text contains <!-- break --> (insert break marker before next section)
-      const hasBreak = /<!--\s*break\s*-->/i.test(sectionText)
-
-      // Strip <!-- break --> from section content
-      const cleanedText = sectionText.replace(/<!--\s*break\s*-->/gi, "")
-
-      const lines = cleanedText.split("\n")
-      const title = lines[0].trim()
-      const content = lines.slice(1).join("\n").trim()
-
-      if (title && content) {
-        const sectionType = inferSectionType(title)
-        let parsedContent: CVSection["content"]
-
-        if (
-          sectionType === "experience" ||
-          sectionType === "education" ||
-          sectionType === "projects"
-        ) {
-          parsedContent = parseStructuredEntries(content)
-        } else if (sectionType === "skills") {
-          parsedContent = parseSkills(content) as CVSection["content"]
-        } else {
-          parsedContent = content.split("\n\n").filter((p: string) => p.trim())
-        }
-
-        sections.push({
-          title,
-          type: sectionType,
-          content: parsedContent,
-          level: 2,
-        })
-      }
-
-      // If this section had a <!-- break --> at the end, insert a break marker after it
-      if (hasBreak) {
-        sections.push({
-          type: "paragraph",
-          title: "",
-          content: "",
-          breakBefore: true,
-        })
-      }
-    })
-
-    return { frontmatter, sections }
-  }
 
   // Simple Markdown renderer for formatting
   const renderMarkdown = (text: string) => {
@@ -377,10 +230,11 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
       "<em>$1</em>",
     )
 
-    // Handle links [text](url)
+    // Handle links [text](url) — sanitize URL to prevent javascript: XSS
     formatted = formatted.replace(
       /\[([^\]]+)\]\(([^)]+)\)/g,
-      '<a href="$2" style="color: var(--link-color); text-decoration: underline;">$1</a>',
+      (_match: string, text: string, url: string) =>
+        `<a href="${sanitizeUrl(url)}" style="color: var(--link-color); text-decoration: underline;">${text}</a>`,
     )
 
     // Handle inline code `code`
@@ -389,79 +243,7 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
       '<code style="background-color: var(--muted-color); padding: 0 0.25rem; border-radius: 0.125rem; font-size: var(--inline-code-font-size);">$1</code>',
     )
 
-    return <span dangerouslySetInnerHTML={{ __html: formatted }} />
-  }
-
-  // Parse structured entries (experience, education, projects)
-  const parseStructuredEntries = (content: string): StructuredEntry[] => {
-    const entries: StructuredEntry[] = []
-    const entryBlocks = content.split(/^###\s+/m).slice(1)
-
-    entryBlocks.forEach((block: string) => {
-      const lines = block.split("\n").filter((line) => line.trim())
-      if (lines.length === 0) return
-
-      const titleLine = lines[0].trim()
-      let title = "",
-        company = "",
-        date = "",
-        location = ""
-
-      // Parse title line - various formats
-      if (titleLine.includes("|")) {
-        // Format: "Job Title | Company Name"
-        const parts = titleLine.split("|")
-        title = parts[0].trim()
-        company = parts[1].trim()
-      } else if (titleLine.includes(" at ")) {
-        // Format: "Job Title at Company Name"
-        const parts = titleLine.split(" at ")
-        title = parts[0].trim()
-        company = parts[1].trim()
-      } else {
-        title = titleLine
-      }
-
-      // Look for date/location in subsequent lines
-      for (let i = 1; i < lines.length; i++) {
-        const line = lines[i].trim()
-
-        // Date patterns (various formats)
-        if (line.match(/^\*?.*\d{4}.*\*?$/) && !date) {
-          date = line.replace(/\*/g, "").trim()
-        }
-        // Location patterns
-        else if (
-          line.includes("Gothenburg") ||
-          line.includes("Sweden") ||
-          line.includes("Stockholm")
-        ) {
-          location = line.trim()
-        }
-        // Skip bullet points and descriptions for now
-      }
-
-      // Get description (remaining non-date/location lines)
-      const descLines = lines.slice(1).filter((line) => {
-        const trimmed = line.trim()
-        return (
-          !trimmed.match(/^\*?.*\d{4}.*\*?$/) &&
-          !trimmed.includes("Gothenburg") &&
-          !trimmed.includes("Sweden") &&
-          trimmed.length > 0
-        )
-      })
-
-      entries.push({
-        title,
-        company,
-        date,
-        location,
-        description: descLines.join(" ").trim(),
-      })
-    })
-
-    return entries
+    return <span dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(formatted) }} />
   }
 
   // Parse skills with better categorization
@@ -477,7 +259,7 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
       const boldCategoryMatch = trimmed.match(/^\*\*([^*]+)\*\*:?\s*(.*)$/)
       if (boldCategoryMatch) {
         const category = boldCategoryMatch[1].trim()
-        let skillsStr = boldCategoryMatch[2].trim()
+        const skillsStr = boldCategoryMatch[2].trim()
 
         // If skills are on the same line
         if (skillsStr) {
@@ -631,10 +413,19 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
     setPdfLoading(true)
     setPdfError(null)
 
+    // Timeout to prevent infinite loading state
+    const timeout = setTimeout(() => {
+      if (!cancelled) {
+        setPdfError("PDF generation timed out")
+        setPdfLoading(false)
+      }
+    }, 30000)
+
     cvApi
       .getPreviewPdf(cv.id, configRef.current)
       .then((url) => {
         if (!cancelled) {
+          clearTimeout(timeout)
           // Revoke old URL to prevent memory leak
           if (pdfUrl) {
             URL.revokeObjectURL(pdfUrl)
@@ -644,6 +435,7 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
         }
       })
       .catch((err) => {
+        clearTimeout(timeout)
         if (!cancelled) {
           console.error("[CVPreview] Failed to load PDF preview:", err)
           setPdfError("Failed to generate PDF preview")
@@ -653,6 +445,7 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
 
     return () => {
       cancelled = true
+      clearTimeout(timeout)
     }
   }, [previewMode, cv?.id, cv?.updated_at, pdfVersion])
 
@@ -672,68 +465,14 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
     // Prefer config over settings (config is newer, more comprehensive)
     const activeConfig = config || template.default_config
 
-    console.log("[CVPreview] 🎨 Applying styles:", {
-      accent: activeConfig?.colors.accent,
-      baseFontSize: activeConfig?.typography.baseFontSize,
-      pageMargin: activeConfig?.layout?.pageMargin,
-    })
-
     // Use shared CSS variable generator for consistency with PDF export
     const cssVariables = generateCSSVariables(activeConfig)
-
-    console.log("[CVPreview] 📐 Page margins:", {
-      "--page-margin-top": cssVariables["--page-margin-top"],
-      "--page-margin-right": cssVariables["--page-margin-right"],
-      "--page-margin-bottom": cssVariables["--page-margin-bottom"],
-      "--page-margin-left": cssVariables["--page-margin-left"],
-    })
 
     return cssVariables as CSSCustomProperties
   }, [template, config])
 
-  // Calculate page breaks when content changes or page markers become visible
-  useEffect(() => {
-    if (!pageMarkersVisible || previewMode !== "html" || !contentRef.current) {
-      setPageBreaks([])
-      return
-    }
-
-    // Delay calculation to allow content to render
-    const calculatePageBreaks = () => {
-      if (!contentRef.current) return
-
-      const contentElement = contentRef.current
-      const contentHeight = contentElement.scrollHeight
-
-      // Convert mm to pixels (assuming 96 DPI standard)
-      // 1mm = 3.7795275591 pixels at 96 DPI
-      const MM_TO_PX = 3.7795275591
-      const pageHeightPx = A4_HEIGHT_MM * MM_TO_PX
-      const marginPx = PAGE_MARGIN_MM * MM_TO_PX
-      const contentAreaHeightPx = pageHeightPx - 2 * marginPx
-
-      // Calculate page break positions
-      const breaks: number[] = []
-      let currentPosition = contentAreaHeightPx
-
-      while (currentPosition < contentHeight) {
-        breaks.push(currentPosition)
-        currentPosition += contentAreaHeightPx
-      }
-
-      setPageBreaks(breaks)
-    }
-
-    // Use requestAnimationFrame to ensure DOM is ready
-    const rafId = requestAnimationFrame(() => {
-      // Additional small delay to ensure all styles are applied
-      setTimeout(calculatePageBreaks, 100)
-    })
-
-    return () => cancelAnimationFrame(rafId)
-  }, [
-    pageMarkersVisible,
-    previewMode,
+  // Calculate page breaks via extracted hook
+  const pageBreaks = usePageBreaks(contentRef, pageMarkersVisible, previewMode, [
     parsedContent,
     templateStyles,
     zoomPercentage,
@@ -876,7 +615,7 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
     return (
       <div
         className={`section-content ${isSidebar ? "sidebar" : ""}`}
-        dangerouslySetInnerHTML={{ __html: contentHTML }}
+        dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(contentHTML) }}
       />
     )
   }
@@ -934,6 +673,8 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
   }
 
   // Get custom CSS from config if available
+  // Safety note: customCSS comes from TemplateConfig (saved by the CV owner), not from
+  // untrusted user input like markdown content. It is injected via <style> tags intentionally.
   const customCSS = useMemo(() => {
     const activeConfig = config || template?.default_config
     return activeConfig?.advanced?.customCSS || ""
@@ -1117,7 +858,7 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
               if (section.breakBefore && !section.title) {
                 return (
                   <div
-                    key={index}
+                    key={`break-${index}`}
                     style={{
                       borderTop: "2px dashed #3b82f6",
                       margin: "8px 0",
@@ -1146,7 +887,7 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
               }
               return (
                 <section
-                  key={index}
+                  key={`${section.type}-${section.title}-${index}`}
                   style={{
                     marginBottom: templateStyles["--section-spacing"] || "24px",
                   }}
@@ -1571,7 +1312,7 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
                   if (section.breakBefore && !section.title) {
                     return (
                       <div
-                        key={index}
+                        key={`sidebar-break-${index}`}
                         style={{
                           borderTop: "2px dashed #3b82f6",
                           margin: "8px 0",
@@ -1600,7 +1341,7 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
                   }
                   return (
                     <div
-                      key={index}
+                      key={`sidebar-${section.type}-${section.title}-${index}`}
                       className="keep-together"
                       style={{
                         pageBreakInside: "avoid",
@@ -1832,7 +1573,7 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
                   if (section.breakBefore && !section.title) {
                     return (
                       <div
-                        key={index}
+                        key={`main-break-${index}`}
                         style={{
                           borderTop: "2px dashed #3b82f6",
                           margin: "8px 0",
@@ -1861,7 +1602,7 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
                   }
                   return (
                     <section
-                      key={index}
+                      key={`main-${section.type}-${section.title}-${index}`}
                       className="keep-together"
                       style={{
                         pageBreakInside: "avoid",
@@ -2082,7 +1823,7 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
             {pageMarkersVisible &&
               pageBreaks.map((position, index) => (
                 <div
-                  key={index}
+                  key={`page-break-${position}`}
                   className="page-break-indicator"
                   style={{ top: `${position}px` }}
                 >

@@ -11,6 +11,7 @@ import remarkFrontmatter from 'remark-frontmatter';
 import remarkParse from 'remark-parse';
 import remarkGfm from 'remark-gfm';
 import remarkRehype from 'remark-rehype';
+import rehypeSanitize, { defaultSchema } from 'rehype-sanitize';
 import rehypeStringify from 'rehype-stringify';
 import { visit } from 'unist-util-visit';
 import matter from 'gray-matter';
@@ -95,17 +96,40 @@ export class CVParser {
     const cssVariables = generateCSSVariables(config);
 
     // Create HTML processor with Unified/Rehype
+    // Sanitization schema: allow safe CV-relevant tags, block scripts/iframes/event handlers
+    const sanitizeSchema = {
+      ...defaultSchema,
+      tagNames: [
+        ...(defaultSchema.tagNames || []),
+        'section', 'article', 'header', 'footer', 'nav',
+        'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+        'p', 'br', 'hr',
+        'ul', 'ol', 'li',
+        'a', 'strong', 'em', 'b', 'i', 'u', 's', 'del',
+        'code', 'pre', 'blockquote',
+        'table', 'thead', 'tbody', 'tr', 'th', 'td',
+        'span', 'div', 'img',
+        'dl', 'dt', 'dd', 'sup', 'sub', 'small', 'mark',
+      ],
+      attributes: {
+        ...defaultSchema.attributes,
+        '*': [...(defaultSchema.attributes?.['*'] || []), 'style', 'className'],
+        a: ['href', 'title', 'target', 'rel'],
+        img: ['src', 'alt', 'title', 'width', 'height'],
+      },
+    };
     const htmlProcessor = remark()
       .use(remarkParse)
       .use(remarkGfm) // GitHub Flavored Markdown (tables, strikethrough, etc.)
-      .use(remarkRehype, { allowDangerousHtml: true })
+      .use(remarkRehype)
+      .use(rehypeSanitize, sanitizeSchema)
       .use(() => (tree) => {
         // Apply template styles to HTML elements
         visit(tree, 'element', (node: any) => {
           this.applyTemplateStyles(node, config);
         });
       })
-      .use(rehypeStringify, { allowDangerousHtml: true });
+      .use(rehypeStringify);
 
     const file = await htmlProcessor.process(markdownContent);
 

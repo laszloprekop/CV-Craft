@@ -2,6 +2,48 @@
 
 All notable changes to CV-Craft will be documented in this file.
 
+## [1.23.0] - 2026-02-12
+
+### Fixed
+- **XSS in Markdown parser** — Add `rehype-sanitize` to backend remark pipeline, stripping `<script>`, `<iframe>`, and event handler attributes from generated HTML; remove `allowDangerousHtml` flags from `remarkRehype` and `rehypeStringify`
+- **XSS in frontend preview** — Add `DOMPurify` sanitization to `dangerouslySetInnerHTML` in `CVPreview.tsx` and `renderMarkdown()`
+- **XSS via URL protocols** — Create `shared/utils/sanitizeUrl.ts` blocking `javascript:`, `vbscript:`, `data:` protocols; apply in `sectionRenderer.ts` link rendering and `CVPreview.tsx`
+- **SQL injection in ORDER BY** — Add column whitelist validation in `CVInstance.ts` and `Asset.ts` `list()` methods; reject unrecognized column names
+- **Path traversal in asset serving** — Validate resolved file paths stay within storage directory in `AssetService.ts`; sanitize filenames in Content-Disposition headers
+- **Error information leakage** — Remove `req.body` from production error logs in `errorHandler.ts`
+- **Race condition in config saves** — Remove `setTimeout` anti-pattern in `CVEditorPage.tsx` `handleConfigChangeComplete`
+- **Event listener leak in resize handler** — Add cleanup ref and unmount handler for mousemove/mouseup listeners in `CVEditorPage.tsx`
+- **Auto-save interval recreation** — Change `useCVEditor.ts` useEffect dependency from `[cv]` to `[]` to prevent interval churn
+- **Debounce recreation on every render** — Stabilize debounced preview update with `useMemo` and ref in `CVEditorPage.tsx`
+- **React key anti-pattern** — Replace `key={index}` with stable composite keys in `CVPreview.tsx` section rendering
+- **Download element cleanup** — Wrap download link creation in try/finally for DOM cleanup in `CVEditorPage.tsx`
+
+### Added
+- **Content Security Policy** — Configure `helmet` with CSP directives (script-src, style-src, img-src, connect-src, font-src) in `app.ts`
+- **Client-side upload validation** — Validate file type and size before uploading in `CVEditorPage.tsx`
+- **Frontend ESLint config** — Add `.eslintrc.json` with TypeScript, React, and React Hooks plugins
+- **Frontend test setup** — Add `setupTests.ts` with `@testing-library/jest-dom`
+- **`.nvmrc`** — Pin Node.js version to 20
+- **`backend/.env.example`** — Document required environment variables
+- **Shared test infrastructure** — Add `shared/vitest.config.ts` and test script for running shared utility tests independently
+- **384 new tests** covering:
+  - `shared/utils/`: cssVariableGenerator (105), layoutRenderer (58), sectionRenderer (40), sanitizeUrl (20), colorResolver (21)
+  - `backend/`: validation middleware (37), error handler (15), cv-parser extended (28), cv-parser core (6)
+  - `frontend/`: parseMarkdownContent (43), usePageBreaks (6), useProfilePhoto (5)
+
+### Changed
+- **Component extraction from CVPreview** — Extract `useProfilePhoto.ts`, `usePageBreaks.ts`, and `parseMarkdownContent.ts` into focused hooks/utilities for independent testability
+- **Removed debug console.logs** — Strip `[CVPreview]`, `[CVEditorPage]`, `[useCVEditor]`, `[TemplateConfigPanel]` debug logging across ~13 files
+- **Removed unused dependencies** — Remove `react-color`, `@tabler/icons-react` (frontend), `pagedjs` (backend)
+- **Removed duplicate contract test stubs** — Delete 5 `.test.js` files superseded by `.test.ts` versions
+- **Skipped unimplemented contract/integration tests** — Add `describe.skip` to 3 stub test files pending app wiring
+
+### Technical Insights
+- `rehype-sanitize` with default schema strips unsafe HTML while preserving markdown-generated safe elements (headings, lists, links, emphasis)
+- URL sanitization must be case-insensitive (`JaVaScRiPt:` is equivalent to `javascript:`) and handle whitespace/encoding tricks
+- ORDER BY column whitelisting is the only reliable defense against SQL injection in dynamic ORDER BY clauses — parameterized queries don't protect column names
+- Stabilizing debounced callbacks with `useMemo(() => debounce(...), [])` + a ref for the latest callback prevents stale closure bugs while avoiding recreation
+
 ## [1.22.1] - 2026-02-11
 
 ### Changed

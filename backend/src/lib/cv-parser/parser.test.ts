@@ -8,7 +8,7 @@ describe('CV Parser Library', () => {
   const sampleCV = `---
 name: John Doe
 email: john.doe@example.com
-phone: +1-555-0123
+phone: +1-555-012-3456
 location: San Francisco, CA
 website: https://johndoe.dev
 ---
@@ -42,39 +42,40 @@ Experienced software engineer with 5+ years developing scalable applications.
       // Validate frontmatter
       expect(result.frontmatter.name).toBe('John Doe');
       expect(result.frontmatter.email).toBe('john.doe@example.com');
-      expect(result.frontmatter.phone).toBe('+1-555-0123');
+      expect(result.frontmatter.phone).toBe('+1-555-012-3456');
       expect(result.frontmatter.location).toBe('San Francisco, CA');
       expect(result.frontmatter.website).toBe('https://johndoe.dev');
       
-      // Validate sections
+      // Validate sections (H2-level sections from markdown)
       expect(result.sections.length).toBeGreaterThan(0);
       const titles = result.sections.map((s: any) => s.title);
-      expect(titles).toContain('John Doe');
       expect(titles).toContain('Professional Summary');
       expect(titles).toContain('Experience');
       expect(titles).toContain('Skills');
     });
 
-    test('should throw error for missing frontmatter', async () => {
-      const invalidCV = `
+    test('should parse content without frontmatter by extracting from body', async () => {
+      const noFrontmatterCV = `
 # John Doe
 Content without frontmatter
 `;
 
-      await expect(parseCV(invalidCV)).rejects.toThrow(CVParserError);
+      const result = await parseCV(noFrontmatterCV);
+      // Parser falls back to extracting contact info from content
+      expect(result).toHaveProperty('frontmatter');
+      expect(result.frontmatter.name).toBe('John Doe');
     });
 
-    test('should throw error for missing required fields', async () => {
-      const invalidCV = `---
+    test('should throw for frontmatter missing required email field', async () => {
+      const partialCV = `---
 name: John Doe
-# Missing email
 ---
 
 # John Doe
 Content
 `;
 
-      await expect(parseCV(invalidCV)).rejects.toThrow('email');
+      await expect(parseCV(partialCV)).rejects.toThrow('email');
     });
   });
 

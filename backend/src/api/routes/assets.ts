@@ -261,11 +261,14 @@ router.get('/:id/file', validateUuid(), asyncHandler(async (req, res) => {
   res.setHeader('Content-Type', asset.mime_type);
   res.setHeader('Cache-Control', 'public, max-age=31536000'); // Cache for 1 year
 
+  // Sanitize filename for Content-Disposition header to prevent header injection
+  const safeFilename = encodeURIComponent(asset.filename);
+
   // For images, display inline; for other files, force download
   if (asset.file_type === 'image') {
-    res.setHeader('Content-Disposition', `inline; filename="${asset.filename}"`);
+    res.setHeader('Content-Disposition', `inline; filename="${safeFilename}"`);
   } else {
-    res.setHeader('Content-Disposition', `attachment; filename="${asset.filename}"`);
+    res.setHeader('Content-Disposition', `attachment; filename="${safeFilename}"`);
   }
 
   // Send file

@@ -1,11 +1,17 @@
 {
   "name": "@cv-craft/shared",
-  "version": "1.17.0",
+  "version": "1.22.1",
   "private": true,
   "main": "./types/index.ts",
   "types": "./types/index.ts",
   "exports": {
     "./types": "./types/index.ts",
     "./utils": "./utils/index.ts"
+  },
+  "scripts": {
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "vitest": "^1.0.4"
   }
 }

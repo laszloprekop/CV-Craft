@@ -6,7 +6,7 @@ export default defineConfig({
     globals: true,
     environment: 'node',
     setupFiles: ['./tests/setup.ts'],
-    include: ['src/**/*.test.ts', 'tests/**/*.test.ts', 'tests/**/*.test.js'],
+    include: ['src/**/*.test.ts', 'tests/**/*.test.ts', 'tests/**/*.test.js', '../shared/**/*.test.ts'],
     testTimeout: 10000,
   },
   resolve: {

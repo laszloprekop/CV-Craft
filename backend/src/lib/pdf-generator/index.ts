@@ -321,10 +321,6 @@ export class PDFGenerator {
     // Split sections into sidebar and main
     const { sidebarSections, mainSections } = splitSections(sections)
 
-    console.log("[PDF] Generating overlay PDF...")
-    console.log(`[PDF] Sidebar sections: ${sidebarSections.length}`)
-    console.log(`[PDF] Main sections: ${mainSections.length}`)
-
     // Generate three separate PDFs using shared renderer
     const [sidebarResult, mainResult, bgPdfBytes] = await Promise.all([
       this.renderColumnPDF(
@@ -360,10 +356,6 @@ export class PDFGenerator {
     const sidebarPages = sidebarPdf.getPageCount()
     const mainPages = mainPdf.getPageCount()
     const totalPages = Math.max(sidebarPages, mainPages)
-
-    console.log(`[PDF] Sidebar pages: ${sidebarPages}`)
-    console.log(`[PDF] Main pages: ${mainPages}`)
-    console.log(`[PDF] Total pages: ${totalPages}`)
 
     // Create merged PDF
     const mergedPdf = await PDFDocument.create()

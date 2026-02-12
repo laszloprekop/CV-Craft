@@ -55,14 +55,6 @@ export const TemplateConfigPanel: React.FC<TemplateConfigPanelProps> = ({
     onChangeCompleteRef.current = onChangeComplete;
   }, [onChangeComplete]);
 
-  // Log when panel initializes with config
-  useEffect(() => {
-    console.log('[TemplateConfigPanel] 🎨 Opened:', {
-      'accent': config.colors.accent,
-      'baseFontSize': config.typography.baseFontSize,
-    })
-  }, [])
-
   // Cleanup debounce timer on unmount - ONLY RUN ONCE
   useEffect(() => {
     return () => {
@@ -71,7 +63,6 @@ export const TemplateConfigPanel: React.FC<TemplateConfigPanelProps> = ({
       }
       // Save any pending changes before unmounting
       if (pendingChangesRef.current && onChangeCompleteRef.current) {
-        console.log('[TemplateConfigPanel] 🚪 Unmounting - saving pending changes');
         onChangeCompleteRef.current(pendingChangesRef.current);
         pendingChangesRef.current = null;
       }
@@ -113,7 +104,6 @@ export const TemplateConfigPanel: React.FC<TemplateConfigPanelProps> = ({
 
     debounceTimerRef.current = setTimeout(() => {
       if (pendingChangesRef.current && onChangeCompleteRef.current) {
-        console.log('[TemplateConfigPanel] 💾 Auto-saving changes after 1s delay');
         onChangeCompleteRef.current(pendingChangesRef.current);
         pendingChangesRef.current = null;
       }

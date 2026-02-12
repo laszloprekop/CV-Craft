@@ -89,8 +89,6 @@ export function useCVEditor(cvId?: string): UseCVEditorReturn {
   const [error, setError] = useState<string | null>(null)
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle')
 
-  // Auto-save timer
-  const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const hasUnsavedChangesRef = useRef(false)
 
   // Load CV by ID
@@ -104,45 +102,13 @@ export function useCVEditor(cvId?: string): UseCVEditorReturn {
     }
   }, [cvId])
 
-  // Auto-save mechanism (every 30 seconds if there are unsaved changes)
-  useEffect(() => {
-    const startAutoSave = () => {
-      if (autoSaveTimerRef.current) {
-        clearInterval(autoSaveTimerRef.current)
-      }
-      
-      autoSaveTimerRef.current = setInterval(() => {
-        if (hasUnsavedChangesRef.current && cv) {
-          saveCv()
-        }
-      }, 30000) // 30 seconds
-    }
-
-    startAutoSave()
-    return () => {
-      if (autoSaveTimerRef.current) {
-        clearInterval(autoSaveTimerRef.current)
-      }
-    }
-  }, [cv])
-
   const loadCv = async (id: string) => {
     try {
       setLoading(true)
       setError(null)
 
-      console.log('[useCVEditor] Loading CV:', id)
       const response = await cvApi.get(id)
       const cvData = response.data
-
-      // Log what we received from database
-      console.log('[useCVEditor] 📥 Raw data from database:', {
-        id: cvData.id,
-        'config.colors.accent': cvData.config?.colors?.accent,
-        'config.typography.baseFontSize': cvData.config?.typography?.baseFontSize,
-        'config.typography.fontScale': cvData.config?.typography?.fontScale,
-        'settings.accentColor': cvData.settings?.accentColor,
-      })
 
       // Migrate old config structure to new font sizing system
       const migratedConfig = migrateTemplateConfig(cvData.config)
@@ -151,14 +117,6 @@ export function useCVEditor(cvId?: string): UseCVEditorReturn {
       const needsMigration = cvData.config &&
         (!cvData.config.typography?.baseFontSize || !cvData.config.typography?.fontScale)
 
-      console.log('[useCVEditor] 🔍 Migration check:', {
-        needsMigration,
-        hasBaseFontSize: !!cvData.config?.typography?.baseFontSize,
-        hasFontScale: !!cvData.config?.typography?.fontScale,
-        'migratedConfig.colors.accent': migratedConfig?.colors?.accent,
-        'originalConfig.colors.accent': cvData.config?.colors?.accent,
-      })
-
       setCv(cvData)
       setContent(cvData.content)
       setSettings(cvData.settings || {})
@@ -166,16 +124,11 @@ export function useCVEditor(cvId?: string): UseCVEditorReturn {
 
       // Only save migration if config actually needed migration
       if (needsMigration && migratedConfig) {
-        console.log('[useCVEditor] 🔄 Config needs migration, saving to database immediately')
         try {
           await cvApi.update(id, { config: migratedConfig })
-          console.log('[useCVEditor] ✅ Migrated config saved successfully')
         } catch (saveErr) {
-          console.error('[useCVEditor] ❌ Failed to save migrated config:', saveErr)
-          // Don't fail the load if migration save fails
+          console.error('[useCVEditor] Failed to save migrated config:', saveErr)
         }
-      } else {
-        console.log('[useCVEditor] ✅ Config already migrated, skipping save')
       }
     } catch (err) {
       console.error('[useCVEditor] ❌ Failed to load CV:', err)
@@ -209,11 +162,6 @@ export function useCVEditor(cvId?: string): UseCVEditorReturn {
         advanced: newConfig.advanced ? { ...prev?.advanced, ...newConfig.advanced } : prev?.advanced,
       } as TemplateConfig
 
-      console.log('[useCVEditor] 📝 updateConfig:', {
-        'new.colors.accent': newConfig.colors?.accent,
-        'result.colors.accent': updated.colors?.accent,
-        'result.typography.baseFontSize': updated.typography?.baseFontSize,
-      })
       return updated
     })
     hasUnsavedChangesRef.current = true
@@ -230,13 +178,6 @@ export function useCVEditor(cvId?: string): UseCVEditorReturn {
       hasUnsavedChangesRef.current = false
 
       if (cv) {
-        console.log('[useCVEditor] 💾 Saving to database:', {
-          id: cv.id,
-          'config.colors.accent': configToSave?.colors?.accent,
-          'config.typography.baseFontSize': configToSave?.typography?.baseFontSize,
-          'config.typography.fontScale.h1': configToSave?.typography?.fontScale?.h1,
-          'settings.accentColor': settings?.accentColor,
-        })
         // Update existing CV
         const response = await cvApi.update(cv.id, {
           content,
@@ -244,7 +185,6 @@ export function useCVEditor(cvId?: string): UseCVEditorReturn {
           config: configToSave
         })
         setCv(response.data)
-        console.log('[useCVEditor] ✅ CV saved successfully')
       } else {
         // Create new CV
         const name = extractNameFromContent(content) || 'New CV'
@@ -273,6 +213,25 @@ export function useCVEditor(cvId?: string): UseCVEditorReturn {
     }
   }, [cv, content, settings, config, saveStatus])
 
+  // Auto-save mechanism (every 30 seconds if there are unsaved changes)
+  // Use refs to avoid recreating the interval on every state change
+  const cvRef = useRef(cv)
+  cvRef.current = cv
+  const saveCvRef = useRef(saveCv)
+  saveCvRef.current = saveCv
+
+  useEffect(() => {
+    const autoSaveTimer = setInterval(() => {
+      if (hasUnsavedChangesRef.current && cvRef.current) {
+        saveCvRef.current()
+      }
+    }, 30000) // 30 seconds
+
+    return () => {
+      clearInterval(autoSaveTimer)
+    }
+  }, []) // Run once on mount — refs keep it current
+
   const exportCv = useCallback(async (type: 'pdf' | 'web_package') => {
     if (!cv) return
 
@@ -292,12 +251,15 @@ export function useCVEditor(cvId?: string): UseCVEditorReturn {
       // Download the export
       const downloadUrl = exportApi.getDownloadUrl(response.data)
       const link = document.createElement('a')
-      link.href = downloadUrl
-      link.download = response.data.filename
-      link.target = '_blank'
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
+      try {
+        link.href = downloadUrl
+        link.download = response.data.filename
+        link.target = '_blank'
+        document.body.appendChild(link)
+        link.click()
+      } finally {
+        document.body.removeChild(link)
+      }
 
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to export CV')

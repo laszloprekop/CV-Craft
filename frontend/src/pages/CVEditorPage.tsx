@@ -4,7 +4,7 @@
  * Main dual-pane editor interface as specified in SDD quickstart scenarios
  */
 
-import React, { useState, useCallback, useTransition, useEffect } from 'react'
+import React, { useState, useCallback, useTransition, useEffect, useRef, useMemo } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import debounce from 'lodash.debounce'
 import { Editor } from '@monaco-editor/react'
@@ -120,20 +120,21 @@ export const CVEditorPage: React.FC = () => {
     ? deepMergeConfig(baseConfig, liveConfigChanges)
     : baseConfig
 
-  console.log('[CVEditorPage] 🎯 effectiveConfig:', {
-    'accent': effectiveConfig.colors.accent,
-    'baseFontSize': effectiveConfig.typography.baseFontSize,
-    'hasLiveChanges': !!liveConfigChanges,
-    'hasSavedConfig': !!savedConfig,
-  })
-
   // Debounced preview update (300ms as specified in SDD)
-  const debouncedPreviewUpdate = useCallback(
-    debounce((newContent: string) => {
-      updateContent(newContent)
+  // Use a ref to avoid recreating the debounce when updateContent changes
+  const updateContentRef = useRef(updateContent)
+  updateContentRef.current = updateContent
+
+  const debouncedPreviewUpdate = useMemo(
+    () => debounce((newContent: string) => {
+      updateContentRef.current(newContent)
     }, 300),
-    [updateContent]
+    [] // Stable — never recreated
   )
+
+  useEffect(() => {
+    return () => { debouncedPreviewUpdate.cancel() }
+  }, [debouncedPreviewUpdate])
 
   // Handle content changes from Monaco editor
   const handleContentChange = useCallback((value: string | undefined) => {
@@ -164,36 +165,23 @@ export const CVEditorPage: React.FC = () => {
   }, [])
 
   // Handle config change complete (save to database)
-  const handleConfigChangeComplete = useCallback((newConfig: Partial<TemplateConfig>) => {
-    console.log(`[CVEditorPage] 💾 Committing change:`, {
-      'colors.accent': newConfig.colors?.accent,
-    })
-
+  const handleConfigChangeComplete = useCallback(async (newConfig: Partial<TemplateConfig>) => {
     // Merge the partial change with base config
     const updated = deepMergeConfig(baseConfig, newConfig)
 
-    console.log(`[CVEditorPage] 💾 After merge:`, {
-      'accent': updated.colors.accent,
-      'baseFontSize': updated.typography.baseFontSize,
-    })
-
     // Update config in useCVEditor and save to database
     saveConfig(updated)
-    setTimeout(() => {
-      console.log(`[CVEditorPage] 💾 Saving to DB...`)
-      // Pass updated config directly to avoid stale closure
-      saveCv(updated)
-      // Clear live changes after save
-      setLiveConfigChanges(null)
-    }, 100)
+    await saveCv(updated)
+    // Clear live changes after save
+    setLiveConfigChanges(null)
   }, [saveConfig, saveCv, baseConfig, deepMergeConfig])
 
   // Theme handlers
-  const handleLoadTheme = useCallback((theme: SavedTheme) => {
+  const handleLoadTheme = useCallback(async (theme: SavedTheme) => {
     saveConfig(theme.config)
     setLiveConfigChanges(null)
     setActiveThemeId(theme.id)
-    setTimeout(() => saveCv(theme.config), 100)
+    await saveCv(theme.config)
   }, [saveConfig, saveCv])
 
   const handleSaveTheme = useCallback(async (name: string) => {
@@ -239,12 +227,15 @@ export const CVEditorPage: React.FC = () => {
     const blob = new Blob([content], { type: 'text/markdown' })
     const url = URL.createObjectURL(blob)
     const link = document.createElement('a')
-    link.href = url
-    link.download = `${cv.name}.md`
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-    URL.revokeObjectURL(url)
+    try {
+      link.href = url
+      link.download = `${cv.name}.md`
+      document.body.appendChild(link)
+      link.click()
+    } finally {
+      document.body.removeChild(link)
+      URL.revokeObjectURL(url)
+    }
   }, [cv, content])
 
   const handleConfigToggle = useCallback(() => {
@@ -297,25 +288,34 @@ export const CVEditorPage: React.FC = () => {
     }
   }, [])
 
-  // Handle pane resizing
+  // Handle pane resizing — track cleanup to prevent event listener leaks
+  const resizeCleanupRef = useRef<(() => void) | null>(null)
+
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     e.preventDefault()
     setIsResizing(true)
-    
+
     const handleMouseMove = (e: MouseEvent) => {
-      const containerRect = e.currentTarget as Element
       const newWidth = (e.clientX / window.innerWidth) * 100
       setPaneWidth(Math.min(Math.max(newWidth, 20), 80)) // Clamp between 20-80%
     }
 
-    const handleMouseUp = () => {
+    const cleanup = () => {
       setIsResizing(false)
       document.removeEventListener('mousemove', handleMouseMove)
-      document.removeEventListener('mouseup', handleMouseUp)
+      document.removeEventListener('mouseup', cleanup)
+      resizeCleanupRef.current = null
     }
 
+    // Clean up any previous listeners
+    resizeCleanupRef.current?.()
     document.addEventListener('mousemove', handleMouseMove)
-    document.addEventListener('mouseup', handleMouseUp)
+    document.addEventListener('mouseup', cleanup)
+    resizeCleanupRef.current = cleanup
+  }, [])
+
+  useEffect(() => {
+    return () => { resizeCleanupRef.current?.() }
   }, [])
 
   // Handle file import
@@ -333,6 +333,18 @@ export const CVEditorPage: React.FC = () => {
   const handleAssetUpload = useCallback(async (file: File) => {
     if (!cv) return
 
+    // Client-side validation before upload
+    const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
+    const MAX_SIZE = 10 * 1024 * 1024 // 10MB
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      console.error(`File type not allowed: ${file.type}`)
+      return
+    }
+    if (file.size > MAX_SIZE) {
+      console.error(`File too large: ${(file.size / 1024 / 1024).toFixed(1)}MB (max 10MB)`)
+      return
+    }
+
     try {
       // Upload the image asset
       const result = await assetApi.uploadImage(file, cv.id)
@@ -346,7 +358,6 @@ export const CVEditorPage: React.FC = () => {
       // Reload CV to get updated photo_asset_id
       await reloadCv()
 
-      console.log('Photo uploaded and linked to CV:', assetId)
     } catch (error) {
       console.error('Failed to upload asset:', error)
     }

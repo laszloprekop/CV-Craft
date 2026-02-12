@@ -229,23 +229,18 @@ router.post('/:id/preview-pdf', validateUuid('id'), asyncHandler(async (req, res
   const { cvService } = getServices();
 
   try {
-    console.log('[preview-pdf] Starting PDF generation for CV:', req.params.id);
-
     // Use config from request body if provided (avoids stale DB config)
     const configOverride = req.body?.config || undefined;
 
     // Export as PDF to a temporary location
     const exportResult = await cvService.exportCV(req.params.id, 'pdf', configOverride);
-    console.log('[preview-pdf] Export result:', exportResult);
 
     // Get the file path and send it as a PDF
     const fs = await import('fs/promises');
     const path = await import('path');
     const filePath = path.join(process.cwd(), exportResult.file_path);
-    console.log('[preview-pdf] Reading PDF from:', filePath);
 
     const pdfBuffer = await fs.readFile(filePath);
-    console.log('[preview-pdf] PDF buffer size:', pdfBuffer.length);
 
     // Set headers for PDF display (not download)
     res.setHeader('Content-Type', 'application/pdf');

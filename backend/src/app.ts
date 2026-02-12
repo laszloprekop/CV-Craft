@@ -57,8 +57,18 @@ export class CVCraftApp {
    * Setup middleware
    */
   private setupMiddleware(): void {
-    // Security middleware
+    // Security middleware with Content-Security-Policy
     this.app.use(helmet({
+      contentSecurityPolicy: {
+        directives: {
+          defaultSrc: ["'self'"],
+          scriptSrc: ["'self'"],
+          styleSrc: ["'self'", "'unsafe-inline'"], // Needed for inline template styles
+          imgSrc: ["'self'", "data:", "https:"],
+          connectSrc: ["'self'"],
+          fontSrc: ["'self'", "https://fonts.gstatic.com", "https://fonts.googleapis.com"],
+        }
+      },
       crossOriginEmbedderPolicy: false, // Allow file downloads
       crossOriginResourcePolicy: { policy: "cross-origin" } // Allow images to be loaded from frontend
     }));

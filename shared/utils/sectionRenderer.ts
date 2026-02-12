@@ -6,6 +6,7 @@
  */
 
 import type { CVSection, CVFrontmatter } from '../types'
+import { sanitizeUrl } from './sanitizeUrl'
 
 export interface RenderOptions {
   /** Whether to include pagination classes (for PDF) */
@@ -365,7 +366,7 @@ export function renderInlineMarkdown(text: string): string {
   result = result.replace(/(?<!\w)_(.+?)_(?!\w)/g, '<em>$1</em>')
   // Inline code: `code`
   result = result.replace(/`(.+?)`/g, '<code>$1</code>')
-  // Links: [text](url)
-  result = result.replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2">$1</a>')
+  // Links: [text](url) — sanitize URL to prevent javascript: XSS
+  result = result.replace(/\[(.+?)\]\((.+?)\)/g, (_match, text, url) => `<a href="${sanitizeUrl(url)}">${text}</a>`)
   return result
 }

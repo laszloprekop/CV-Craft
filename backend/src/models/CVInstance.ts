@@ -39,6 +39,9 @@ export interface ListCVInstancesOptions {
   orderDirection?: 'ASC' | 'DESC';
 }
 
+const ALLOWED_ORDER_COLUMNS = ['created_at', 'updated_at', 'name', 'status'] as const;
+const ALLOWED_DIRECTIONS = ['ASC', 'DESC'] as const;
+
 export class CVInstanceModel {
   constructor(private db: Database.Database) {}
 
@@ -150,9 +153,13 @@ export class CVInstanceModel {
       status,
       limit = 50,
       offset = 0,
-      orderBy = 'updated_at',
-      orderDirection = 'DESC'
+      orderBy: rawOrderBy = 'updated_at',
+      orderDirection: rawDirection = 'DESC'
     } = options;
+
+    // Validate ORDER BY against whitelist to prevent SQL injection
+    const orderBy = (ALLOWED_ORDER_COLUMNS as readonly string[]).includes(rawOrderBy) ? rawOrderBy : 'updated_at';
+    const orderDirection = (ALLOWED_DIRECTIONS as readonly string[]).includes(rawDirection) ? rawDirection : 'DESC';
 
     // Validate parameters
     if (limit < 1 || limit > 100) {
@@ -177,7 +184,7 @@ export class CVInstanceModel {
 
     // Get data with pagination
     const dataStmt = this.db.prepare(`
-      SELECT * FROM cv_instances 
+      SELECT * FROM cv_instances
       WHERE ${whereClause}
       ORDER BY ${orderBy} ${orderDirection}
       LIMIT ? OFFSET ?

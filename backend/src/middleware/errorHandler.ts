@@ -23,12 +23,12 @@ export function errorHandler(
   res: Response,
   next: NextFunction
 ): void {
+  // Log error details — omit req.body to avoid logging sensitive user data
   console.error('Error occurred:', {
     error: err.message,
     stack: err.stack,
     url: req.url,
     method: req.method,
-    body: req.body,
     timestamp: new Date().toISOString()
   });
 
@@ -72,6 +72,7 @@ export function errorHandler(
   }
 
   // Default internal server error
+  // WARNING: Stack trace is only exposed in development mode. Ensure NODE_ENV=production in production.
   res.status(500).json({
     error: 'INTERNAL_ERROR',
     message: 'An internal server error occurred',

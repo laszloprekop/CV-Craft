@@ -254,9 +254,14 @@ export class AssetService {
 
   /**
    * Get asset file path for serving
+   * Validates that the resolved path stays within the storage directory to prevent path traversal
    */
   getAssetPath(asset: Asset): string {
-    return path.join(this.storageBasePath, asset.storage_path);
+    const resolved = path.resolve(this.storageBasePath, asset.storage_path);
+    if (!resolved.startsWith(path.resolve(this.storageBasePath))) {
+      throw new AssetServiceError('Invalid asset path', 'INVALID_PATH', 400);
+    }
+    return resolved;
   }
 
   /**

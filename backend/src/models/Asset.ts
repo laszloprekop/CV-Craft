@@ -45,6 +45,9 @@ export interface ListAssetsOptions {
   orderDirection?: 'ASC' | 'DESC';
 }
 
+const ALLOWED_ORDER_COLUMNS = ['uploaded_at', 'filename', 'file_size', 'mime_type', 'created_at'] as const;
+const ALLOWED_DIRECTIONS = ['ASC', 'DESC'] as const;
+
 export class AssetModel {
   constructor(private db: Database.Database) {}
 
@@ -103,9 +106,13 @@ export class AssetModel {
       usage_context,
       limit = 50,
       offset = 0,
-      orderBy = 'uploaded_at',
-      orderDirection = 'DESC'
+      orderBy: rawOrderBy = 'uploaded_at',
+      orderDirection: rawDirection = 'DESC'
     } = options;
+
+    // Validate ORDER BY against whitelist to prevent SQL injection
+    const orderBy = (ALLOWED_ORDER_COLUMNS as readonly string[]).includes(rawOrderBy) ? rawOrderBy : 'uploaded_at';
+    const orderDirection = (ALLOWED_DIRECTIONS as readonly string[]).includes(rawDirection) ? rawDirection : 'DESC';
 
     // Build query conditions
     const conditions: string[] = [];
@@ -135,7 +142,7 @@ export class AssetModel {
 
     // Data query
     const dataStmt = this.db.prepare(`
-      SELECT * FROM assets 
+      SELECT * FROM assets
       ${whereClause}
       ORDER BY ${orderBy} ${orderDirection}
       LIMIT ? OFFSET ?
