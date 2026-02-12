@@ -2,6 +2,21 @@
 
 All notable changes to CV-Craft will be documented in this file.
 
+## [1.25.0] - 2026-02-12
+
+### Added
+- **`remark-breaks` plugin** — Single newlines in Markdown now render as `<br>` in preview and PDF, matching user expectations for line breaks
+- **Blank line preservation** — Multiple consecutive blank lines in Markdown create visible vertical spacing instead of collapsing into a single paragraph break
+- **Inter-entry spacing** — Blank lines before `###` headings create spacing between CV entries, allowing users to control visual grouping
+
+### Fixed
+- **PDF spacing before entries** — Replace bare `<br/>` tags (collapsed by CSS reset in Puppeteer) with `<div class="entry-spacer">` elements with explicit height for reliable spacing in both web and PDF previews
+
+### Technical Insights
+- Markdown fundamentally collapses `\n{3,}` into a single paragraph break; solved with `preserveBlankLines()` preprocessing that inserts `\u200B` (zero-width space) spacer paragraphs before remark parsing
+- Spacer paragraphs placed between entries were incorrectly absorbed into the previous entry's description; added spacer buffering in `extractSections()` to track `pendingSpacers` and assign them as `spacingBefore` on the next entry when followed by an H3
+- Puppeteer's PDF rendering with `* { margin: 0; padding: 0; }` reset collapses `<br/>` elements outside semantic containers; using `<div>` with inline `height` style ensures spacing renders in all contexts
+
 ## [1.24.0] - 2026-02-12
 
 ### Added

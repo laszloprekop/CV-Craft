@@ -253,6 +253,11 @@ export function getSemanticCSS(): string {
   line-height: var(--body-line-height, 1.6);
 }
 
+/* Entry spacer (user blank lines before ### headings) */
+.entry-spacer {
+  display: block;
+}
+
 /* Entry (job, education, project) styling */
 .entry {
   margin-bottom: 1rem;

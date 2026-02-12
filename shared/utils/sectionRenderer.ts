@@ -98,10 +98,14 @@ function renderEntry(entry: any, pagination: boolean, prefix: string, separator:
   }
 
   const entryClass = `${prefix}entry`
+  // Render extra spacing before entry if the user added blank lines before this ### heading
+  const spacingHTML = entry.spacingBefore
+    ? `<div class="${prefix}entry-spacer" style="height: ${entry.spacingBefore}em;"></div>`
+    : ''
 
   // For non-pagination mode, use simple structure
   if (!pagination) {
-    return `
+    return `${spacingHTML}
 <article class="${entryClass}">
   ${entry.title ? `
   <div class="${prefix}entry-header">
@@ -123,7 +127,7 @@ function renderEntry(entry: any, pagination: boolean, prefix: string, separator:
   }
 
   // For pagination mode, create smart groupings
-  return renderEntryWithPagination(entry, prefix, separator)
+  return `${spacingHTML}${renderEntryWithPagination(entry, prefix, separator)}`
 }
 
 /**
@@ -291,9 +295,13 @@ function renderDescription(description: string, prefix: string): string {
     return `<p>${renderInlineMarkdown(paragraphs[0])}</p>`
   }
 
-  return paragraphs.map(para =>
-    `<p>${renderInlineMarkdown(para)}</p>`
-  ).join('\n')
+  return paragraphs.map(para => {
+    // Spacer paragraph (from preserveBlankLines) — render as visible line break
+    if (/^\u200B+$/.test(para)) {
+      return '<br/>'
+    }
+    return `<p>${renderInlineMarkdown(para)}</p>`
+  }).join('\n')
 }
 
 /**
@@ -356,6 +364,8 @@ function escapeHtml(text: string): string {
  */
 export function renderInlineMarkdown(text: string): string {
   let result = escapeHtml(text)
+  // Convert spacer characters to visible line breaks
+  result = result.replace(/\u200B/g, '<br/>')
   // Convert line breaks to <br/> (for soft breaks within paragraphs)
   result = result.replace(/\n/g, '<br/>')
   // Bold: **text** or __text__

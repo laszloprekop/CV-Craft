@@ -245,6 +245,10 @@ Added ~180 lines of CSS rules for semantic classes:
 ⚠️ **Skills sections use JSX** - Skills still use JSX rendering for pill/inline tag styles (shared renderer doesn't support tag styles yet)
 ⚠️ **Layout wrappers use JSX** - Two-column layout structure (sidebar, photo, contact icons) still uses JSX for flexibility
 
+### Blank Line Spacing (v1.25.0)
+
+User-added blank lines before `###` headings create inter-entry spacing via `entry.spacingBefore`. The shared renderer emits `<div class="entry-spacer" style="height: Nem;">` before the `<article>` tag. This approach was chosen because bare `<br/>` tags collapse under the CSS global reset in Puppeteer's PDF rendering. The inline `height` style ensures consistent rendering across web preview and PDF export.
+
 ---
 
 ## 📦 Files Changed

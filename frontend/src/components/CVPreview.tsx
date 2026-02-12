@@ -218,8 +218,10 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
   const renderMarkdown = (text: string) => {
     if (!text) return null
 
-    // Handle line breaks first - convert \n to <br/>
-    let formatted = text.replace(/\n/g, "<br/>")
+    // Convert spacer characters to visible line breaks
+    let formatted = text.replace(/\u200B/g, "<br/>")
+    // Handle line breaks - convert \n to <br/>
+    formatted = formatted.replace(/\n/g, "<br/>")
 
     // Handle bold (**text**) - use non-greedy match to avoid conflicts with italics
     formatted = formatted.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")

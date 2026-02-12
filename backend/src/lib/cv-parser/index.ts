@@ -10,6 +10,7 @@ import { remark } from 'remark';
 import remarkFrontmatter from 'remark-frontmatter';
 import remarkParse from 'remark-parse';
 import remarkGfm from 'remark-gfm';
+import remarkBreaks from 'remark-breaks';
 import remarkRehype from 'remark-rehype';
 import rehypeSanitize, { defaultSchema } from 'rehype-sanitize';
 import rehypeStringify from 'rehype-stringify';
@@ -48,7 +49,10 @@ export class CVParser {
   async parse(content: string, config?: TemplateConfig): Promise<ParsedCVContent> {
     try {
       // Extract frontmatter using gray-matter
-      const { data: frontmatter, content: markdownContent } = matter(content);
+      const { data: frontmatter, content: rawMarkdown } = matter(content);
+
+      // Preserve extra blank lines by inserting zero-width space spacer paragraphs
+      const markdownContent = this.preserveBlankLines(rawMarkdown);
 
       // Validate frontmatter
       let validatedFrontmatter = this.validateFrontmatter(frontmatter);
@@ -121,6 +125,7 @@ export class CVParser {
     const htmlProcessor = remark()
       .use(remarkParse)
       .use(remarkGfm) // GitHub Flavored Markdown (tables, strikethrough, etc.)
+      .use(remarkBreaks) // Convert single newlines to <br>
       .use(remarkRehype)
       .use(rehypeSanitize, sanitizeSchema)
       .use(() => (tree) => {
@@ -323,6 +328,20 @@ export class CVParser {
   }
 
   /**
+   * Preserve extra blank lines in markdown by replacing them with
+   * zero-width space spacer paragraphs. Markdown normally collapses
+   * multiple blank lines into a single paragraph break; this converts
+   * each extra blank line into a real <p> element with visual height.
+   */
+  private preserveBlankLines(content: string): string {
+    return content.replace(/\n{3,}/g, (match) => {
+      const extraLines = match.length - 2; // 2 newlines = normal paragraph break
+      const spacers = Array(extraLines).fill('\u200B').join('\n\n');
+      return '\n\n' + spacers + '\n\n';
+    });
+  }
+
+  /**
    * Validate and structure frontmatter data
    */
   private validateFrontmatter(data: any): CVFrontmatter {
@@ -460,6 +479,21 @@ export class CVParser {
     const sections: CVSection[] = [];
     let currentSection: any = null;
     let currentEntry: any = null;
+    // Buffer spacer paragraphs so we can decide placement based on what follows
+    let pendingSpacers = 0;
+
+    // Flush pending spacers into the current entry's description
+    const flushSpacersToDescription = () => {
+      if (pendingSpacers > 0 && currentEntry) {
+        if (!currentEntry.description) {
+          currentEntry.description = [];
+        }
+        for (let i = 0; i < pendingSpacers; i++) {
+          currentEntry.description.push('\u200B');
+        }
+        pendingSpacers = 0;
+      }
+    };
 
     // Walk through AST nodes
     this.walkTree(tree, (node: any) => {
@@ -468,6 +502,7 @@ export class CVParser {
           // Detect <!-- break --> marker (case-insensitive, flexible whitespace)
           const trimmed = node.value.trim();
           if (/^<!--\s*break\s*-->$/i.test(trimmed)) {
+            pendingSpacers = 0;
             // Finalize and push current section (if any)
             if (currentSection) {
               if (currentEntry && currentSection.type in { experience: 1, education: 1, projects: 1 }) {
@@ -508,6 +543,7 @@ export class CVParser {
               sections.push(currentSection);
               currentEntry = null;
             }
+            pendingSpacers = 0;
 
             const title = this.extractTextFromNode(node);
             currentSection = {
@@ -518,6 +554,10 @@ export class CVParser {
             };
           } else if (node.depth === 3 && currentSection) {
             // H3 - Start new entry within section (job, education, project)
+            // Pending spacers before this H3 become spacing before the new entry
+            const spacingBefore = pendingSpacers;
+            pendingSpacers = 0;
+
             if (currentEntry && currentSection.type in { experience: 1, education: 1, projects: 1 }) {
               if (!Array.isArray(currentSection.content)) {
                 currentSection.content = [];
@@ -531,12 +571,22 @@ export class CVParser {
 
             const titleText = this.extractTextFromNode(node);
             currentEntry = this.parseEntryTitle(titleText);
+            if (spacingBefore > 0) {
+              currentEntry.spacingBefore = spacingBefore;
+            }
           }
           break;
 
         case 'paragraph':
           if (currentSection) {
             const text = this.extractTextFromNode(node);
+            // Detect spacer paragraphs (from preserveBlankLines)
+            if (/^\u200B+$/.test(text)) {
+              pendingSpacers++;
+              break;
+            }
+            // Non-spacer content: flush any buffered spacers into description first
+            flushSpacersToDescription();
             if (text.trim()) {
               if (currentEntry) {
                 // We're inside a structured entry
