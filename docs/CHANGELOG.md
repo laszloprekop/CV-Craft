@@ -2,6 +2,20 @@
 
 All notable changes to CV-Craft will be documented in this file.
 
+## [1.24.0] - 2026-02-12
+
+### Added
+- **Photo picker dropdown** — "Photo" button in `EditorLeftHeader` is now a dropdown offering: upload new, select from existing uploads (thumbnail grid), remove from CV, and delete from storage with confirmation
+- **Theme persistence** — Active theme ID is now saved in CV metadata and restored on page load; previously it was ephemeral `useState` lost on every reload
+- **Metadata pass-through in CV update API** — The `PUT /api/cvs/:id` endpoint now accepts and merges user-provided `metadata`, enabling frontend-driven metadata storage
+
+### Fixed
+- **`photo_asset_id` dropped on CV update** — `CVService.update()` was not forwarding `photo_asset_id` to the model layer, so selecting an existing photo or unlinking never persisted
+
+### Technical Insights
+- The `CVService.update()` acted as an accidental filter: the route handler passed `photo_asset_id` from the request, but the service built `updateData` without it, silently dropping the field before it reached the model
+- Metadata merge ordering matters: auto-generated metadata (from content parsing) is applied first, then user-provided metadata is spread on top, so user keys like `active_theme_id` survive content re-parses
+
 ## [1.23.0] - 2026-02-12
 
 ### Fixed

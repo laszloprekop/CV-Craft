@@ -98,7 +98,8 @@ export const schemas = {
     photo_asset_id: Joi.string().uuid().allow(null).optional(),
     settings: Joi.object().optional(),
     config: Joi.object().optional(),
-    status: Joi.string().valid('active', 'archived').optional()
+    status: Joi.string().valid('active', 'archived').optional(),
+    metadata: Joi.object().optional()
   }),
 
   // CV duplicate schema

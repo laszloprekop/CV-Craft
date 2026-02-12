@@ -24,9 +24,11 @@ export interface UpdateCVServiceData {
   name?: string;
   content?: string;
   template_id?: string;
+  photo_asset_id?: string | null;
   config?: TemplateConfig;
   settings?: TemplateSettings;
   status?: 'active' | 'archived';
+  metadata?: Record<string, any>;
 }
 
 /**
@@ -85,7 +87,7 @@ export class CVService {
       content: data.content,
       parsed_content: parsedContent,
       template_id: data.template_id,
-      config: data.config,
+      config: finalConfig,
       settings: data.settings,
       metadata: {
         parsed_at: new Date().toISOString(),
@@ -129,6 +131,7 @@ export class CVService {
     const updateData: UpdateCVInstanceData = {
       name: data.name,
       template_id: data.template_id,
+      photo_asset_id: data.photo_asset_id,
       config: data.config,
       settings: data.settings,
       status: data.status
@@ -177,6 +180,14 @@ export class CVService {
         has_photo: !!parsedContent.frontmatter.photo,
         word_count: this.calculateWordCount(data.content),
         last_content_update: new Date().toISOString()
+      };
+    }
+
+    // Merge user-provided metadata (after content-parsing metadata so user keys win)
+    if (data.metadata !== undefined) {
+      updateData.metadata = {
+        ...(updateData.metadata || existingCV.metadata),
+        ...data.metadata
       };
     }
 

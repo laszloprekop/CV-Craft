@@ -25,21 +25,25 @@ export const CVManagerPage: React.FC = () => {
     loadData()
   }, [])
 
-  const loadData = async () => {
+  const loadData = async (retries = 5) => {
     try {
       setLoading(true)
       setError(null)
-      
+
       const [cvsResponse, templatesResponse] = await Promise.all([
         cvApi.list(), // Results are sorted by updated_at DESC by default on backend
         templateApi.list({ active_only: true })
       ])
-      
+
       setCvs(cvsResponse.data)
       setTemplates(templatesResponse.data)
+      setLoading(false)
     } catch (err) {
+      if (retries > 0) {
+        await new Promise(resolve => setTimeout(resolve, 1000))
+        return loadData(retries - 1)
+      }
       setError(err instanceof Error ? err.message : 'Failed to load data')
-    } finally {
       setLoading(false)
     }
   }

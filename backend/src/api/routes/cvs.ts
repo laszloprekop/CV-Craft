@@ -99,7 +99,8 @@ router.put('/:id', validateUuid('id'), validateUpdateCV, asyncHandler(async (req
     photo_asset_id: req.body.photo_asset_id,
     settings: req.body.settings,
     config: req.body.config,
-    status: req.body.status
+    status: req.body.status,
+    metadata: req.body.metadata
   };
 
   const cv = await cvService.update(req.params.id, updateData);

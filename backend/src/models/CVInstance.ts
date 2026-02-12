@@ -24,7 +24,7 @@ export interface UpdateCVInstanceData {
   content?: string;
   parsed_content?: ParsedCVContent;
   template_id?: string;
-  photo_asset_id?: string;
+  photo_asset_id?: string | null;
   config?: TemplateConfig;
   settings?: TemplateSettings;
   status?: 'active' | 'archived';
@@ -342,12 +342,14 @@ export class CVInstanceModel {
       throw new CVInstanceError('Original CV instance not found', 'NOT_FOUND');
     }
 
-    // Create duplicate with new name
+    // Create duplicate with new name, carrying over config and photo
     const duplicateData: CreateCVInstanceData = {
       name: newName.trim(),
       content: original.content,
       parsed_content: original.parsed_content,
       template_id: original.template_id,
+      photo_asset_id: original.photo_asset_id || undefined,
+      config: original.config,
       settings: original.settings,
       metadata: {
         ...original.metadata,

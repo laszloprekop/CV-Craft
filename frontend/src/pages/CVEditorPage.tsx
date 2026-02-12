@@ -98,6 +98,25 @@ export const CVEditorPage: React.FC = () => {
 
   const [activeThemeId, setActiveThemeId] = useState<string | null>(null)
 
+  // Restore active theme ID from CV metadata on load
+  useEffect(() => {
+    if (cv?.metadata?.active_theme_id) {
+      setActiveThemeId(cv.metadata.active_theme_id)
+    }
+  }, [cv?.id]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Persist active theme ID to CV metadata
+  const persistThemeId = useCallback(async (themeId: string | null) => {
+    if (!cv) return
+    try {
+      await cvApi.update(cv.id, {
+        metadata: { ...cv.metadata, active_theme_id: themeId }
+      } as any)
+    } catch (error) {
+      console.error('Failed to persist theme ID:', error)
+    }
+  }, [cv])
+
   // Deep merge helper for nested config objects
   const deepMergeConfig = (prev: TemplateConfig, partial: Partial<TemplateConfig>): TemplateConfig => {
     return {
@@ -182,15 +201,17 @@ export const CVEditorPage: React.FC = () => {
     setLiveConfigChanges(null)
     setActiveThemeId(theme.id)
     await saveCv(theme.config)
-  }, [saveConfig, saveCv])
+    persistThemeId(theme.id)
+  }, [saveConfig, saveCv, persistThemeId])
 
   const handleSaveTheme = useCallback(async (name: string) => {
     const templateId = activeTemplate?.id || 'default-modern'
     const result = await saveTheme(name, effectiveConfig, templateId)
     if (result) {
       setActiveThemeId(result.id)
+      persistThemeId(result.id)
     }
-  }, [saveTheme, effectiveConfig, activeTemplate])
+  }, [saveTheme, effectiveConfig, activeTemplate, persistThemeId])
 
   const handleUpdateTheme = useCallback(async (id: string) => {
     await updateTheme(id, { config: effectiveConfig })
@@ -200,8 +221,9 @@ export const CVEditorPage: React.FC = () => {
     const success = await deleteTheme(id)
     if (success && activeThemeId === id) {
       setActiveThemeId(null)
+      persistThemeId(null)
     }
-  }, [deleteTheme, activeThemeId])
+  }, [deleteTheme, activeThemeId, persistThemeId])
 
   const handleRenameTheme = useCallback(async (id: string, newName: string) => {
     await renameTheme(id, newName)
@@ -211,8 +233,9 @@ export const CVEditorPage: React.FC = () => {
     saveConfig(DEFAULT_TEMPLATE_CONFIG)
     setLiveConfigChanges(null)
     setActiveThemeId(null)
+    persistThemeId(null)
     setTimeout(() => saveCv(DEFAULT_TEMPLATE_CONFIG), 100)
-  }, [saveConfig, saveCv])
+  }, [saveConfig, saveCv, persistThemeId])
 
   // New header handlers
   const handleImportMarkdown = useCallback((content: string, filename: string) => {
@@ -369,6 +392,17 @@ export const CVEditorPage: React.FC = () => {
     await handleAssetUpload(file)
   }, [handleAssetUpload])
 
+  // Handle selecting an existing photo or unlinking
+  const handlePhotoSelect = useCallback(async (assetId: string | null) => {
+    if (!cv) return
+    try {
+      await cvApi.update(cv.id, { photo_asset_id: assetId } as any)
+      await reloadCv()
+    } catch (error) {
+      console.error('Failed to update photo:', error)
+    }
+  }, [cv, reloadCv])
+
   // Loading state
   if (loading || templatesLoading) {
     return (
@@ -436,6 +470,8 @@ export const CVEditorPage: React.FC = () => {
                 onImportMarkdown={handleImportMarkdown}
                 onExportMarkdown={handleExportMarkdown}
                 onPhotoUpload={handlePhotoUpload}
+                onPhotoSelect={handlePhotoSelect}
+                currentPhotoAssetId={cv?.photo_asset_id}
               />
 
               <Editor

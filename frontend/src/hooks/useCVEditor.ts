@@ -102,7 +102,7 @@ export function useCVEditor(cvId?: string): UseCVEditorReturn {
     }
   }, [cvId])
 
-  const loadCv = async (id: string) => {
+  const loadCv = async (id: string, retries = 5) => {
     try {
       setLoading(true)
       setError(null)
@@ -130,10 +130,15 @@ export function useCVEditor(cvId?: string): UseCVEditorReturn {
           console.error('[useCVEditor] Failed to save migrated config:', saveErr)
         }
       }
+      setLoading(false)
     } catch (err) {
-      console.error('[useCVEditor] ❌ Failed to load CV:', err)
+      // Retry on network errors (backend not ready yet)
+      if (retries > 0) {
+        await new Promise(resolve => setTimeout(resolve, 1000))
+        return loadCv(id, retries - 1)
+      }
+      console.error('[useCVEditor] Failed to load CV:', err)
       setError(err instanceof Error ? err.message : 'Failed to load CV')
-    } finally {
       setLoading(false)
     }
   }
