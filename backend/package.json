@@ -1,10 +1,10 @@
 {
   "name": "cv-craft-backend",
-  "version": "1.26.0",
+  "version": "1.27.0",
   "description": "Backend API for CV Craft - Static CV Generator",
   "main": "dist/app.js",
   "scripts": {
-    "dev": "nodemon --exec ts-node src/app.ts",
+    "dev": "nodemon --watch src --watch ../shared --ext ts,json --exec ts-node src/app.ts",
     "build": "tsc",
     "start": "node dist/app.js",
     "test": "vitest run",

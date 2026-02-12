@@ -2,6 +2,24 @@
 
 All notable changes to CV-Craft will be documented in this file.
 
+## [1.27.0] - 2026-02-12
+
+### Added
+- **Sample CV seeded in database** — A sample CV (`00000000-0000-4000-a000-000000000001`) is now seeded on startup, demonstrating all recognized Markdown elements and styling options; works for both fresh installs and existing databases
+- **ISO datetime in CV Manager** — "Last Modified" column now shows full date and time in `YYYY-MM-DD HH:MM` format
+- **Backend watches shared/ for changes** — Nodemon dev script now watches `../shared` in addition to `src/`, so changes to shared utilities (e.g. `cssVariableGenerator.ts`) trigger automatic backend restarts
+
+### Fixed
+- **Tag text color ignoring user setting** — `cssVariableGenerator.ts` now respects `tags.textColorKey` when set via Tag > Typography > Color, instead of always deriving from the color pair's `onColor`
+- **Missing `photo_asset_id` column on fresh install** — Added the column to `schema.sql` and added a runtime migration for existing databases, preventing 500 errors when creating CVs
+- **Invalid CV ID error handling** — Navigating to `/editor/sample-cv-001` or any invalid/missing CV ID now gracefully redirects to the sample CV instead of showing an error page
+- **Retry logic on 4xx errors** — `useCVEditor` and `CVManagerPage` no longer retry on client errors (4xx), only on network/server errors (5xx)
+
+### Technical Insights
+- The tag color resolution chain: UI saves to `textColorKey` → `cssVariableGenerator` resolves via `resolveSemanticColor()` → injected as `--tag-text-color` CSS variable → consumed by `.skill-tag` class in both web and PDF
+- The `photo_asset_id` migration SQL existed in `migrations/001_add_photo_asset_id.sql` but was never executed; added inline migration to `initializeSchema()` using `PRAGMA table_info` check
+- Sample CV seeding uses `INSERT OR IGNORE` and runs via a separate `seedSampleCV()` method that executes even when the template already exists
+
 ## [1.26.0] - 2026-02-12
 
 ### Added

@@ -9,6 +9,8 @@ import { cvApi, exportApi } from '../services/api'
 import type { CVInstance, TemplateSettings, TemplateConfig } from '../../../shared/types'
 import { migrateTemplateConfig } from '../utils/configMigration'
 
+export const SAMPLE_CV_ID = '00000000-0000-4000-a000-000000000001'
+
 export type SaveStatus = 'idle' | 'saving' | 'saved' | 'error'
 
 export interface UseCVEditorReturn {
@@ -28,56 +30,109 @@ export interface UseCVEditorReturn {
 }
 
 const DEFAULT_CV_CONTENT = `---
-name: Your Name
-email: your.email@example.com
-phone: +1-555-0123
-location: Your City, State
-website: yourwebsite.com
-linkedin: linkedin.com/in/yourprofile
-github: github.com/yourusername
+name: Alex Morgan
+title: Senior Full-Stack Developer
+email: alex.morgan@example.com
+phone: +1-555-0199
+location: San Francisco, CA
+website: alexmorgan.dev
+linkedin: linkedin.com/in/alexmorgan
+github: github.com/alexmorgan
 ---
-
-# Your Name
-Professional Title
 
 ## Professional Summary
 
-Write a brief summary of your professional background and key strengths.
+Versatile full-stack developer with 8+ years of experience building **scalable web applications** and leading cross-functional teams. Specialized in *modern JavaScript frameworks*, cloud architecture, and developer experience tooling. Proven track record of delivering high-impact solutions that improve performance, reliability, and user engagement.
 
 ## Experience
 
-### Job Title | Company Name
-*Start Date - End Date*
+### Senior Full-Stack Developer | Acme Technologies
+*Jan 2021 — Present*
+San Francisco, CA
 
-- Achievement or responsibility 1
-- Achievement or responsibility 2
-- Achievement or responsibility 3
+Architected and delivered the company's next-generation SaaS platform serving 50,000+ active users.
 
-### Previous Job Title | Previous Company
-*Start Date - End Date*
+- Led migration from monolithic architecture to **microservices**, reducing deployment time by 70%
+- Designed real-time collaboration features using WebSockets and \`Redis Pub/Sub\`
+- Mentored a team of 6 junior developers through code reviews and pair programming
+- **Key Achievement:** Improved application load time from 4.2s to 1.1s through code splitting and caching strategies
+  - Implemented lazy loading for all route-level components
+  - Added service worker caching for static assets
 
-- Achievement or responsibility 1
-- Achievement or responsibility 2
+### Front-End Developer | Digital Solutions Inc.
+*Mar 2018 — Dec 2020*
+New York, NY
+
+Built customer-facing dashboards and internal tools for a fintech startup.
+
+- Developed responsive [React](https://react.dev) dashboard processing 100K+ daily transactions
+- Created a reusable component library adopted across 3 product teams
+- Integrated third-party APIs including Stripe, Plaid, and Twilio
+- Reduced frontend bundle size by 45% through tree-shaking and dynamic imports
+
+### Junior Web Developer | CreativeWeb Agency
+*Jun 2016 — Feb 2018*
+Austin, TX
+
+- Built 30+ client websites using modern HTML5, CSS3, and JavaScript
+- Developed custom *WordPress themes* and plugins for e-commerce clients
+- Collaborated with UX designers to translate Figma mockups into pixel-perfect implementations
 
 ## Education
 
-### Degree | Institution Name
-*Year*
+### B.Sc. Computer Science | University of California, Berkeley
+*2012 — 2016*
+Berkeley, CA
 
-## Skills
+- GPA: 3.7/4.0, Dean's List (6 semesters)
+- Senior thesis: *"Optimizing Real-Time Data Pipelines for Web Applications"*
 
-- Technical Skills
-- Programming Languages
-- Tools & Technologies
-- Soft Skills
+### Professional Development
+*2020 — 2024*
+
+- **AWS Solutions Architect Associate** — Amazon Web Services
+- **Advanced React Patterns** — Frontend Masters
+- **System Design for Interviews** — Educative.io
+
+## Technical Skills
+
+**Languages:** TypeScript, JavaScript, Python, Go, SQL, HTML5, CSS3
+**Frontend:** React, Next.js, Vue.js, Tailwind CSS, Storybook
+**Backend:** Node.js, Express, Django, GraphQL, REST APIs
+**Cloud & DevOps:** AWS (EC2, S3, Lambda, RDS), Docker, Kubernetes, CI/CD
+**Databases:** PostgreSQL, MongoDB, Redis, Elasticsearch
+**Tools:** Git, VS Code, Figma, Jira, Datadog
 
 ## Projects
 
-### Project Name
-Brief description of the project and your role.
+### Open Source CLI Tool
+A developer productivity tool built with **Node.js** and \`TypeScript\` that automates common project scaffolding tasks. Featured on [Hacker News](https://news.ycombinator.com) with 500+ GitHub stars.
 
-### Another Project
-Brief description of another project and your contributions.
+- Supports 12 project templates including React, Vue, and Express
+- Published as an \`npm\` package with 10K+ monthly downloads
+
+### Real-Time Analytics Dashboard
+End-to-end analytics platform for monitoring application performance metrics.
+
+- Built with React, D3.js, and WebSocket for live data streaming
+- Handles 1M+ events per hour with sub-second visualization latency
+- Deployed on AWS using *ECS Fargate* with auto-scaling
+
+## Certifications & Awards
+
+- **AWS Solutions Architect Associate** — Amazon Web Services, 2023
+- **Best Technical Innovation Award** — Acme Technologies Hackathon, 2022
+- **Google Developer Expert** — Web Technologies, 2021
+
+## Languages
+
+**English:** Native
+**Spanish:** Professional proficiency
+**Mandarin:** Conversational
+
+## Interests
+
+Open source development, tech mentorship, competitive programming, hiking, photography
 `
 
 export function useCVEditor(cvId?: string): UseCVEditorReturn {
@@ -85,20 +140,20 @@ export function useCVEditor(cvId?: string): UseCVEditorReturn {
   const [content, setContent] = useState('')
   const [settings, setSettings] = useState<Partial<TemplateSettings>>({})
   const [config, setConfig] = useState<TemplateConfig | undefined>(undefined)
-  const [loading, setLoading] = useState(!!cvId)
+  const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle')
 
   const hasUnsavedChangesRef = useRef(false)
 
-  // Load CV by ID
+  // Load CV by ID, or redirect to the seeded sample CV
   useEffect(() => {
     if (cvId) {
       loadCv(cvId)
     } else {
-      // New CV - set default content
-      setContent(DEFAULT_CV_CONTENT)
-      setLoading(false)
+      // No CV ID — redirect to the sample CV
+      window.history.replaceState(null, '', `/editor/${SAMPLE_CV_ID}`)
+      loadCv(SAMPLE_CV_ID)
     }
   }, [cvId])
 
@@ -131,11 +186,20 @@ export function useCVEditor(cvId?: string): UseCVEditorReturn {
         }
       }
       setLoading(false)
-    } catch (err) {
-      // Retry on network errors (backend not ready yet)
-      if (retries > 0) {
+    } catch (err: any) {
+      // Only retry on network errors or 5xx server errors (backend not ready yet)
+      // Don't retry on 4xx client errors (not found, validation, etc.)
+      const status = err?.response?.status
+      const isClientError = status && status >= 400 && status < 500
+      if (retries > 0 && !isClientError) {
         await new Promise(resolve => setTimeout(resolve, 1000))
         return loadCv(id, retries - 1)
+      }
+      // CV not found or invalid ID — fall back to the seeded sample CV
+      if (isClientError && id !== SAMPLE_CV_ID) {
+        console.warn(`[useCVEditor] CV "${id}" not found, redirecting to sample CV`)
+        window.history.replaceState(null, '', `/editor/${SAMPLE_CV_ID}`)
+        return loadCv(SAMPLE_CV_ID)
       }
       console.error('[useCVEditor] Failed to load CV:', err)
       setError(err instanceof Error ? err.message : 'Failed to load CV')

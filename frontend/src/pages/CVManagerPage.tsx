@@ -50,8 +50,10 @@ export const CVManagerPage: React.FC = () => {
       setCvs(cvsResponse.data)
       setTemplates(templatesResponse.data)
       setLoading(false)
-    } catch (err) {
-      if (retries > 0) {
+    } catch (err: any) {
+      const status = err?.response?.status
+      const isClientError = status && status >= 400 && status < 500
+      if (retries > 0 && !isClientError) {
         await new Promise(resolve => setTimeout(resolve, 1000))
         return loadData(retries - 1)
       }
@@ -182,11 +184,9 @@ export const CVManagerPage: React.FC = () => {
   }, [renamingId])
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    })
+    const d = new Date(dateString)
+    const pad = (n: number) => String(n).padStart(2, '0')
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`
   }
 
   const SortIndicator: React.FC<{ column: SortKey }> = ({ column }) => {

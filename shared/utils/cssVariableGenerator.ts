@@ -90,6 +90,10 @@ export function generateCSSVariables(config: TemplateConfig): Record<string, str
   const tagBgOpacity = config.components.tags?.backgroundOpacity ?? 0.2;
   const tagTextOpacity = config.components.tags?.textOpacity ?? 1.0;
   const { baseColor: tagBaseColor, onColor: tagOnColor } = resolveColorPair(tagColorPair, config);
+  // Allow explicit text color override via textColorKey (set from Tag > Typography > Color)
+  const tagTextColor = config.components.tags?.textColorKey
+    ? resolveSemanticColor(config.components.tags.textColorKey as SemanticColorKey, config)
+    : tagOnColor;
 
   // Section header color/background are conditionally generated:
   // When explicitly set by user (via Color Pair), include them so they override two-column defaults.
@@ -201,7 +205,7 @@ export function generateCSSVariables(config: TemplateConfig): Record<string, str
 
     // Tags - semantic color pairs with opacity
     '--tag-bg-color': hexToRgba(tagBaseColor, tagBgOpacity),
-    '--tag-text-color': hexToRgba(tagOnColor, tagTextOpacity),
+    '--tag-text-color': hexToRgba(tagTextColor, tagTextOpacity),
     '--tag-border-radius': config.components.tags.borderRadius,
     '--tag-font-size-custom': config.components.tags?.fontSize || calculateFontSize(fontScale.tag || 1.3, baseFontSize),
     '--tag-font-weight': String(config.components.tags?.fontWeight || 500),

@@ -13,6 +13,7 @@ CREATE TABLE IF NOT EXISTS cv_instances (
     content TEXT NOT NULL,
     parsed_content TEXT, -- JSON
     template_id TEXT NOT NULL,
+    photo_asset_id TEXT, -- References assets(id) for profile photo
     config TEXT, -- JSON (TemplateConfig) - new comprehensive configuration
     settings TEXT, -- JSON (TemplateSettings) - legacy support
     status TEXT CHECK(status IN ('active', 'archived', 'deleted')) DEFAULT 'active',

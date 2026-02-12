@@ -418,7 +418,7 @@ export const CVEditorPage: React.FC = () => {
   if (error) {
     return (
       <EditorContainer>
-        <ErrorMessage 
+        <ErrorMessage
           title="Failed to load CV"
           message={error}
           onRetry={() => window.location.reload()}
