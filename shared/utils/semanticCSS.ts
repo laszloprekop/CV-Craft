@@ -49,6 +49,11 @@ a {
 a:hover {
   color: var(--link-hover-color);
 }
+
+/* Bold text: use configured bold weight to ensure visibility at any body weight */
+strong, b {
+  font-weight: var(--bold-weight, 700);
+}
 `
 }
 
@@ -548,6 +553,20 @@ export function getSemanticCSS(): string {
   margin-bottom: 0.5rem;
   line-height: var(--body-text-line-height, var(--body-line-height, 1.6));
   text-align: var(--body-text-align, left);
+}
+
+/* Bold text: use configured bold weight instead of browser 'bolder' keyword.
+   Without this, <strong> relative to a light body weight (e.g. 200) only reaches
+   400 (Regular) instead of the expected bold weight. */
+.section-content strong,
+.section-content b,
+.content-text strong,
+.content-text b,
+.entry-description strong,
+.entry-description b,
+.entry-bullets strong,
+.entry-bullets b {
+  font-weight: var(--bold-weight, 700);
 }
 
 /* Sidebar-specific overrides (for two-column layout) */

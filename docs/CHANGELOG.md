@@ -2,6 +2,14 @@
 
 All notable changes to CV-Craft will be documented in this file.
 
+## [1.28.1] - 2026-02-12
+
+### Fixed
+- **Bold markdown not visible with light body font weight** — `<strong>` elements now use `var(--bold-weight, 700)` instead of browser's `bolder` keyword, which only bumped weight 200→400 instead of the expected bold weight
+
+### Technical Insights
+- CSS `font-weight: bolder` is relative to the parent's weight. With body weight 200 (Extra Light), `bolder` computes to 400 (Regular) per CSS spec — visually indistinguishable from the surrounding text. Explicit `--bold-weight` variable ensures bold renders at the configured weight regardless of base font weight
+
 ## [1.28.0] - 2026-02-12
 
 ### Added
