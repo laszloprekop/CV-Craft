@@ -2,6 +2,11 @@
 
 All notable changes to CV-Craft will be documented in this file.
 
+## [1.29.1] - 2026-03-17
+
+### Added
+- **Product vision document** (`docs/PRODUCT-VISION.md`) — tiered product strategy, strategic analysis, risk assessment, and planning workstreams for evolving CV Craft from a free editor to an AI career agent
+
 ## [1.29.0] - 2026-03-17
 
 ### Changed
