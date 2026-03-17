@@ -2,6 +2,11 @@
 
 All notable changes to CV-Craft will be documented in this file.
 
+## [1.29.0] - 2026-03-17
+
+### Changed
+- **Renamed app from "CV Generator" to "CV Craft"** across page title, header, welcome page, package descriptions, and database schema comment
+
 ## [1.28.2] - 2026-03-17
 
 ### Fixed

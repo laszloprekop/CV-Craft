@@ -1,5 +1,5 @@
 -- CV Craft Database Schema
--- SQLite database schema for CV generator application
+-- SQLite database schema for CV Craft application
 -- Created: 2025-09-11
 
 -- Enable foreign key constraints

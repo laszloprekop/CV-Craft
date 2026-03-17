@@ -1,8 +1,8 @@
 {
   "name": "cv-craft-frontend",
-  "version": "1.28.2",
+  "version": "1.29.0",
   "type": "module",
-  "description": "Frontend React app for CV Craft - Static CV Generator",
+  "description": "Frontend React app for CV Craft",
   "private": true,
   "dependencies": {
     "@cv-craft/shared": "workspace:*",

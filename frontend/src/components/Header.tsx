@@ -7,7 +7,7 @@ export const Header: React.FC = () => {
   return (
     <header className="bg-primary border-b border-primary-hover px-4 py-3 flex items-center justify-between">
       <h1 className="text-lg font-bold text-text-inverse m-0">
-        CV Generator
+        CV Craft
       </h1>
       <nav className="flex gap-4 items-center">
         <a 

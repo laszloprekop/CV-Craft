@@ -225,7 +225,7 @@ export const CVManagerPage: React.FC = () => {
   return (
     <div className="flex-1 p-4 overflow-y-auto max-w-6xl mx-auto">
       <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-3">Welcome to CV Generator</h1>
+        <h1 className="text-3xl font-bold text-gray-900 mb-3">Welcome to CV Craft</h1>
         <p className="text-base text-text-secondary">Create professional CVs with ease using our powerful editor.</p>
       </div>
 
