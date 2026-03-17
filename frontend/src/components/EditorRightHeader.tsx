@@ -448,9 +448,9 @@ export const EditorRightHeader: React.FC<EditorRightHeaderProps> = ({
         </button>
 
         <button
-          onClick={onWebExport}
-          title="Export web package"
-          className="flex items-center gap-0.5 px-1.5 py-1 text-xs border border-success rounded bg-success text-text-inverse hover:opacity-90 transition-all duration-150"
+          disabled
+          title="Web package export coming soon"
+          className="flex items-center gap-0.5 px-1.5 py-1 text-xs border border-success rounded bg-success text-text-inverse opacity-50 cursor-not-allowed transition-all duration-150"
         >
           <Package size={18} weight="bold" />
           Web

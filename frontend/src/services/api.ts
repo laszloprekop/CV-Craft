@@ -262,7 +262,9 @@ export const exportApi = {
 
   getDownloadUrl(exportRecord: any): string {
     // The backend returns the file_path directly, so we can construct a download URL
-    return `${API_BASE_URL.replace('/api', '')}/${exportRecord.file_path}`
+    const base = API_BASE_URL.replace('/api', '')
+    const path = exportRecord.file_path.replace(/^\//, '')
+    return `${base}/${path}`
   }
 }
 

@@ -532,7 +532,7 @@ export const CVEditorPage: React.FC = () => {
             onZoomOut={handleZoomOut}
             onPDFExport={() => exportCv('pdf')}
             onWebExport={() => exportCv('web_package')}
-            onSave={saveCv}
+            onSave={() => saveCv()}
             onToggleEditor={() => setShowEditor(!showEditor)}
             onToggleConfig={handleConfigToggle}
           />

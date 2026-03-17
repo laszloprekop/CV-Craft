@@ -2,6 +2,13 @@
 
 All notable changes to CV-Craft will be documented in this file.
 
+## [1.28.2] - 2026-03-17
+
+### Fixed
+- **Save button crashes with circular JSON error** — `onClick={saveCv}` passed the `MouseEvent` as `configOverride`, causing serialization failure on the `HTMLButtonElement`; wrapped in arrow function to discard the event
+- **PDF export URL double-slash** — `getDownloadUrl()` produced `//exports/...` because backend `file_path` starts with `/`; now strips leading slash before concatenation
+- **Web export button triggers 501 error** — Disabled the button with "coming soon" tooltip since web package export is not yet implemented
+
 ## [1.28.1] - 2026-02-12
 
 ### Fixed
