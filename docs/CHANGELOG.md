@@ -2,6 +2,16 @@
 
 All notable changes to CV-Craft will be documented in this file.
 
+## [1.29.3] - 2026-03-22
+
+### Changed
+- **Locale-namespaced CV section keyword system** — replaced hardcoded multilingual if-chain in `inferSectionTypeFromTitle` with a data-driven `shared/locales/` module. Each locale (`en`, `sv`) lives in its own keyword file; `getMergedKeywords()` combines them at runtime. Swedish CV headings (Yrkeserfarenhet, Utbildning, Kompetenser, etc.) now resolve correctly
+- Frontmatter `lang` field (e.g. `lang: sv`) narrows keyword matching to that locale only, preventing false-positive matches across languages
+
+### Technical Insights
+- Adding a new language = one new file in `shared/locales/` + one import line in `index.ts` — no parser logic changes required
+- `SectionType` excludes `'heading' | 'paragraph' | 'list'` from the keyword map since those types are structurally inferred, not heading-title-derived
+
 ## [1.29.2] - 2026-03-22
 
 ### Fixed

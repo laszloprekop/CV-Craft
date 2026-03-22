@@ -26,6 +26,7 @@ import type {
   TemplateConfig
 } from '../../../../shared/types';
 import { generateCSSVariables } from '../../../../shared/utils/cssVariableGenerator';
+import { getMergedKeywords } from '../../../../shared/locales';
 
 export interface CVParserOptions {
   strictFrontmatter?: boolean;
@@ -61,7 +62,9 @@ export class CVParser {
       const tree = this.processor.parse(markdownContent);
 
       // Extract sections from AST (legacy support)
-      const sections = this.extractSections(tree);
+      // Pass locale from frontmatter to enable locale-aware section heading detection
+      const locale = frontmatter.lang as string | undefined;
+      const sections = this.extractSections(tree, locale);
 
       // If no frontmatter provided, try to extract contact info from content
       if (Object.keys(validatedFrontmatter).length === 0) {
@@ -473,7 +476,7 @@ export class CVParser {
   /**
    * Extract structured sections from Markdown AST with rich entry parsing
    */
-  private extractSections(tree: any): CVSection[] {
+  private extractSections(tree: any, locale?: string): CVSection[] {
     const sections: CVSection[] = [];
     let currentSection: any = null;
     let currentEntry: any = null;
@@ -545,7 +548,7 @@ export class CVParser {
 
             const title = this.extractTextFromNode(node);
             currentSection = {
-              type: this.inferSectionTypeFromTitle(title),
+              type: this.inferSectionTypeFromTitle(title, locale),
               title: title,
               level: node.depth,
               content: []
@@ -730,39 +733,20 @@ export class CVParser {
   }
 
   /**
-   * Infer section type from title
+   * Infer section type from title using locale-aware keyword maps.
+   * When `locale` is provided (e.g. "sv" from frontmatter `lang`), only that
+   * locale's keywords are used. Otherwise all registered locales are merged.
    */
-  private inferSectionTypeFromTitle(title: string): CVSection['type'] {
+  private inferSectionTypeFromTitle(title: string, locale?: string): CVSection['type'] {
     const lower = title.toLowerCase();
+    const localeFilter = locale ? [locale] : undefined;
+    const keywords = getMergedKeywords(localeFilter);
 
-    if (lower.includes('experience') || lower.includes('work') || lower.includes('employment')) {
-      return 'experience';
+    for (const [type, kws] of Object.entries(keywords)) {
+      if (kws.some(kw => lower.includes(kw))) {
+        return type as CVSection['type'];
+      }
     }
-    if (lower.includes('education') || lower.includes('academic')) {
-      return 'education';
-    }
-    if (lower.includes('skill') || lower.includes('technolog') || lower.includes('competenc')) {
-      return 'skills';
-    }
-    if (lower.includes('project')) {
-      return 'projects';
-    }
-    if (lower.includes('language')) {
-      return 'languages';
-    }
-    if (lower.includes('certification') || lower.includes('award')) {
-      return 'certifications';
-    }
-    if (lower.includes('interest') || lower.includes('hobbi')) {
-      return 'interests';
-    }
-    if (lower.includes('reference')) {
-      return 'references';
-    }
-    if (lower.includes('summary') || lower.includes('profile') || lower.includes('about')) {
-      return 'summary';
-    }
-
     return 'paragraph';
   }
 

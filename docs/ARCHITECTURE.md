@@ -52,7 +52,8 @@ CV-Craft/
 ├── shared/                      # @cv-craft/shared package
 │   ├── package.json            # Package exports for types & utils
 │   ├── types/                  # TypeScript interfaces & types
-│   └── utils/                  # Shared utilities
+│   ├── utils/                  # Shared utilities
+│   └── locales/                # Locale-namespaced section keyword maps
 │
 ├── docs/                        # Documentation
 ├── exports/                     # Generated PDFs & web packages
@@ -253,6 +254,35 @@ Maps semantic color keys to actual values:
 - `hexToRgba(hex, opacity)` → rgba string
 - `resolveColorPair(colorPair, config)` → base + contrast color
 
+### Section Keyword Locales (`shared/locales/`)
+
+Maps CV section heading keywords to structured `CVSection` types, organised by locale:
+
+```
+shared/locales/
+├── types.ts          # SectionKeywordMap type, SectionType union
+├── en.keywords.ts    # English keywords (experience, education, …)
+├── sv.keywords.ts    # Swedish keywords (yrkeserfarenhet, utbildning, …)
+└── index.ts          # getMergedKeywords(localeFilter?) merge utility
+```
+
+**How it works:**
+
+```typescript
+// All locales merged (default — safe for unknown language)
+getMergedKeywords()
+
+// Restricted to one locale via frontmatter `lang` field
+getMergedKeywords(['sv'])
+```
+
+The CV parser calls `getMergedKeywords` in `inferSectionTypeFromTitle`. If the CV frontmatter declares `lang: sv`, only Swedish keywords are loaded — preventing false-positive matches across languages.
+
+**Adding a new language:**
+1. Create `shared/locales/de.keywords.ts` exporting a `SectionKeywordMap`
+2. Import and register it in `shared/locales/index.ts`
+3. No parser logic changes required
+
 ---
 
 ## Key Features
@@ -260,9 +290,10 @@ Maps semantic color keys to actual values:
 ### 1. Markdown-Based CV Editing
 
 - Monaco Editor for syntax highlighting
-- YAML frontmatter for contact info
+- YAML frontmatter for contact info (supports `lang` field for locale-aware parsing)
 - Real-time validation
 - Remark/Rehype parsing pipeline
+- Multilingual section heading detection via `shared/locales/` keyword maps
 
 ### 2. Real-Time Preview
 
