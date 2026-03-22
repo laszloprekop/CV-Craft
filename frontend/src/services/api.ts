@@ -98,7 +98,8 @@ export const cvApi = {
    */
   async getPreviewPdf(cvId: string, config?: TemplateConfig): Promise<string> {
     const response = await api.post(`/cvs/${cvId}/preview-pdf`, { config }, {
-      responseType: 'blob'
+      responseType: 'blob',
+      timeout: 120000,
     })
     return URL.createObjectURL(response.data)
   }

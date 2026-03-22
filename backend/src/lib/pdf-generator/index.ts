@@ -124,6 +124,7 @@ const GOOGLE_FONTS = new Set([
  */
 export class PDFGenerator {
   private browser: Browser | null = null
+  private generateQueue: Promise<unknown> = Promise.resolve()
 
   /**
    * Initialize browser instance
@@ -249,6 +250,16 @@ export class PDFGenerator {
    * Renders sidebar and main content as separate PDFs, then merges them
    */
   async generatePDF(
+    options: PDFGenerationOptions,
+  ): Promise<PDFGenerationResult> {
+    // Serialize all PDF generation to prevent concurrent Puppeteer pages
+    // from exhausting Chrome's connection pool when fetching Google Fonts
+    const result = this.generateQueue.then(() => this.doGeneratePDF(options))
+    this.generateQueue = result.catch(() => {})
+    return result
+  }
+
+  private async doGeneratePDF(
     options: PDFGenerationOptions,
   ): Promise<PDFGenerationResult> {
     const { cv, template, config, outputPath } = options
@@ -445,20 +456,13 @@ export class PDFGenerator {
       })
 
       await page.setContent(html, {
-        waitUntil: ["domcontentloaded", "networkidle0"],
+        waitUntil: "domcontentloaded",
         timeout: 30000,
       })
 
       // Wait for fonts to load
       try {
-        await page.waitForFunction(
-          `(function() {
-            return document.fonts.ready.then(function() {
-              return document.fonts.status === 'loaded';
-            });
-          })()`,
-          { timeout: 15000 },
-        )
+        await page.evaluate(`document.fonts.ready`)
       } catch (err) {
         console.warn("[PDF] Font loading timeout, continuing with fallback fonts")
       }
@@ -681,7 +685,7 @@ export class PDFGenerator {
       })
 
       await page.setContent(html, {
-        waitUntil: ["domcontentloaded", "networkidle0"],
+        waitUntil: ["domcontentloaded", "networkidle2"],
       })
 
       try {

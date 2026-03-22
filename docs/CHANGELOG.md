@@ -2,6 +2,17 @@
 
 All notable changes to CV-Craft will be documented in this file.
 
+## [1.29.2] - 2026-03-22
+
+### Fixed
+- **PDF preview timing out** — Puppeteer's `networkidle0/networkidle2` wait was blocking on Google Fonts CDN (16 font files: 8 variants × 2 fonts), causing 30s timeouts. Switched to `domcontentloaded` + `document.fonts.ready` for reliable font loading without network-idle dependency
+- **Concurrent PDF requests exhausting Chrome connection pool** — React StrictMode double-renders triggered two simultaneous PDF generations, each opening 3 Puppeteer pages (6 total), saturating Chrome's per-domain connection limit when fetching Google Fonts. Added a serialization queue so PDF generations run sequentially
+- **Font wait function never actually waited** — `waitForFunction` with `document.fonts.ready.then(...)` returned a truthy Promise object immediately; replaced with `page.evaluate('document.fonts.ready')` which properly awaits the Promise
+
+### Technical Insights
+- `page.waitForFunction` does NOT automatically await Promises returned by the evaluated function — it checks truthiness, and a Promise object is always truthy. Use `page.evaluate` to actually await a Promise in the browser context
+- `networkidle0` (zero open connections) is fragile for any page loading external resources. Prefer `domcontentloaded` + explicit `document.fonts.ready` wait for font-dependent rendering
+
 ## [1.29.1] - 2026-03-17
 
 ### Added
