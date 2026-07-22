@@ -6,6 +6,8 @@ import {
   generateTwoColumnBody,
   generateSingleColumnBody,
   generateBackgroundHTML,
+  generateColumnHTML,
+  resolveSidebarWidthMm,
   renderSkillsSection,
   generateCVCSS,
 } from '../layoutRenderer'
@@ -519,7 +521,77 @@ describe('generateSingleColumnBody', () => {
 
 // ─── generateBackgroundHTML ───────────────────────────────────────────────────
 
+describe('resolveSidebarWidthMm', () => {
+  const withSidebar = (sidebarWidth: string): TemplateConfig => ({
+    ...DEFAULT_TEMPLATE_CONFIG,
+    layout: { ...DEFAULT_TEMPLATE_CONFIG.layout, sidebarWidth },
+  })
+
+  it('resolves a percentage against the A4 page width', () => {
+    expect(resolveSidebarWidthMm(withSidebar('40%'))).toBeCloseTo(84)
+    expect(resolveSidebarWidthMm(withSidebar('60%'))).toBeCloseTo(126)
+  })
+
+  it('passes millimetres through unchanged', () => {
+    expect(resolveSidebarWidthMm(withSidebar('70mm'))).toBeCloseTo(70)
+  })
+
+  it('converts px at 96dpi and cm', () => {
+    // 300px = 79.375mm, comfortably inside the clamp range
+    expect(resolveSidebarWidthMm(withSidebar('300px'))).toBeCloseTo(79.375)
+    expect(resolveSidebarWidthMm(withSidebar('8cm'))).toBeCloseTo(80)
+  })
+
+  it('clamps absurd values so the split stays usable', () => {
+    expect(resolveSidebarWidthMm(withSidebar('2%'))).toBeCloseTo(210 * 0.15)
+    expect(resolveSidebarWidthMm(withSidebar('99%'))).toBeCloseTo(210 * 0.75)
+  })
+
+  it('falls back to 40% for a missing or unparseable value', () => {
+    expect(resolveSidebarWidthMm(DEFAULT_TEMPLATE_CONFIG)).toBeCloseTo(84)
+    expect(resolveSidebarWidthMm(withSidebar('wide'))).toBeCloseTo(84)
+  })
+})
+
+describe('generateColumnHTML sidebar width', () => {
+  const withSidebar = (sidebarWidth: string): TemplateConfig => ({
+    ...DEFAULT_TEMPLATE_CONFIG,
+    layout: { ...DEFAULT_TEMPLATE_CONFIG.layout, sidebarWidth },
+  })
+
+  it('sizes the sidebar column from config rather than a fixed 84mm', () => {
+    const html = generateColumnHTML({
+      column: 'sidebar',
+      frontmatter: baseFrontmatter,
+      sections: [],
+      config: withSidebar('30%'),
+    })
+
+    expect(html).toContain('width: 63mm')
+    expect(html).not.toContain('width: 84mm')
+  })
+
+  it('offsets and sizes the main column to the remainder of the page', () => {
+    const html = generateColumnHTML({
+      column: 'main',
+      frontmatter: baseFrontmatter,
+      sections: [],
+      config: withSidebar('30%'),
+    })
+
+    expect(html).toContain('left: 63mm')
+    expect(html).toContain('width: 147mm')
+  })
+})
+
 describe('generateBackgroundHTML', () => {
+  it('splits the background at the configured sidebar width', () => {
+    const html = generateBackgroundHTML('#f0f0f0', '#ffffff', 63)
+
+    expect(html).toContain('width: 63mm')
+    expect(html).toContain('width: 147mm')
+  })
+
   it('returns HTML with sidebar-bg and main-bg divs', () => {
     const html = generateBackgroundHTML('#f0f0f0', '#ffffff')
 

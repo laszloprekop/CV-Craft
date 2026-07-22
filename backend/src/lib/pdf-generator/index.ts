@@ -31,6 +31,7 @@ import {
   generateBackgroundHTML,
   generateCVDocument,
   splitSections,
+  resolveSidebarWidthMm,
 } from "../../../../shared/utils/layoutRenderer"
 import {
   getAllSemanticCSS,
@@ -396,7 +397,7 @@ export class PDFGenerator {
         marginBottom,
         marginRight,
       ),
-      this.renderBackgroundPDF(sidebarColor, mainColor),
+      this.renderBackgroundPDF(sidebarColor, mainColor, resolveSidebarWidthMm(config)),
     ])
 
     // Load PDFs with pdf-lib
@@ -549,6 +550,7 @@ export class PDFGenerator {
   private async renderBackgroundPDF(
     sidebarColor: string,
     mainColor: string,
+    sidebarWidthMm: number,
   ): Promise<Uint8Array> {
     if (!this.browser) {
       throw new Error("Browser not initialized")
@@ -559,7 +561,7 @@ export class PDFGenerator {
     try {
       await page.setViewport({ width: 794, height: 1123, deviceScaleFactor: 2 })
 
-      const html = generateBackgroundHTML(sidebarColor, mainColor)
+      const html = generateBackgroundHTML(sidebarColor, mainColor, sidebarWidthMm)
 
       await page.setContent(html, { waitUntil: "domcontentloaded" })
 

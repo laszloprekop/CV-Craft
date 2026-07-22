@@ -35,6 +35,41 @@ export function isPhotoEnabled(config: TemplateConfig): boolean {
   return config.components?.profilePhoto?.enabled !== false
 }
 
+/** A4 portrait width. The overlay PDFs are rendered at exactly this size. */
+export const PAGE_WIDTH_MM = 210
+
+/** Keep the split usable however the config is set. */
+const MIN_SIDEBAR_MM = PAGE_WIDTH_MM * 0.15
+const MAX_SIDEBAR_MM = PAGE_WIDTH_MM * 0.75
+
+/**
+ * Resolve the configured sidebar width to millimetres.
+ *
+ * The overlay technique positions each column absolutely on a physical A4 page
+ * and paints the background as a separate document, so the width has to be a
+ * concrete length here - there is no shared containing block for CSS to resolve
+ * a percentage against.
+ */
+export function resolveSidebarWidthMm(config: TemplateConfig): number {
+  const raw = config.layout?.sidebarWidth ?? '40%'
+  const match = /^\s*([\d.]+)\s*(mm|cm|in|px|%)?\s*$/.exec(raw)
+  if (!match) return PAGE_WIDTH_MM * 0.4
+
+  const value = parseFloat(match[1])
+  if (!Number.isFinite(value)) return PAGE_WIDTH_MM * 0.4
+
+  let mm: number
+  switch ((match[2] || 'mm').toLowerCase()) {
+    case '%': mm = (PAGE_WIDTH_MM * value) / 100; break
+    case 'cm': mm = value * 10; break
+    case 'in': mm = value * 25.4; break
+    case 'px': mm = (value * 25.4) / 96; break // 96 CSS px per inch
+    default: mm = value
+  }
+
+  return Math.min(Math.max(mm, MIN_SIDEBAR_MM), MAX_SIDEBAR_MM)
+}
+
 /**
  * Options for generating CV document HTML
  */
@@ -565,9 +600,13 @@ export function generateColumnHTML(options: ColumnRenderOptions): string {
     .map(([key, value]) => `${key}: ${value};`)
     .join('\n      ')
 
-  // Column-specific dimensions
-  const columnWidth = column === 'sidebar' ? '84mm' : '126mm'
-  const columnLeft = column === 'sidebar' ? '0' : '84mm'
+  // Column-specific dimensions, derived from the configured sidebar width so
+  // the two column PDFs and the background layer stay on the same split.
+  const sidebarMm = resolveSidebarWidthMm(config)
+  const columnWidth = column === 'sidebar'
+    ? `${sidebarMm}mm`
+    : `${PAGE_WIDTH_MM - sidebarMm}mm`
+  const columnLeft = column === 'sidebar' ? '0' : `${sidebarMm}mm`
   const innerPadding = column === 'sidebar'
     ? `0 6mm 0 ${marginHorizontal}`
     : `0 ${marginHorizontal} 0 8mm`
@@ -676,7 +715,13 @@ export function generateColumnHTML(options: ColumnRenderOptions): string {
 /**
  * Generate background-only PDF HTML (two-column colors)
  */
-export function generateBackgroundHTML(sidebarColor: string, mainColor: string): string {
+export function generateBackgroundHTML(
+  sidebarColor: string,
+  mainColor: string,
+  sidebarWidthMm: number = PAGE_WIDTH_MM * 0.4
+): string {
+  const sidebarMm = sidebarWidthMm
+  const mainMm = PAGE_WIDTH_MM - sidebarWidthMm
   return `
 <!DOCTYPE html>
 <html>
@@ -686,8 +731,8 @@ export function generateBackgroundHTML(sidebarColor: string, mainColor: string):
     @page { size: 210mm 297mm; margin: 0; }
     html, body { width: 210mm; height: 297mm; margin: 0; padding: 0; }
     .bg { display: flex; width: 210mm; height: 297mm; }
-    .sidebar-bg { width: 84mm; height: 297mm; background: ${sidebarColor}; }
-    .main-bg { width: 126mm; height: 297mm; background: ${mainColor}; }
+    .sidebar-bg { width: ${sidebarMm}mm; height: 297mm; background: ${sidebarColor}; }
+    .main-bg { width: ${mainMm}mm; height: 297mm; background: ${mainColor}; }
   </style>
 </head>
 <body>

@@ -2,6 +2,17 @@
 
 All notable changes to CV-Craft will be documented in this file.
 
+## [1.30.1] - 2026-07-22
+
+### Fixed
+- **Sidebar Width had no effect on the PDF** — `shared/utils/layoutRenderer.ts` hardcoded the split as `84mm`/`126mm` in three places and never read `config.layout.sidebarWidth`. 84mm is exactly 40% of A4, which is the default, so the control appeared to work at its default value and did nothing at every other setting. New `resolveSidebarWidthMm()` resolves `%`, `mm`, `cm`, `in` and `px` against the page width, clamped to 15-75%, and feeds both column PDFs and the background layer. Verified by rasterising generated PDFs and measuring the colour boundary: 30% renders at 30.0%, 55% at 55.1%
+- **Page numbers could be styled but not switched on from the same panel** — the enable toggle lived in Page → PDF Export while every styling control lived in Styles → Page #, so it was possible to set position, size and colour with no indication the feature was off and no way to enable it from there. Styles → Page # now opens with a Visibility toggle bound to the same `pdf.pageNumbers.enabled` field, and collapses the styling controls when off (matching the profile photo editor)
+- Corrected the page-number footnote, which claimed they "only appear in PDF export" — they appear in PDF preview mode too, just not HTML preview
+
+### Technical Insights
+- **A default that coincides with a hardcoded constant hides the bug exactly where you would look for it.** The sidebar width was dead for every value except the one shipped by default
+- The overlay technique renders sidebar, main and background as three separate PDF documents, so there is no shared containing block for CSS to resolve a percentage against. Any relative layout value has to be converted to an absolute length before the HTML is built, and all three consumers have to agree or the split tears
+
 ## [1.30.0] - 2026-07-22
 
 ### Added

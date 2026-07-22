@@ -1784,8 +1784,21 @@ export const SemanticElementEditor: React.FC<SemanticElementEditorProps> = ({
     const updatePageNumbers = (key: string, value: ConfigValue) => {
       onChange('pdf', { pageNumbers: { ...(config.pdf?.pageNumbers || {}), [key]: value } });
     };
+    const pageNumbersEnabled = pageNumbers.enabled === true;
     return (
       <>
+        {/* Same config field as Page > PDF Export > Show Page Numbers. Without
+            it here, styling page numbers gives no hint they are switched off. */}
+        <Section label="Visibility">
+          <ToggleControl
+            label="Show Page Numbers"
+            value={pageNumbersEnabled}
+            onChange={(v) => updatePageNumbers('enabled', v)}
+            description="Drawn onto the exported and previewed PDF"
+          />
+        </Section>
+        {!pageNumbersEnabled ? null : (
+        <>
         <Section label="Typography">
           <SpacingControl
             label="Font Size"
@@ -1835,8 +1848,10 @@ export const SemanticElementEditor: React.FC<SemanticElementEditorProps> = ({
           />
         </Section>
         <p className="text-[9px] text-text-muted mt-2 px-1">
-          Page numbers only appear in PDF export
+          Page numbers appear in PDF preview and export, not in HTML preview
         </p>
+        </>
+        )}
       </>
     );
   };

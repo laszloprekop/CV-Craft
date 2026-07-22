@@ -358,6 +358,24 @@ knowing:
 - Colour resolves through `resolveSemanticColor` at full opacity, with alpha
   passed separately to `drawText` — pdf-lib takes colour and opacity apart.
 
+## Sidebar Width Must Be Resolved, Not Passed Through (v1.30.1)
+
+`config.layout.sidebarWidth` accepts `%`, `mm`, `px` and friends, but the
+overlay technique renders the sidebar, the main column and the background as
+**three separate PDF documents** that are then merged. There is no shared
+containing block for CSS to resolve a percentage against, so the width has to
+become a concrete length before any of the three HTML strings are built.
+
+`resolveSidebarWidthMm(config)` in `shared/utils/layoutRenderer.ts` does that
+conversion against the A4 page width and clamps the result to 15-75% so a stray
+value cannot produce an unusable layout. All three consumers must use it, or the
+columns and the painted background disagree and the split visibly tears.
+
+This was hardcoded to `84mm`/`126mm` until v1.30.1. 84mm is exactly 40% of A4 —
+the default — so the control appeared to work at its default value and silently
+did nothing at every other setting. A default that coincides with a hardcoded
+constant hides the bug precisely where you would first look for it.
+
 ## Profile Photo Visibility (v1.30.0)
 
 `components.profilePhoto.enabled` gates the portrait (some employers ask for
