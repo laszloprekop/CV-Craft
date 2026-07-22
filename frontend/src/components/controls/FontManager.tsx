@@ -66,7 +66,7 @@ export const FontManager: React.FC<FontManagerProps> = ({
       {/* User's curated font list */}
       <div className="border border-border rounded p-2 mb-2 max-h-32 overflow-y-auto">
         {availableFonts.length === 0 ? (
-          <p className="text-xs text-text-muted">No fonts added yet. Click "Add Font" to get started.</p>
+          <p className="text-xs text-text-muted">No fonts added yet. Click &quot;Add Font&quot; to get started.</p>
         ) : (
           <div className="space-y-1">
             {availableFonts.map((fontFamily) => (

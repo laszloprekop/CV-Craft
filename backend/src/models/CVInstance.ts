@@ -7,6 +7,26 @@
 import Database from 'better-sqlite3';
 import { v4 as uuidv4 } from 'uuid';
 import type { CVInstance, TemplateConfig, TemplateSettings, ParsedCVContent } from '../../../shared/types';
+import type { SqlParam } from './sqlTypes';
+
+/**
+ * Shape of a row in the `cv_instances` table. JSON columns arrive as strings.
+ * Note that list() selects only a subset of these columns - see the cast there.
+ */
+interface CVInstanceRow {
+  id: string;
+  name: string;
+  content: string;
+  parsed_content: string | null;
+  template_id: string;
+  photo_asset_id: string | null;
+  config: string | null;
+  settings: string | null;
+  status: 'active' | 'archived' | 'deleted';
+  created_at: number;
+  updated_at: number;
+  metadata: string | null;
+}
 
 export interface CreateCVInstanceData {
   name: string;
@@ -16,7 +36,7 @@ export interface CreateCVInstanceData {
   photo_asset_id?: string;
   config?: TemplateConfig;
   settings?: TemplateSettings;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface UpdateCVInstanceData {
@@ -28,7 +48,7 @@ export interface UpdateCVInstanceData {
   config?: TemplateConfig;
   settings?: TemplateSettings;
   status?: 'active' | 'archived';
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface ListCVInstancesOptions {
@@ -102,7 +122,11 @@ export class CVInstanceModel {
     try {
       transaction();
       // Return the created instance
-      return this.findById(id)!;
+      const created = this.findById(id);
+      if (!created) {
+        throw new Error(`Failed to read back CV instance ${id} after insert`);
+      }
+      return created;
     } catch (error) {
       if (error instanceof CVInstanceError) {
         throw error;
@@ -119,7 +143,7 @@ export class CVInstanceModel {
       SELECT * FROM cv_instances WHERE id = ? AND status != 'deleted'
     `);
     
-    const row = stmt.get(id);
+    const row = stmt.get(id) as CVInstanceRow | undefined;
     if (!row) return null;
 
     return this.mapRowToCVInstance(row);
@@ -133,7 +157,7 @@ export class CVInstanceModel {
       SELECT * FROM cv_instances WHERE name = ? AND status = ?
     `);
     
-    const row = stmt.get(name, status);
+    const row = stmt.get(name, status) as CVInstanceRow | undefined;
     if (!row) return null;
 
     return this.mapRowToCVInstance(row);
@@ -165,7 +189,7 @@ export class CVInstanceModel {
 
     // Build WHERE clause
     let whereClause = "status != 'deleted'";
-    const params: any[] = [];
+    const params: SqlParam[] = [];
 
     if (status) {
       whereClause += ' AND status = ?';
@@ -185,7 +209,9 @@ export class CVInstanceModel {
       LIMIT ? OFFSET ?
     `);
 
-    const rows = dataStmt.all(...params, limit, offset);
+    // This query intentionally omits the heavy columns (content, parsed_content,
+    // config, settings); the mapper reads them as undefined for list results.
+    const rows = dataStmt.all(...params, limit, offset) as CVInstanceRow[];
     const data = rows.map(row => this.mapRowToCVInstance(row));
 
     return { data, total };
@@ -275,7 +301,11 @@ export class CVInstanceModel {
 
     try {
       transaction();
-      return this.findById(id)!;
+      const updated = this.findById(id);
+      if (!updated) {
+        throw new Error(`Failed to read back CV instance ${id} after update`);
+      }
+      return updated;
     } catch (error) {
       if (error instanceof CVInstanceError) {
         throw error;
@@ -331,7 +361,7 @@ export class CVInstanceModel {
 
     // Create duplicate with new name, carrying over config and photo
     // Strip active_theme_id so the new CV starts with no theme selected
-    const { active_theme_id, ...restMetadata } = original.metadata || {} as any;
+    const { active_theme_id: _active_theme_id, ...restMetadata } = original.metadata || {};
     const duplicateData: CreateCVInstanceData = {
       name: newName.trim(),
       content: original.content,
@@ -353,7 +383,7 @@ export class CVInstanceModel {
   /**
    * Map database row to CVInstance object
    */
-  private mapRowToCVInstance(row: any): CVInstance {
+  private mapRowToCVInstance(row: CVInstanceRow): CVInstance {
     return {
       id: row.id,
       name: row.name,

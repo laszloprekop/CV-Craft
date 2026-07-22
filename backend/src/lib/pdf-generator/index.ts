@@ -38,8 +38,48 @@ import {
   getTwoColumnHeaderCSS,
 } from "../../../../shared/utils/semanticCSS"
 import { getAllPaginationCSS } from "../../../../shared/utils/paginationCSS"
+import { resolveSemanticColor } from "../../../../shared/utils/colorResolver"
+import type { SemanticColorKey } from "../../../../shared/utils/colorResolver"
 import path from "path"
 import fs from "fs/promises"
+
+// PDF user space is measured in points. The config panel emits CSS lengths,
+// so every value crossing that boundary has to declare its unit.
+const PT_PER_PX = 0.75 // 96 CSS px per inch, 72 pt per inch
+const PT_PER_MM = 72 / 25.4
+
+/**
+ * Parse a CSS length ("10px", "12pt", "10mm") into PDF points.
+ * A bare number is treated as the given fallback unit.
+ */
+function cssLengthToPoints(
+  value: string | undefined,
+  fallbackUnit: "px" | "pt" | "mm",
+  defaultPoints: number,
+): number {
+  if (!value) return defaultPoints
+
+  const match = /^\s*(-?[\d.]+)\s*(px|pt|mm|cm|in)?\s*$/i.exec(value)
+  if (!match) return defaultPoints
+
+  const amount = parseFloat(match[1])
+  if (!Number.isFinite(amount)) return defaultPoints
+
+  const unit = (match[2] || fallbackUnit).toLowerCase()
+  switch (unit) {
+    case "pt":
+      return amount
+    case "mm":
+      return amount * PT_PER_MM
+    case "cm":
+      return amount * PT_PER_MM * 10
+    case "in":
+      return amount * 72
+    case "px":
+    default:
+      return amount * PT_PER_PX
+  }
+}
 
 export interface PDFGenerationOptions {
   cv: CVInstance
@@ -547,23 +587,38 @@ export class PDFGenerator {
     config: TemplateConfig,
     totalPages: number,
   ): Promise<void> {
-    const pageNumbers = config.pdf.pageNumbers
+    const pageNumbers = config.pdf?.pageNumbers
     if (!pageNumbers?.enabled || totalPages <= 0) return
 
-    const font = await pdfDoc.embedFont(StandardFonts.Helvetica)
-    const fontSize = parseFloat(pageNumbers.fontSize || '10') || 10
+    // The panel offers a 100-900 weight; the standard PDF font set has two.
+    const bold = (pageNumbers.fontWeight ?? 400) >= 600
+    const font = await pdfDoc.embedFont(
+      bold ? StandardFonts.HelveticaBold : StandardFonts.Helvetica,
+    )
+
+    const fontSize = cssLengthToPoints(pageNumbers.fontSize, 'px', 10)
     const format = pageNumbers.format || 'Page {page} of {total}'
     const position = pageNumbers.position || 'bottom-center'
-    const marginPt = (parseFloat(pageNumbers.margin || '10') || 10) * 2.835 // mm to points
-    const color = this.hexToRgb(config.colors.text.secondary)
+    const marginPt = cssLengthToPoints(pageNumbers.margin, 'mm', 10 * PT_PER_MM)
+
+    // pdf-lib takes colour and alpha separately, so resolve at full opacity
+    // and hand the alpha to drawText.
+    const opacity = pageNumbers.colorOpacity ?? 1
+    const color = this.hexToRgb(
+      resolveSemanticColor(
+        (pageNumbers.colorKey as SemanticColorKey) || 'text-secondary',
+        config,
+        1,
+      ),
+    )
 
     const pages = pdfDoc.getPages()
     for (let i = 0; i < pages.length; i++) {
       const page = pages[i]
       const { width, height } = page.getSize()
       const text = format
-        .replace('{page}', String(i + 1))
-        .replace('{total}', String(totalPages))
+        .replace(/\{page\}/g, String(i + 1))
+        .replace(/\{total\}/g, String(totalPages))
       const textWidth = font.widthOfTextAtSize(text, fontSize)
 
       let x: number
@@ -590,6 +645,7 @@ export class PDFGenerator {
         size: fontSize,
         font,
         color,
+        opacity,
       })
     }
   }
@@ -598,10 +654,19 @@ export class PDFGenerator {
    * Convert hex color string to pdf-lib rgb color
    */
   private hexToRgb(hex: string) {
-    const clean = hex.replace('#', '')
-    const r = parseInt(clean.substring(0, 2), 16) / 255
-    const g = parseInt(clean.substring(2, 4), 16) / 255
-    const b = parseInt(clean.substring(4, 6), 16) / 255
+    const clean = (hex || '').replace('#', '').trim()
+    // Expand shorthand (#abc -> #aabbcc) before parsing
+    const full = clean.length === 3
+      ? clean.split('').map((c) => c + c).join('')
+      : clean
+
+    const r = parseInt(full.substring(0, 2), 16) / 255
+    const g = parseInt(full.substring(2, 4), 16) / 255
+    const b = parseInt(full.substring(4, 6), 16) / 255
+
+    if (!Number.isFinite(r) || !Number.isFinite(g) || !Number.isFinite(b)) {
+      return rgb(0, 0, 0)
+    }
     return rgb(r, g, b)
   }
 
@@ -694,20 +759,34 @@ export class PDFGenerator {
         // Continue
       }
 
-      await page.pdf({
-        path: outputPath,
+      // Honour the configured page margins instead of a fixed 20/15mm box
+      const cssVariables = generateCSSVariables(config)
+      const pdfBuffer = await page.pdf({
         format: "A4",
         printBackground: true,
-        margin: { top: "20mm", right: "15mm", bottom: "20mm", left: "15mm" },
+        margin: {
+          top: cssVariables["--page-margin-top"] || "20mm",
+          right: cssVariables["--page-margin-right"] || "15mm",
+          bottom: cssVariables["--page-margin-bottom"] || "20mm",
+          left: cssVariables["--page-margin-left"] || "15mm",
+        },
       })
 
+      // Post-process with pdf-lib so this path gets page numbers too, and so
+      // the page count is read from the document rather than guessed.
+      const pdfDoc = await PDFDocument.load(pdfBuffer)
+      const totalPages = pdfDoc.getPageCount()
+
+      await this.addPageNumbers(pdfDoc, config, totalPages)
+
+      await fs.writeFile(outputPath, await pdfDoc.save())
       const stats = await fs.stat(outputPath)
 
       return {
         filename: path.basename(outputPath),
         filepath: outputPath,
         size: stats.size,
-        pages: Math.max(1, Math.ceil(stats.size / 30000)),
+        pages: totalPages,
       }
     } finally {
       await page.close()

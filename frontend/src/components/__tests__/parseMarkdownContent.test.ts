@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { parseMarkdownContent, inferSectionType } from '../parseMarkdownContent'
+import type { StructuredEntry, SkillCategory } from '../parseMarkdownContent'
 
 describe('parseMarkdownContent', () => {
   describe('frontmatter parsing', () => {
@@ -218,8 +219,8 @@ More experience after break.`
       const result = parseMarkdownContent(content)
       const breakSection = result.sections.find((s) => s.breakBefore === true)
       expect(breakSection).toBeDefined()
-      expect(breakSection!.type).toBe('paragraph')
-      expect(breakSection!.title).toBe('')
+      expect(breakSection?.type).toBe('paragraph')
+      expect(breakSection?.title).toBe('')
     })
 
     it('sets level to 2 for all regular sections', () => {
@@ -340,7 +341,7 @@ email: test@test.com
 Built cool stuff.`
 
     const result = parseMarkdownContent(content)
-    const entries = result.sections[0].content as any[]
+    const entries = result.sections[0].content as StructuredEntry[]
     expect(entries).toHaveLength(1)
     expect(entries[0].title).toBe('Software Engineer')
   })
@@ -358,7 +359,7 @@ email: test@test.com
 Built things.`
 
     const result = parseMarkdownContent(content)
-    const entries = result.sections[0].content as any[]
+    const entries = result.sections[0].content as StructuredEntry[]
     expect(entries[0].title).toBe('Software Engineer')
     expect(entries[0].company).toBe('Acme Corp')
   })
@@ -376,7 +377,7 @@ email: test@test.com
 Built things.`
 
     const result = parseMarkdownContent(content)
-    const entries = result.sections[0].content as any[]
+    const entries = result.sections[0].content as StructuredEntry[]
     expect(entries[0].title).toBe('Software Engineer')
     expect(entries[0].company).toBe('Google')
   })
@@ -394,7 +395,7 @@ email: test@test.com
 Did freelance work.`
 
     const result = parseMarkdownContent(content)
-    const entries = result.sections[0].content as any[]
+    const entries = result.sections[0].content as StructuredEntry[]
     expect(entries[0].title).toBe('Freelance Developer')
     expect(entries[0].company).toBe('')
   })
@@ -412,7 +413,7 @@ email: test@test.com
 Built an app.`
 
     const result = parseMarkdownContent(content)
-    const entries = result.sections[0].content as any[]
+    const entries = result.sections[0].content as StructuredEntry[]
     expect(entries[0].date).toBe('Jan 2020 - Dec 2023')
   })
 
@@ -430,7 +431,7 @@ Graduated with honors.`
 
     const result = parseMarkdownContent(content)
     expect(result.sections[0].type).toBe('education')
-    const entries = result.sections[0].content as any[]
+    const entries = result.sections[0].content as StructuredEntry[]
     expect(entries[0].title).toBe('BSc Computer Science')
     expect(entries[0].company).toBe('University of Example')
     expect(entries[0].date).toBe('2016 - 2020')
@@ -455,16 +456,16 @@ Architected the next-generation SaaS platform.
 - Mentored a team of 6 junior developers`
 
     const result = parseMarkdownContent(content)
-    const entries = result.sections[0].content as any[]
+    const entries = result.sections[0].content as StructuredEntry[]
     expect(entries).toHaveLength(1)
     expect(entries[0].title).toBe('Senior Developer')
     expect(entries[0].company).toBe('Acme Technologies')
     expect(entries[0].location).toBe('San Francisco, CA')
     expect(entries[0].description).toBe('Architected the next-generation SaaS platform.')
     expect(entries[0].bullets).toHaveLength(3)
-    expect(entries[0].bullets[0]).toBe('Led migration to **microservices**, reducing deployment time by 70%')
-    expect(entries[0].bullets[1]).toBe('Designed real-time collaboration features using WebSockets')
-    expect(entries[0].bullets[2]).toBe('Mentored a team of 6 junior developers')
+    expect(entries[0].bullets?.[0]).toBe('Led migration to **microservices**, reducing deployment time by 70%')
+    expect(entries[0].bullets?.[1]).toBe('Designed real-time collaboration features using WebSockets')
+    expect(entries[0].bullets?.[2]).toBe('Mentored a team of 6 junior developers')
   })
 
   it('separates description paragraphs from bullet items', () => {
@@ -484,11 +485,11 @@ Built an application for data processing.
 - Added unit tests with Jest`
 
     const result = parseMarkdownContent(content)
-    const entries = result.sections[0].content as any[]
+    const entries = result.sections[0].content as StructuredEntry[]
     expect(entries[0].description).toBe('Built an application for data processing.')
     expect(entries[0].bullets).toHaveLength(2)
-    expect(entries[0].bullets[0]).toBe('Implemented REST API with Express')
-    expect(entries[0].bullets[1]).toBe('Added unit tests with Jest')
+    expect(entries[0].bullets?.[0]).toBe('Implemented REST API with Express')
+    expect(entries[0].bullets?.[1]).toBe('Added unit tests with Jest')
   })
 
   it('handles entries with only bullets and no description', () => {
@@ -506,7 +507,7 @@ email: test@test.com
 - Developed custom WordPress themes`
 
     const result = parseMarkdownContent(content)
-    const entries = result.sections[0].content as any[]
+    const entries = result.sections[0].content as StructuredEntry[]
     expect(entries[0].description).toBeFalsy()
     expect(entries[0].bullets).toHaveLength(2)
   })
@@ -524,7 +525,7 @@ email: test@test.com
 Did freelance work.`
 
     const result = parseMarkdownContent(content)
-    const entries = result.sections[0].content as any[]
+    const entries = result.sections[0].content as StructuredEntry[]
     expect(entries[0].description).toBe('Did freelance work.')
     expect(entries[0].bullets).toBeUndefined()
   })
@@ -544,7 +545,7 @@ New York, NY
 Built things.`
 
     const result = parseMarkdownContent(content)
-    const entries = result.sections[0].content as any[]
+    const entries = result.sections[0].content as StructuredEntry[]
     expect(entries[0].location).toBe('New York, NY')
   })
 })
@@ -562,7 +563,7 @@ email: test@test.com
 **Backend**: Node.js, Express`
 
     const result = parseMarkdownContent(content)
-    const skills = result.sections[0].content as any[]
+    const skills = result.sections[0].content as SkillCategory[]
     expect(skills).toHaveLength(2)
     expect(skills[0].category).toBe('Frontend')
     expect(skills[0].skills).toEqual(['React', 'Vue', 'Angular'])
@@ -581,7 +582,7 @@ email: test@test.com
 Frontend: React, Vue, Angular`
 
     const result = parseMarkdownContent(content)
-    const skills = result.sections[0].content as any[]
+    const skills = result.sections[0].content as SkillCategory[]
     expect(skills).toHaveLength(1)
     expect(skills[0].category).toBe('Frontend')
     expect(skills[0].skills).toEqual(['React', 'Vue', 'Angular'])
@@ -599,7 +600,7 @@ email: test@test.com
 JavaScript, TypeScript, Python`
 
     const result = parseMarkdownContent(content)
-    const skills = result.sections[0].content as any[]
+    const skills = result.sections[0].content as SkillCategory[]
     expect(skills).toHaveLength(1)
     expect(skills[0].category).toBe('Programming')
     expect(skills[0].skills).toEqual(['JavaScript', 'TypeScript', 'Python'])
@@ -618,7 +619,7 @@ TypeScript
 Python`
 
     const result = parseMarkdownContent(content)
-    const skills = result.sections[0].content as any[]
+    const skills = result.sections[0].content as SkillCategory[]
     expect(skills).toHaveLength(1)
     expect(skills[0].category).toBe('Skills')
     expect(skills[0].skills).toEqual(['JavaScript', 'TypeScript', 'Python'])

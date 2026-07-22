@@ -69,7 +69,10 @@ function createFileFilter(options: UploadOptions) {
       return callback(new Error('Invalid filename'));
     }
 
-    // Check for potentially dangerous filenames
+    // Check for potentially dangerous filenames. The control-character range is
+    // the point of this pattern - stripping \x00-\x1f from an upload filename
+    // is what stops null-byte and terminal-escape tricks.
+    // eslint-disable-next-line no-control-regex
     const dangerousPattern = /[<>:"/\\|?*\x00-\x1f]/;
     if (dangerousPattern.test(file.originalname)) {
       return callback(new Error('Filename contains invalid characters'));
@@ -104,7 +107,7 @@ function createUploadMiddleware(options: UploadOptions) {
  * Error handling middleware for multer errors
  */
 export function handleUploadErrors() {
-  return (error: any, req: Request, res: Response, next: NextFunction) => {
+  return (error: unknown, req: Request, res: Response, next: NextFunction) => {
     if (error instanceof multer.MulterError) {
       let message: string;
       let statusCode = 400;
@@ -144,20 +147,21 @@ export function handleUploadErrors() {
     }
 
     // Handle custom file filter errors
-    if (error.message && typeof error.message === 'string') {
-      if (error.message.includes('File type not allowed') || 
-          error.message.includes('File extension not allowed')) {
+    const message = error instanceof Error ? error.message : undefined;
+    if (message) {
+      if (message.includes('File type not allowed') || 
+          message.includes('File extension not allowed')) {
         return res.status(415).json({
           error: 'INVALID_FILE_TYPE',
-          message: error.message
+          message
         });
       }
 
-      if (error.message.includes('Invalid filename') || 
-          error.message.includes('invalid characters')) {
+      if (message.includes('Invalid filename') || 
+          message.includes('invalid characters')) {
         return res.status(400).json({
           error: 'INVALID_FILENAME',
-          message: error.message
+          message
         });
       }
     }
@@ -188,7 +192,7 @@ export function convertFileFormat() {
   return (req: Request, res: Response, next: NextFunction) => {
     if (req.file) {
       // Convert single file
-      (req as any).uploadedFile = {
+      req.uploadedFile = {
         fieldname: req.file.fieldname,
         originalname: req.file.originalname,
         encoding: req.file.encoding,
@@ -200,7 +204,7 @@ export function convertFileFormat() {
 
     if (req.files && Array.isArray(req.files)) {
       // Convert file array
-      (req as any).uploadedFiles = req.files.map(file => ({
+      req.uploadedFiles = req.files.map(file => ({
         fieldname: file.fieldname,
         originalname: file.originalname,
         encoding: file.encoding,
@@ -321,6 +325,9 @@ export function logUpload() {
  * Type declarations for Express Request object extensions
  */
 declare global {
+  // Module augmentation of Express's own namespace is the supported way to add
+  // request properties; there is no ES-module equivalent for this.
+  // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Express {
     interface Request {
       uploadedFile?: UploadedFileInfo;

@@ -7,13 +7,13 @@
 import type { CVFrontmatter, CVSection, ParsedCVContent } from '../../../shared/types'
 
 // Type for skill category
-interface SkillCategory {
+export interface SkillCategory {
   category: string
   skills: (string | { name?: string; text?: string })[]
 }
 
 // Type for structured entry (job, education, project)
-interface StructuredEntry {
+export interface StructuredEntry {
   title: string
   company?: string
   date?: string

@@ -38,7 +38,7 @@ interface TextStyleControlProps {
 }
 
 export const TextStyleControl: React.FC<TextStyleControlProps> = ({
-  label,
+  label: _label,
   value,
   onChange,
   onChangeComplete,
@@ -97,7 +97,7 @@ export const TextStyleControl: React.FC<TextStyleControlProps> = ({
       <SelectControl
         label="Transform"
         value={value.textTransform || 'none'}
-        onChange={(val) => update({ textTransform: val as any })}
+        onChange={(val) => update({ textTransform: val as TextStyleConfig['textTransform'] })}
         options={[
           { value: 'none', label: 'None' },
           { value: 'uppercase', label: 'UPPERCASE' },
@@ -111,7 +111,7 @@ export const TextStyleControl: React.FC<TextStyleControlProps> = ({
         <SelectControl
           label="Alignment"
           value={value.alignment || 'left'}
-          onChange={(val) => update({ alignment: val as any })}
+          onChange={(val) => update({ alignment: val as TextStyleConfig['alignment'] })}
           options={[
             { value: 'left', label: 'Left' },
             { value: 'center', label: 'Center' },
@@ -144,7 +144,7 @@ export const TextStyleControl: React.FC<TextStyleControlProps> = ({
         <SelectControl
           label="Style"
           value={value.fontStyle || 'normal'}
-          onChange={(val) => update({ fontStyle: val as any })}
+          onChange={(val) => update({ fontStyle: val as TextStyleConfig['fontStyle'] })}
           options={[
             { value: 'normal', label: 'Normal' },
             { value: 'italic', label: 'Italic' },

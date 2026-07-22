@@ -335,6 +335,42 @@ generateCSSVariables(config) → CSS Variables
 
 ---
 
+## Page Numbers Are Drawn, Not Styled (v1.30.0)
+
+Page numbers are **not** produced by CSS. The obvious approach —
+`@page { @bottom-center { content: "Page " counter(page) ... } }` — silently does
+nothing, because Chromium has never implemented `@page` margin boxes and
+Puppeteer renders through Chromium. It also cannot honour a configurable format
+string, since `content` only composes counters.
+
+They are drawn onto the finished document with pdf-lib in
+`PDFGenerator.addPageNumbers` (`backend/src/lib/pdf-generator/index.ts`), which
+is the only place that reads `config.pdf.pageNumbers`. Consequences worth
+knowing:
+
+- Both PDF paths must call it. The overlay path (two-column) and
+  `generateSimplePDF` (Minimal/Clean) each post-process with pdf-lib.
+- Sizes cross a unit boundary. The config panel emits CSS lengths (`10px`,
+  `10mm`) but PDF user space is points, so every value goes through
+  `cssLengthToPoints`. Treating `10px` as 10pt silently over-sizes text by ~33%.
+- Weight maps to a font, not a number: `fontWeight >= 600` selects
+  `Helvetica-Bold`, since the standard PDF font set has two weights.
+- Colour resolves through `resolveSemanticColor` at full opacity, with alpha
+  passed separately to `drawText` — pdf-lib takes colour and opacity apart.
+
+## Profile Photo Visibility (v1.30.0)
+
+`components.profilePhoto.enabled` gates the portrait (some employers ask for
+CVs without one). `undefined` means enabled, so existing CVs are unaffected.
+
+Three render paths must honour it, and they are easy to miss individually:
+`generateTwoColumnBody` and `generateColumnHTML` in `shared/utils/layoutRenderer.ts`
+(both via the exported `isPhotoEnabled` helper), plus the JSX block in
+`CVPreview.tsx`. The single-column body has no photo.
+
+Two UI controls bind to this one field — Styles → Photo and Page → Page Layout —
+so toggling either updates the other with no syncing code.
+
 ## 🚀 Future Improvements
 
 1. **Full JSX replacement** - Replace remaining CVPreview JSX with shared renderer output

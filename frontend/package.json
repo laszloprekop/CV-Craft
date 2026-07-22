@@ -1,6 +1,6 @@
 {
   "name": "cv-craft-frontend",
-  "version": "1.29.4",
+  "version": "1.30.0",
   "type": "module",
   "description": "Frontend React app for CV Craft",
   "private": true,

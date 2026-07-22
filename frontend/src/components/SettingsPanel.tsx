@@ -10,7 +10,7 @@ interface SettingsPanelProps {
 }
 
 export const SettingsPanel: React.FC<SettingsPanelProps> = ({
-  template,
+  template: _template,
   settings,
   onChange,
   onClose

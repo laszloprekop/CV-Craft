@@ -155,6 +155,7 @@ export const DEFAULT_TEMPLATE_CONFIG: TemplateConfig = {
     },
     // Profile photo
     profilePhoto: {
+      enabled: true,
       size: '200px',
       borderRadius: '50%',
       border: 'none',

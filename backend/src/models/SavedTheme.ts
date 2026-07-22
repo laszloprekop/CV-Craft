@@ -6,6 +6,7 @@
 
 import Database from 'better-sqlite3';
 import type { TemplateConfig } from '../../../shared/types';
+import type { SqlParam } from './sqlTypes';
 
 export interface SavedThemeRow {
   id: string;
@@ -49,7 +50,11 @@ export class SavedThemeModel {
       throw new Error('Failed to create saved theme');
     }
 
-    return this.findById(data.id)!;
+    const created = this.findById(data.id);
+    if (!created) {
+      throw new Error(`Failed to read back saved theme ${data.id} after insert`);
+    }
+    return created;
   }
 
   findById(id: string): SavedThemeData | null {
@@ -74,7 +79,7 @@ export class SavedThemeModel {
 
   update(id: string, data: { name?: string; config?: TemplateConfig }): SavedThemeData {
     const fields: string[] = [];
-    const values: any[] = [];
+    const values: SqlParam[] = [];
 
     if (data.name !== undefined) {
       fields.push('name = ?');
@@ -103,7 +108,11 @@ export class SavedThemeModel {
       throw new Error('Saved theme not found');
     }
 
-    return this.findById(id)!;
+    const updated = this.findById(id);
+    if (!updated) {
+      throw new Error(`Failed to read back saved theme ${id} after update`);
+    }
+    return updated;
   }
 
   delete(id: string): void {

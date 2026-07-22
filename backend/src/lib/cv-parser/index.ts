@@ -66,10 +66,11 @@ export class CVParser {
       const locale = frontmatter.lang as string | undefined;
       const sections = this.extractSections(tree, locale);
 
-      // If no frontmatter provided, try to extract contact info from content
-      if (Object.keys(validatedFrontmatter).length === 0) {
-        validatedFrontmatter = this.extractContactFromContent(tree, validatedFrontmatter);
-      }
+      // Fill contact details from an H1 + contact block in the body. This runs
+      // even when frontmatter exists, because content before the first H2 is not
+      // emitted as a section - without this, a pasted contact block renders
+      // nowhere at all. Explicit frontmatter still wins field by field.
+      validatedFrontmatter = this.extractContactFromContent(tree, validatedFrontmatter);
 
       // Generate HTML with embedded styles (if config provided)
       let html: string | undefined;
@@ -427,7 +428,9 @@ export class CVParser {
         }
         
         // Extract location - look for location patterns after emoji or **📍**
-        const locationMatch = text.match(/(?:📍|location|address)[\s\*]*:?\s*([^,\n]+)/i);
+        // Runs to end of line, not to the first comma: "Lerum, Sverige" is one
+        // location, and hard line breaks already separate the contact entries.
+        const locationMatch = text.match(/(?:📍|location|address)[\s\*]*:?\s*([^\n]+)/i);
         if (locationMatch && !location) {
           location = locationMatch[1].trim();
         }
@@ -462,13 +465,23 @@ export class CVParser {
       ...frontmatter
     };
 
-    if (name) result.name = name;
-    if (email) result.email = email;
-    if (phone) result.phone = phone;
-    if (location) result.location = location;
-    if (website) result.website = website;
-    if (linkedin) result.linkedin = linkedin;
-    if (github) result.github = github;
+    // Only fill gaps: a field the author declared in frontmatter is authoritative.
+    const fill = (key: keyof CVFrontmatter, value: string) => {
+      const existing = result[key];
+      const isBlank = existing === undefined || existing === null ||
+        (typeof existing === 'string' && existing.trim() === '');
+      if (value && isBlank) {
+        (result as any)[key] = value;
+      }
+    };
+
+    fill('name', name);
+    fill('email', email);
+    fill('phone', phone);
+    fill('location', location);
+    fill('website', website);
+    fill('linkedin', linkedin);
+    fill('github', github);
 
     return result;
   }

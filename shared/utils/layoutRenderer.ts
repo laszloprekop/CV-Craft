@@ -28,6 +28,14 @@ import { renderContactInfo, CONTACT_ICONS } from './contactRenderer'
 import { renderProfilePhoto } from './photoRenderer'
 
 /**
+ * Whether the profile portrait should be rendered.
+ * Undefined means "not configured yet", which stays on for existing CVs.
+ */
+export function isPhotoEnabled(config: TemplateConfig): boolean {
+  return config.components?.profilePhoto?.enabled !== false
+}
+
+/**
  * Options for generating CV document HTML
  */
 export interface CVDocumentOptions {
@@ -327,18 +335,11 @@ export function generateCVCSS(
   css += getContactCSS()
   css += getNameHeaderCSS()
   css += getSemanticCSS()
+  // Page numbers are drawn onto the finished PDF with pdf-lib, not via CSS.
   css += getAllPaginationCSS({
     includePageMarkers,
     marginTop: marginTop || cssVariables['--page-margin-top'],
     marginBottom: marginBottom || cssVariables['--page-margin-bottom'],
-    pageNumbers: config.pdf?.pageNumbers ? {
-      enabled: config.pdf.pageNumbers.enabled,
-      position: config.pdf.pageNumbers.position,
-      format: config.pdf.pageNumbers.format,
-      fontSize: cssVariables['--page-number-font-size'],
-      fontWeight: config.pdf.pageNumbers.fontWeight,
-      color: cssVariables['--page-number-color'],
-    } : undefined,
   })
 
   if (includeTwoColumn) {
@@ -379,8 +380,10 @@ export function generateTwoColumnBody(
 ): string {
   const { photoDataUri, pagination = false } = options
 
-  // Photo
-  const photoHTML = renderProfilePhoto(photoDataUri, frontmatter.photo)
+  // Photo - omitted entirely when the portrait is turned off
+  const photoHTML = isPhotoEnabled(config)
+    ? renderProfilePhoto(photoDataUri, frontmatter.photo)
+    : ''
 
   // Contact info
   const contactHTML = renderContactInfo(frontmatter, {
@@ -572,8 +575,10 @@ export function generateColumnHTML(options: ColumnRenderOptions): string {
   // Generate content
   let contentHTML = ''
   if (column === 'sidebar') {
-    // Photo
-    contentHTML += renderProfilePhoto(photoDataUri, frontmatter.photo)
+    // Photo - omitted entirely when the portrait is turned off
+    if (isPhotoEnabled(config)) {
+      contentHTML += renderProfilePhoto(photoDataUri, frontmatter.photo)
+    }
 
     // Contact info
     contentHTML += renderContactInfo(frontmatter, {

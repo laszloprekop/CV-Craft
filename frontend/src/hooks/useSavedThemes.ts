@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { savedThemeApi } from '../services/api'
 import type { SavedTheme, TemplateConfig } from '../../../shared/types'
+import { getErrorMessage } from '../utils/apiError'
 
 export function useSavedThemes() {
   const [themes, setThemes] = useState<SavedTheme[]>([])
@@ -30,8 +31,8 @@ export function useSavedThemes() {
       const response = await savedThemeApi.create({ name, config, template_id: templateId })
       setThemes(prev => [response.data, ...prev])
       return response.data
-    } catch (err: any) {
-      const msg = err.response?.data?.message || err.message || 'Failed to save theme'
+    } catch (err) {
+      const msg = getErrorMessage(err, 'Failed to save theme')
       setError(msg)
       return null
     }
@@ -43,8 +44,8 @@ export function useSavedThemes() {
       const response = await savedThemeApi.update(id, data)
       setThemes(prev => prev.map(t => t.id === id ? response.data : t))
       return response.data
-    } catch (err: any) {
-      const msg = err.response?.data?.message || err.message || 'Failed to update theme'
+    } catch (err) {
+      const msg = getErrorMessage(err, 'Failed to update theme')
       setError(msg)
       return null
     }
@@ -56,8 +57,8 @@ export function useSavedThemes() {
       await savedThemeApi.delete(id)
       setThemes(prev => prev.filter(t => t.id !== id))
       return true
-    } catch (err: any) {
-      const msg = err.response?.data?.message || err.message || 'Failed to delete theme'
+    } catch (err) {
+      const msg = getErrorMessage(err, 'Failed to delete theme')
       setError(msg)
       return false
     }

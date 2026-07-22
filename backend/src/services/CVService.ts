@@ -7,7 +7,7 @@
 import { CVInstanceModel, CreateCVInstanceData, UpdateCVInstanceData, ListCVInstancesOptions } from '../models/CVInstance';
 import { CVParser, parseCV, validateCVContent } from '../lib/cv-parser';
 import { getPDFGenerator } from '../lib/pdf-generator';
-import type { CVInstance, ParsedCVContent, TemplateSettings, TemplateConfig, Template } from '../../../shared/types';
+import type { CVInstance, ParsedCVContent, TemplateSettings, TemplateConfig } from '../../../shared/types';
 import path from 'path';
 import fs from 'fs/promises';
 import { TemplateModel } from '../models/Template';
@@ -28,7 +28,7 @@ export interface UpdateCVServiceData {
   config?: TemplateConfig;
   settings?: TemplateSettings;
   status?: 'active' | 'archived';
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 /**
@@ -137,10 +137,17 @@ export class CVService {
       status: data.status
     };
 
-    // If content is being updated, re-parse it
-    if (data.content !== undefined) {
+    // Re-parse when the content changes, and also when only the config changes:
+    // parseCV bakes the config into parsed_content.html, so skipping the config
+    // case leaves the stored HTML rendered with the previous theme.
+    const contentChanged = data.content !== undefined;
+    const configChanged = data.config !== undefined;
+
+    if (contentChanged || configChanged) {
+      const contentToParse = data.content !== undefined ? data.content : existingCV.content;
+
       // Validate new content
-      const validation = validateCVContent(data.content);
+      const validation = validateCVContent(contentToParse);
       if (!validation.valid) {
         throw new CVServiceError(
           `Invalid CV content: ${validation.errors.join(', ')}`,
@@ -161,7 +168,7 @@ export class CVService {
       // Parse new content with config for HTML generation
       let parsedContent: ParsedCVContent;
       try {
-        parsedContent = await parseCV(data.content, {}, finalConfig);
+        parsedContent = await parseCV(contentToParse, {}, finalConfig);
       } catch (error) {
         throw new CVServiceError(
           `Failed to parse CV content: ${error instanceof Error ? error.message : 'Unknown error'}`,
@@ -169,7 +176,9 @@ export class CVService {
         );
       }
 
-      updateData.content = data.content;
+      if (contentChanged) {
+        updateData.content = data.content;
+      }
       updateData.parsed_content = parsedContent;
 
       // Update metadata
@@ -178,8 +187,9 @@ export class CVService {
         parsed_at: new Date().toISOString(),
         sections_count: parsedContent.sections.length,
         has_photo: !!parsedContent.frontmatter.photo,
-        word_count: this.calculateWordCount(data.content),
-        last_content_update: new Date().toISOString()
+        word_count: this.calculateWordCount(contentToParse),
+        // Only a content edit counts as a content update
+        ...(contentChanged ? { last_content_update: new Date().toISOString() } : {})
       };
     }
 
@@ -352,8 +362,10 @@ export class CVService {
       ? `${safeName}_CV.pdf`
       : `${safeName}_CV_web.zip`;
 
-    // Ensure exports directory exists
-    const exportsDir = path.join(process.cwd(), 'exports');
+    // Scope the file by CV id. The filename alone is derived from the person's
+    // name, so two CVs for the same person would otherwise overwrite each
+    // other - and a preview would clobber a download in progress.
+    const exportsDir = path.join(process.cwd(), 'exports', cv.id);
     await fs.mkdir(exportsDir, { recursive: true });
 
     const outputPath = path.join(exportsDir, filename);
@@ -374,7 +386,7 @@ export class CVService {
 
       return {
         filename: result.filename,
-        file_path: `/exports/${result.filename}`,
+        file_path: `/exports/${cv.id}/${result.filename}`,
         size: result.size,
         generated_at: new Date().toISOString()
       };

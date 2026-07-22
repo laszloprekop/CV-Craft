@@ -28,7 +28,7 @@ interface EditorLeftHeaderProps {
 }
 
 export const EditorLeftHeader: React.FC<EditorLeftHeaderProps> = ({
-  cvName,
+  cvName: _cvName,
   onImportMarkdown,
   onExportMarkdown,
   onPhotoUpload,

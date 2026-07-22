@@ -16,6 +16,56 @@ import { CVParser, parseCV, validateCVContent, CVParserError } from '../../src/l
 import { DEFAULT_TEMPLATE_CONFIG } from '../../../shared/types/defaultTemplateConfig';
 
 describe('CV Parser - Extended Tests', () => {
+  // ── Contact block in the body ─────────────────────────────────────────────
+  // Content before the first H2 is not emitted as a section, so an H1 +
+  // contact block written in the body only reaches the render via frontmatter.
+
+  describe('contact extraction from an H1 contact block', () => {
+    const contactBlock = `# Laszlo Prekop
+
+**📧** laszlo.prekop@gmail.com
+**📱** +46 723 978 589
+**🔗** [linkedin.com/in/laszlo-prekop](https://linkedin.com/in/laszlo-prekop)
+**📍** Lerum, Sverige
+
+## Professional Profile
+
+Some text.
+`;
+
+    it('extracts contact details when there is no frontmatter', async () => {
+      const parsed = await parseCV(contactBlock);
+
+      expect(parsed.frontmatter.name).toBe('Laszlo Prekop');
+      expect(parsed.frontmatter.email).toBe('laszlo.prekop@gmail.com');
+      expect(parsed.frontmatter.phone).toBe('+46 723 978 589');
+    });
+
+    it('keeps a multi-part location intact rather than cutting at the comma', async () => {
+      const parsed = await parseCV(contactBlock);
+
+      expect(parsed.frontmatter.location).toBe('Lerum, Sverige');
+    });
+
+    it('fills fields the frontmatter omits instead of dropping the block', async () => {
+      const withPartialFrontmatter = `---
+name: Laszlo Prekop
+email: explicit@example.com
+---
+
+${contactBlock}`;
+
+      const parsed = await parseCV(withPartialFrontmatter);
+
+      // Declared in frontmatter, so the body must not override it
+      expect(parsed.frontmatter.email).toBe('explicit@example.com');
+      // Absent from frontmatter, so it comes from the body block
+      expect(parsed.frontmatter.phone).toBe('+46 723 978 589');
+      expect(parsed.frontmatter.location).toBe('Lerum, Sverige');
+      expect(parsed.frontmatter.linkedin).toContain('linkedin.com/in/laszlo-prekop');
+    });
+  });
+
   // ── Special Characters & Unicode ──────────────────────────────────────────
 
   describe('special characters and unicode', () => {

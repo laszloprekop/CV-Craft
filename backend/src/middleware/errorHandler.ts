@@ -11,7 +11,7 @@ import { CVServiceError } from '../services/CVService';
 export interface ApiError {
   error: string;
   message: string;
-  details?: Record<string, any>;
+  details?: Record<string, unknown>;
   stack?: string;
 }
 
@@ -22,7 +22,7 @@ export function errorHandler(
   err: Error,
   req: Request,
   res: Response,
-  next: NextFunction
+  _next: NextFunction
 ): void {
   // Log error details - omit req.body to avoid logging sensitive user data
   console.error('Error occurred:', {
@@ -104,7 +104,7 @@ export function notFoundHandler(req: Request, res: Response): void {
  * Async error wrapper for route handlers
  */
 export function asyncHandler(
-  fn: (req: Request, res: Response, next: NextFunction) => Promise<any>
+  fn: (req: Request, res: Response, next: NextFunction) => Promise<unknown>
 ) {
   return (req: Request, res: Response, next: NextFunction) => {
     Promise.resolve(fn(req, res, next)).catch(next);

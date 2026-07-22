@@ -106,9 +106,13 @@ export class CVCraftApp {
       lastModified: true
     }));
 
-    // Static file serving for exports (PDFs and web packages)
+    // Static file serving for exports (PDFs and web packages).
+    // An export path is stable per CV and its contents are regenerated on every
+    // export, so it must not be cached: a 1h max-age served the previous PDF
+    // after a styling change. maxAge 0 still revalidates via ETag, so an
+    // unchanged file is a cheap 304 rather than a re-download.
     this.app.use('/exports', express.static('./exports', {
-      maxAge: '1h', // Cache exports for 1 hour
+      maxAge: 0,
       etag: true,
       lastModified: true
     }));

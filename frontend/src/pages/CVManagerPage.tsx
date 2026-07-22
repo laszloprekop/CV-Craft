@@ -17,6 +17,7 @@ import {
 } from '@phosphor-icons/react'
 import type { CVInstance, Template } from '../../../shared/types'
 import { SAMPLE_CV_ID } from '../hooks/useCVEditor'
+import { isClientError, getErrorMessage } from '../utils/apiError'
 
 type SortKey = 'name' | 'updated_at' | 'created_at' | 'sections_count' | 'word_count' | 'status'
 type SortDir = 'asc' | 'desc'
@@ -38,6 +39,9 @@ export const CVManagerPage: React.FC = () => {
 
   useEffect(() => {
     loadData()
+    // Mount-only fetch; loadData is redefined every render so depending on it
+    // would reload the list continuously.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const loadData = async (retries = 5) => {
@@ -53,14 +57,12 @@ export const CVManagerPage: React.FC = () => {
       setCvs(cvsResponse.data)
       setTemplates(templatesResponse.data)
       setLoading(false)
-    } catch (err: any) {
-      const status = err?.response?.status
-      const isClientError = status && status >= 400 && status < 500
-      if (retries > 0 && !isClientError) {
+    } catch (err) {
+      if (retries > 0 && !isClientError(err)) {
         await new Promise(resolve => setTimeout(resolve, 1000))
         return loadData(retries - 1)
       }
-      setError(err instanceof Error ? err.message : 'Failed to load data')
+      setError(getErrorMessage(err, 'Failed to load data'))
       setLoading(false)
     }
   }
@@ -131,7 +133,7 @@ export const CVManagerPage: React.FC = () => {
 
       navigate(`/editor/${response.data.id}`)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to import file')
+      setError(getErrorMessage(err, 'Failed to import file'))
     }
   }
 
@@ -156,7 +158,7 @@ export const CVManagerPage: React.FC = () => {
       const response = await cvApi.duplicate(cv.id, generateDuplicateName(cv.name))
       navigate(`/editor/${response.data.id}`)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to duplicate CV')
+      setError(getErrorMessage(err, 'Failed to duplicate CV'))
     }
   }
 
@@ -170,11 +172,11 @@ export const CVManagerPage: React.FC = () => {
     const name = renameValue.trim()
     if (!name || !renamingId) return
     try {
-      await cvApi.update(renamingId, { name } as any)
+      await cvApi.update(renamingId, { name })
       setCvs(prev => prev.map(cv => cv.id === renamingId ? { ...cv, name } : cv))
       setRenamingId(null)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to rename CV')
+      setError(getErrorMessage(err, 'Failed to rename CV'))
     }
   }
 
@@ -189,7 +191,7 @@ export const CVManagerPage: React.FC = () => {
       setCvs(prev => prev.filter(cv => cv.id !== id))
       setConfirmDeleteId(null)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to delete CV')
+      setError(getErrorMessage(err, 'Failed to delete CV'))
       setConfirmDeleteId(null)
     }
   }

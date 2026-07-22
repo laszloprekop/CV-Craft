@@ -12,6 +12,7 @@ vi.mock('../../services/api', () => ({
 }))
 
 import { assetApi } from '../../services/api'
+import type { Asset } from '../../../../shared/types'
 
 const mockGet = vi.mocked(assetApi.get)
 const mockGetFileUrl = vi.mocked(assetApi.getFileUrl)
@@ -46,8 +47,8 @@ describe('useProfilePhoto', () => {
   })
 
   it('loads photo URL when cv has photo_asset_id', async () => {
-    const mockAsset = { id: 'asset-1', filename: 'photo.jpg' }
-    mockGet.mockResolvedValue({ data: mockAsset } as any)
+    const mockAsset = { id: 'asset-1', filename: 'photo.jpg' } as Asset
+    mockGet.mockResolvedValue({ data: mockAsset, success: true })
     mockGetFileUrl.mockReturnValue('/api/assets/asset-1/file')
 
     const cv = createCv({ photo_asset_id: 'asset-1' })
@@ -62,8 +63,8 @@ describe('useProfilePhoto', () => {
   })
 
   it('resets to null when photo_asset_id changes to undefined', async () => {
-    const mockAsset = { id: 'asset-1', filename: 'photo.jpg' }
-    mockGet.mockResolvedValue({ data: mockAsset } as any)
+    const mockAsset = { id: 'asset-1', filename: 'photo.jpg' } as Asset
+    mockGet.mockResolvedValue({ data: mockAsset, success: true })
     mockGetFileUrl.mockReturnValue('/api/assets/asset-1/file')
 
     const cv = createCv({ photo_asset_id: 'asset-1' })

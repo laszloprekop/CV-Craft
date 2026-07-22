@@ -7,11 +7,8 @@
 import React, { useState, useCallback, useTransition, useEffect, useRef, useMemo } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import debounce from 'lodash.debounce'
-import { Editor } from '@monaco-editor/react'
+import { Editor, type OnMount } from '@monaco-editor/react'
 import { CVPreview } from '../components/CVPreview'
-import { TemplateSelector } from '../components/TemplateSelector'
-import { AssetUploader } from '../components/AssetUploader'
-import { ExportPanel } from '../components/ExportPanel'
 import { ErrorMessage } from '../components/ErrorMessage'
 import { LoadingSpinner } from '../components/LoadingSpinner'
 import { EditorLeftHeader } from '../components/EditorLeftHeader'
@@ -26,18 +23,31 @@ import {
   EditorPane,
   PreviewPane,
   ResizeHandle,
-  EditorHeader,
-  HeaderButton,
-  HeaderTitle,
-  SaveStatus,
-  ToolbarContainer
+  HeaderButton
 } from '../styles/EditorStyles'
-import type { CVInstance, Template, TemplateSettings, TemplateConfig, SavedTheme } from '../../../shared/types'
+import type { TemplateSettings, TemplateConfig, SavedTheme } from '../../../shared/types'
 import { DEFAULT_TEMPLATE_CONFIG } from '../../../shared/types'
 
-export const CVEditorPage: React.FC = () => {
-  const instanceId = React.useRef(Math.random().toString(36).substr(2, 9))
+// How long typing has to settle before the content is committed to the server.
+// Each commit costs a markdown re-parse plus a DB write, so this trades preview
+// latency against write volume.
+const CONTENT_SAVE_DEBOUNCE_MS = 800
 
+// Deep merge helper for nested config objects. Pure, so it lives at module
+// scope - defining it in the component body gave it a new identity every render
+// and invalidated every useCallback that depends on it.
+const deepMergeConfig = (prev: TemplateConfig, partial: Partial<TemplateConfig>): TemplateConfig => {
+  return {
+    colors: partial.colors ? { ...prev.colors, ...partial.colors } : prev.colors,
+    typography: partial.typography ? { ...prev.typography, ...partial.typography } : prev.typography,
+    layout: partial.layout ? { ...prev.layout, ...partial.layout } : prev.layout,
+    components: partial.components ? { ...prev.components, ...partial.components } : prev.components,
+    pdf: partial.pdf ? { ...prev.pdf, ...partial.pdf } : prev.pdf,
+    advanced: partial.advanced ? { ...prev.advanced, ...partial.advanced } : prev.advanced,
+  }
+}
+
+export const CVEditorPage: React.FC = () => {
   const { cvId } = useParams<{ cvId?: string }>()
   const navigate = useNavigate()
 
@@ -72,6 +82,8 @@ export const CVEditorPage: React.FC = () => {
     config: savedConfig,
     loading,
     error,
+    actionError,
+    dismissActionError,
     saveStatus,
     updateContent,
     updateSettings,
@@ -111,23 +123,11 @@ export const CVEditorPage: React.FC = () => {
     try {
       await cvApi.update(cv.id, {
         metadata: { ...cv.metadata, active_theme_id: themeId }
-      } as any)
+      })
     } catch (error) {
       console.error('Failed to persist theme ID:', error)
     }
   }, [cv])
-
-  // Deep merge helper for nested config objects
-  const deepMergeConfig = (prev: TemplateConfig, partial: Partial<TemplateConfig>): TemplateConfig => {
-    return {
-      colors: partial.colors ? { ...prev.colors, ...partial.colors } : prev.colors,
-      typography: partial.typography ? { ...prev.typography, ...partial.typography } : prev.typography,
-      layout: partial.layout ? { ...prev.layout, ...partial.layout } : prev.layout,
-      components: partial.components ? { ...prev.components, ...partial.components } : prev.components,
-      pdf: partial.pdf ? { ...prev.pdf, ...partial.pdf } : prev.pdf,
-      advanced: partial.advanced ? { ...prev.advanced, ...partial.advanced } : prev.advanced,
-    }
-  }
 
   // Template config state - for live preview updates only
   // Tracks temporary changes before they're saved to database
@@ -139,15 +139,22 @@ export const CVEditorPage: React.FC = () => {
     ? deepMergeConfig(baseConfig, liveConfigChanges)
     : baseConfig
 
-  // Debounced preview update (300ms as specified in SDD)
-  // Use a ref to avoid recreating the debounce when updateContent changes
+  // Debounced content commit. Saving is what refreshes the preview: the
+  // backend re-parses the markdown and CVPreview renders from parsed_content,
+  // so the preview and the exported PDF always come from the same renderer.
+  // Use refs to avoid recreating the debounce when the callbacks change.
   const updateContentRef = useRef(updateContent)
   updateContentRef.current = updateContent
+  const saveCvRef = useRef(saveCv)
+  saveCvRef.current = saveCv
 
   const debouncedPreviewUpdate = useMemo(
     () => debounce((newContent: string) => {
+      // updateContent sets the hook's content ref synchronously, so the save
+      // below picks up this exact text rather than the previous keystroke's.
       updateContentRef.current(newContent)
-    }, 300),
+      void saveCvRef.current()
+    }, CONTENT_SAVE_DEBOUNCE_MS),
     [] // Stable - never recreated
   )
 
@@ -155,12 +162,53 @@ export const CVEditorPage: React.FC = () => {
     return () => { debouncedPreviewUpdate.cancel() }
   }, [debouncedPreviewUpdate])
 
+  // The editor is deliberately uncontrolled. Feeding the debounced `content`
+  // state back in as a `value` prop makes Monaco replace the whole document
+  // (executeEdits over the full range with forceMoveMarkers), which drops the
+  // caret at EOF whenever the debounce lands behind what has been typed since.
+  const editorRef = useRef<Parameters<OnMount>[0] | null>(null)
+
+  // Text the editor itself last produced. Lets us tell edits that originated in
+  // the editor apart from content loaded from elsewhere (CV load, import).
+  const editorTextRef = useRef(content)
+
+  // Set while we push loaded content in, so the resulting change event is not
+  // mistaken for typing and saved straight back to the server it came from.
+  const applyingExternalRef = useRef(false)
+
+  const handleEditorMount = useCallback<OnMount>((editor) => {
+    editorRef.current = editor
+    editorTextRef.current = editor.getValue()
+  }, [])
+
   // Handle content changes from Monaco editor
   const handleContentChange = useCallback((value: string | undefined) => {
-    if (value !== undefined) {
-      debouncedPreviewUpdate(value)
-    }
+    if (value === undefined) return
+    editorTextRef.current = value
+    if (applyingExternalRef.current) return
+    debouncedPreviewUpdate(value)
   }, [debouncedPreviewUpdate])
+
+  // Push content into the editor only when it changed outside the editor.
+  // The debounce always trails with the newest text, so content that came from
+  // typing already matches editorTextRef and is skipped here.
+  useEffect(() => {
+    const editor = editorRef.current
+    if (!editor || content === editorTextRef.current) return
+    // A disposed editor (pane toggled, CV switched) has no model; the remount
+    // picks the new content up via defaultValue instead.
+    if (!editor.getModel()) return
+
+    // Drop any keystrokes queued against the text we are about to replace.
+    debouncedPreviewUpdate.cancel()
+    editorTextRef.current = content
+    applyingExternalRef.current = true
+    try {
+      editor.setValue(content)
+    } finally {
+      applyingExternalRef.current = false
+    }
+  }, [content, debouncedPreviewUpdate])
 
   // Handle template selection
   const handleTemplateChange = useCallback(async (templateId: string) => {
@@ -193,7 +241,7 @@ export const CVEditorPage: React.FC = () => {
     await saveCv(updated)
     // Clear live changes after save
     setLiveConfigChanges(null)
-  }, [saveConfig, saveCv, baseConfig, deepMergeConfig])
+  }, [saveConfig, saveCv, baseConfig])
 
   // Theme handlers
   const handleLoadTheme = useCallback(async (theme: SavedTheme) => {
@@ -238,7 +286,7 @@ export const CVEditorPage: React.FC = () => {
   }, [saveConfig, saveCv, persistThemeId])
 
   // New header handlers
-  const handleImportMarkdown = useCallback((content: string, filename: string) => {
+  const handleImportMarkdown = useCallback((content: string, _filename: string) => {
     updateContent(content)
     // Auto-save imported content
     setTimeout(() => saveCv(), 500)
@@ -341,17 +389,6 @@ export const CVEditorPage: React.FC = () => {
     return () => { resizeCleanupRef.current?.() }
   }, [])
 
-  // Handle file import
-  const handleImportFile = useCallback(async (file: File) => {
-    try {
-      const content = await file.text()
-      updateContent(content)
-      saveCv()
-    } catch (error) {
-      console.error('Failed to import file:', error)
-    }
-  }, [updateContent, saveCv])
-
   // Handle asset upload
   const handleAssetUpload = useCallback(async (file: File) => {
     if (!cv) return
@@ -396,7 +433,7 @@ export const CVEditorPage: React.FC = () => {
   const handlePhotoSelect = useCallback(async (assetId: string | null) => {
     if (!cv) return
     try {
-      await cvApi.update(cv.id, { photo_asset_id: assetId } as any)
+      await cvApi.update(cv.id, { photo_asset_id: assetId })
       await reloadCv()
     } catch (error) {
       console.error('Failed to update photo:', error)
@@ -414,7 +451,9 @@ export const CVEditorPage: React.FC = () => {
     )
   }
 
-  // Error state
+  // Fatal error state. Only reached when the CV could not be loaded at all —
+  // a failed save or export must never unmount the editor, or the unsaved work
+  // inside it goes with it.
   if (error) {
     return (
       <EditorContainer>
@@ -449,6 +488,29 @@ export const CVEditorPage: React.FC = () => {
 
   return (
     <EditorContainer>
+      {/* Recoverable save/export failure - the editor stays usable underneath */}
+      {actionError && (
+        <div
+          role="alert"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+            padding: '8px 12px',
+            backgroundColor: '#fef2f2',
+            borderBottom: '1px solid #fecaca',
+            color: '#991b1b',
+            fontSize: '13px'
+          }}
+        >
+          <span style={{ flex: 1 }}>{actionError}</span>
+          <HeaderButton onClick={() => saveCv()}>Retry save</HeaderButton>
+          <HeaderButton onClick={dismissActionError} aria-label="Dismiss error">
+            Dismiss
+          </HeaderButton>
+        </div>
+      )}
+
       {/* Dual-pane layout with individual headers */}
       <div style={{
         display: 'flex',
@@ -477,8 +539,9 @@ export const CVEditorPage: React.FC = () => {
               <Editor
                 height="calc(100% - 44px)" // Account for header height
                 defaultLanguage="markdown"
-                value={content}
+                defaultValue={content}
                 onChange={handleContentChange}
+                onMount={handleEditorMount}
                 theme="vs-light"
                 options={{
                   minimap: { enabled: false },

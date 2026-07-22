@@ -2,6 +2,38 @@
 
 All notable changes to CV-Craft will be documented in this file.
 
+## [1.30.0] - 2026-07-22
+
+### Added
+- **Show Photo toggle** — the profile portrait can be turned off (`components.profilePhoto.enabled`), since some employers ask for CVs without one. Exposed in two places that bind to the same field, so toggling either updates the other: Styles → Photo → Visibility, and Page → Page Layout. Honoured by the web preview and both PDF render paths
+- **Page number format control** — the PDF generator already substituted `{page}`/`{total}`, but nothing in the UI could set the format string. Added a Style picker (`Page 1 of 3`, `1 / 3`, `- 1 -`, …) under Styles → Page #
+
+### Fixed
+- **Editor caret jumped to end of file while typing** — the Monaco editor was controlled, with debounced state fed back as `value`. `@monaco-editor/react` responds to a `value` that differs from the model by replacing the whole document (`executeEdits` over the full range with `forceMoveMarkers: true`), which drags the caret to EOF whenever the debounce lands behind what was typed since, and pushes an undo stop per debounce tick. The editor is now uncontrolled: `defaultValue` plus an effect that pushes content in via `setValue` only when it came from outside the editor
+- **A failed save destroyed unsaved work** — `saveCv` and `exportCv` wrote to the same `error` state as a failed CV load, and the editor page unmounted itself whenever `error` was set. Breaking the YAML frontmatter mid-edit was enough to replace the editor with a full-screen "Failed to load CV" whose only action was a reload. Load errors and recoverable action errors are now separate; save/export failures show a dismissible banner with a retry above a still-usable editor
+- **Contact block written in the CV body rendered nowhere** — content before the first `##` is not emitted as a section, so an H1 + contact block only reaches the render through frontmatter. Extraction was gated on frontmatter being *completely* empty, so a CV with any frontmatter (`name`, `lang`) silently dropped the pasted email/phone/LinkedIn/GitHub/location. Extraction now always runs and fills only the fields frontmatter omits; explicitly declared fields still win
+- **Multi-part locations truncated** — `Lerum, Sverige` became `Lerum`, because the location pattern stopped at the first comma. It now runs to end of line
+- **Page number styling was mostly inert** — font weight and colour were ignored entirely (colour was hardcoded to `colors.text.secondary`), `10px` was read as 10 *points*, and a margin picked in `px` was interpreted as mm. All now resolve through a shared `cssLengthToPoints` and `resolveSemanticColor`, with opacity passed to pdf-lib separately
+- **Minimal/Clean templates never drew page numbers** and reported a page count estimated as `fileSize / 30000`. `generateSimplePDF` now post-processes with pdf-lib, so it gets page numbers and a real page count, and it honours the configured page margins instead of a hardcoded 20/15mm box
+- **Exported PDFs were served stale for an hour** — `/exports` used `maxAge: '1h'` over a filename derived only from the person's name, so re-exporting after a styling change returned the cached previous PDF, and two CVs for the same person overwrote each other. Exports are now scoped under `exports/<cvId>/` and served with `maxAge: 0` (ETag still gives cheap 304s)
+- **Config-only saves left stale HTML** — `parseCV` bakes the config into `parsed_content.html`, but `CVService.update` only re-parsed when the content changed, so a theme change left the previous theme's HTML stored
+- **`/health` reported every database as corrupt** — better-sqlite3 returns `[{ integrity_check: 'ok' }]`, and the check compared that row object against the string `'ok'`
+- **Preview timeout contradicted itself** — a 30s client-side timer reported failure on renders the 120s request would have completed; the request's own timeout now drives it
+- **Sample-CV duplication could wedge the editor** — `duplicatingRef` was only cleared on success, so one failed duplicate left every later attempt returning early on the loading spinner
+- **Import saved the pre-import content** — `handleImportFile`/`handleImportMarkdown` called `updateContent` then `saveCv` in the same tick, and `saveCv` read `content` from a stale closure. It now reads from a ref
+- **Overlapping saves were silently dropped** — a save requested while one was in flight returned early and was lost. It is now queued and re-run, which matters much more now that saves fire while typing
+
+### Changed
+- **Typing now refreshes the preview.** Content is committed 800ms after typing settles (`CONTENT_SAVE_DEBOUNCE_MS`), the backend re-parses, and the preview renders from `parsed_content`. Previously the preview only updated on the 30s autosave, Ctrl+S, or a config change — CLAUDE.md documented the debounced-save flow, but the code never wired the save
+- **Lint is clean in both packages** (181 problems → 0). Beyond mechanical cleanup, real typing was added rather than blanket suppressions: per-table row interfaces in the model layer (`backend/src/models/sqlTypes.ts`), a `CVUpdatePayload` mirroring the backend's accepted fields, a typed `CVMetadata`, and a shared `frontend/src/utils/apiError.ts` for reading axios errors caught as `unknown`
+- Deleted dead code: the ~105-line unused `DEFAULT_CV_CONTENT`, an unreferenced `handleImportFile`, and the inert `@page` page-number CSS
+
+### Technical Insights
+- **Never pass debounced state back into Monaco as `value`.** The library's controlled path is a full-document `executeEdits` with `forceMoveMarkers: true` — any lag between state and model becomes a caret jump to EOF. Uncontrolled + imperative `setValue` for genuinely external changes is the only stable shape
+- **A recoverable failure must not share state with a fatal one.** One `error` field serving both load and save is why a transient 400 could discard an editor full of unsaved work
+- **Chromium does not implement `@page` margin boxes.** CSS that looks correct produces no output and no warning; anything that must land on a finished PDF page has to be drawn onto it
+- **`any` hides nullability bugs.** Introducing row types surfaced three columns that are nullable in SQLite but declared optional (`string | undefined`) in the domain type — `null` was being returned where the contract promised absence
+
 ## [1.29.4] - 2026-07-22
 
 ### Changed

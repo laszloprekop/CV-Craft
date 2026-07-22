@@ -5,7 +5,23 @@
  */
 
 import axios from 'axios'
-import type { CVInstance, Template, Asset, Export, TemplateSettings, TemplateConfig, SavedTheme } from '../../../shared/types'
+import type { CVInstance, Template, Asset, Export, TemplateSettings, TemplateConfig, SavedTheme, CVMetadata } from '../../../shared/types'
+
+/**
+ * Fields PUT /api/cvs/:id accepts. Mirrors the backend's UpdateCVServiceData -
+ * notably photo_asset_id accepts null to unlink a portrait, which is why this
+ * is not just Partial<CVInstance>.
+ */
+export interface CVUpdatePayload {
+  name?: string
+  content?: string
+  template_id?: string
+  photo_asset_id?: string | null
+  config?: TemplateConfig
+  settings?: TemplateSettings
+  status?: 'active' | 'archived'
+  metadata?: CVMetadata
+}
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || '/api'
 
@@ -68,7 +84,7 @@ export const cvApi = {
     return response.data
   },
 
-  async update(id: string, data: Partial<CVInstance>): Promise<ApiResponse<CVInstance>> {
+  async update(id: string, data: CVUpdatePayload): Promise<ApiResponse<CVInstance>> {
     const response = await api.put(`/cvs/${id}`, data)
     return response.data
   },
@@ -197,7 +213,7 @@ export const assetApi = {
   async update(id: string, data: {
     filename?: string
     usage_context?: string
-    metadata?: Record<string, any>
+    metadata?: Record<string, unknown>
   }): Promise<ApiResponse<Asset>> {
     const response = await api.put(`/assets/${id}`, data)
     return response.data
@@ -261,7 +277,7 @@ export const exportApi = {
     return response.data
   },
 
-  getDownloadUrl(exportRecord: any): string {
+  getDownloadUrl(exportRecord: { file_path: string }): string {
     // The backend returns the file_path directly, so we can construct a download URL
     const base = API_BASE_URL.replace('/api', '')
     const path = exportRecord.file_path.replace(/^\//, '')

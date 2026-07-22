@@ -318,7 +318,11 @@ export class TemplateService {
     return css.trim();
   }
 
-  private validateSettingValue(key: string, value: any, property: any): void {
+  private validateSettingValue(
+    key: string,
+    value: unknown,
+    property: { type?: string; enum?: unknown[] }
+  ): void {
     const expectedType = property.type;
     const actualType = typeof value;
 

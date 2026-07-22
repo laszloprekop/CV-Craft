@@ -76,7 +76,7 @@ export const EditorRightHeader: React.FC<EditorRightHeaderProps> = ({
   onZoomIn,
   onZoomOut,
   onPDFExport,
-  onWebExport,
+  onWebExport: _onWebExport,
   onSave,
   onToggleEditor,
   onToggleConfig
@@ -228,7 +228,7 @@ export const EditorRightHeader: React.FC<EditorRightHeaderProps> = ({
                       ) : confirmDeleteId === theme.id ? (
                         /* Delete confirmation */
                         <div className="flex items-center gap-1 flex-1">
-                          <span className="flex-1 text-error">Delete "{theme.name}"?</span>
+                          <span className="flex-1 text-error">Delete &quot;{theme.name}&quot;?</span>
                           <button
                             onClick={() => handleDelete(theme.id)}
                             className="px-1.5 py-0.5 text-xs bg-error text-text-inverse rounded hover:opacity-90"
@@ -294,7 +294,7 @@ export const EditorRightHeader: React.FC<EditorRightHeaderProps> = ({
                   className="w-full flex items-center gap-2 px-3 py-2 text-xs text-left hover:bg-background transition-colors text-primary"
                 >
                   <FloppyDisk size={14} weight="bold" />
-                  <span>Update "{activeTheme.name}"</span>
+                  <span>Update &quot;{activeTheme.name}&quot;</span>
                 </button>
               )}
 

@@ -19,16 +19,11 @@ import {
   SelectControl,
   SpacingControl,
   ToggleControl,
-  NumberControl,
   BoxModelControl,
   FontSelector,
   FontManager,
-  TextStyleControl,
   LayoutPicker,
-  MultiLevelBulletPicker,
-  ColorPairControl,
   CollapsibleSection,
-  SemanticColorControl,
   SemanticElementEditor,
 } from './controls';
 
@@ -359,7 +354,7 @@ export const TemplateConfigPanel: React.FC<TemplateConfigPanelProps> = ({
                   label="Size"
                   value={config.pdf?.pageSize}
                   onChange={(value) =>
-                    updateConfig('pdf', { pageSize: value as any })
+                    updateConfig('pdf', { pageSize: value as TemplateConfig['pdf']['pageSize'] })
                   }
                   options={[
                     { value: 'A4', label: 'A4' },
@@ -371,7 +366,7 @@ export const TemplateConfigPanel: React.FC<TemplateConfigPanelProps> = ({
                   label="Orientation"
                   value={config.pdf?.orientation}
                   onChange={(value) =>
-                    updateConfig('pdf', { orientation: value as any })
+                    updateConfig('pdf', { orientation: value as TemplateConfig['pdf']['orientation'] })
                   }
                   options={[
                     { value: 'portrait', label: 'Portrait' },
@@ -397,6 +392,19 @@ export const TemplateConfigPanel: React.FC<TemplateConfigPanelProps> = ({
                   description="Width of the sidebar column"
                 />
               )}
+
+              {/* Same config field as Styles > Photo > Show Photo, so toggling
+                  it in either place updates the other */}
+              <ToggleControl
+                label="Show Photo"
+                value={config.components?.profilePhoto?.enabled !== false}
+                onChange={(value) =>
+                  updateConfig('components', {
+                    profilePhoto: { ...(config.components?.profilePhoto || {}), enabled: value },
+                  })
+                }
+                description="Some employers ask for CVs without a portrait"
+              />
             </CollapsibleSection>
 
             {/* Column Colors - only for two-column layouts */}
@@ -526,7 +534,7 @@ export const TemplateConfigPanel: React.FC<TemplateConfigPanelProps> = ({
                 onChange={(value) =>
                   updateConfig('advanced', {
                     ...config.advanced,
-                    iconSet: value as any,
+                    iconSet: value as NonNullable<TemplateConfig['advanced']>['iconSet'],
                   })
                 }
                 options={[

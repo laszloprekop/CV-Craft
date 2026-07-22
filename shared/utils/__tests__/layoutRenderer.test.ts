@@ -356,6 +356,56 @@ describe('generateTwoColumnBody', () => {
     expect(html).toContain('main-content')
   })
 
+  it('renders the photo container by default', () => {
+    const html = generateTwoColumnBody(
+      baseFrontmatter,
+      [],
+      [],
+      DEFAULT_TEMPLATE_CONFIG,
+      { photoDataUri: 'data:image/png;base64,AAA' }
+    )
+
+    expect(html).toContain('photo-container')
+  })
+
+  it('omits the photo entirely when profilePhoto.enabled is false', () => {
+    const config: TemplateConfig = {
+      ...DEFAULT_TEMPLATE_CONFIG,
+      components: {
+        ...DEFAULT_TEMPLATE_CONFIG.components,
+        profilePhoto: {
+          ...DEFAULT_TEMPLATE_CONFIG.components.profilePhoto,
+          enabled: false,
+        },
+      },
+    }
+
+    const html = generateTwoColumnBody(baseFrontmatter, [], [], config, {
+      photoDataUri: 'data:image/png;base64,AAA',
+    })
+
+    expect(html).not.toContain('photo-container')
+    expect(html).not.toContain('data:image/png;base64,AAA')
+    // The rest of the sidebar still renders
+    expect(html).toContain('sidebar-container')
+  })
+
+  it('keeps the photo when enabled is undefined (existing CVs)', () => {
+    const config: TemplateConfig = {
+      ...DEFAULT_TEMPLATE_CONFIG,
+      components: {
+        ...DEFAULT_TEMPLATE_CONFIG.components,
+        profilePhoto: { size: '200px' },
+      },
+    }
+
+    const html = generateTwoColumnBody(baseFrontmatter, [], [], config, {
+      photoDataUri: 'data:image/png;base64,AAA',
+    })
+
+    expect(html).toContain('photo-container')
+  })
+
   it('contains cv-name with frontmatter name', () => {
     const html = generateTwoColumnBody(
       { name: 'John Smith', email: 'john@test.com' },

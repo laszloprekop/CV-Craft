@@ -6,6 +6,23 @@
 
 import Database from 'better-sqlite3';
 import type { Template, TemplateConfig, TemplateConfigSchema, TemplateSettings } from '../../../shared/types';
+import { DEFAULT_TEMPLATE_CONFIG } from '../../../shared/types/defaultTemplateConfig';
+import type { SqlParam } from './sqlTypes';
+
+/** Shape of a row in the `templates` table. JSON columns arrive as strings. */
+interface TemplateRow {
+  id: string;
+  name: string;
+  description: string | null;
+  css: string;
+  config_schema: string;
+  default_config: string | null;
+  default_settings: string;
+  preview_image: string | null;
+  is_active: number;
+  created_at: number;
+  version: string;
+}
 
 export interface CreateTemplateData {
   id: string;
@@ -72,7 +89,11 @@ export class TemplateModel {
       throw new Error('Failed to create template');
     }
 
-    return this.findById(data.id)!;
+    const created = this.findById(data.id);
+    if (!created) {
+      throw new Error(`Failed to read back template ${data.id} after insert`);
+    }
+    return created;
   }
 
   /**
@@ -80,7 +101,7 @@ export class TemplateModel {
    */
   findById(id: string): Template | null {
     const stmt = this.db.prepare('SELECT * FROM templates WHERE id = ?');
-    const row = stmt.get(id) as any;
+    const row = stmt.get(id) as TemplateRow | undefined;
 
     if (!row) return null;
 
@@ -101,7 +122,7 @@ export class TemplateModel {
 
     // Build query conditions
     const conditions: string[] = [];
-    const params: any[] = [];
+    const params: SqlParam[] = [];
 
     if (active_only) {
       conditions.push('is_active = 1');
@@ -122,7 +143,7 @@ export class TemplateModel {
       LIMIT ? OFFSET ?
     `);
 
-    const rows = dataStmt.all(...params, limit, offset) as any[];
+    const rows = dataStmt.all(...params, limit, offset) as TemplateRow[];
     const data = rows.map(row => this.mapRowToTemplate(row));
 
     return { data, total };
@@ -133,7 +154,7 @@ export class TemplateModel {
    */
   update(id: string, data: UpdateTemplateData): Template {
     const updateFields: string[] = [];
-    const updateValues: any[] = [];
+    const updateValues: SqlParam[] = [];
 
     if (data.name !== undefined) {
       updateFields.push('name = ?');
@@ -196,7 +217,11 @@ export class TemplateModel {
       throw new Error('Template not found or no changes made');
     }
 
-    return this.findById(id)!;
+    const updated = this.findById(id);
+    if (!updated) {
+      throw new Error(`Failed to read back template ${id} after update`);
+    }
+    return updated;
   }
 
   /**
@@ -231,7 +256,7 @@ export class TemplateModel {
   findByName(name: string, activeOnly: boolean = true): Template[] {
     const whereClause = activeOnly ? 'WHERE name LIKE ? AND is_active = 1' : 'WHERE name LIKE ?';
     const stmt = this.db.prepare(`SELECT * FROM templates ${whereClause} ORDER BY name`);
-    const rows = stmt.all(`%${name}%`) as any[];
+    const rows = stmt.all(`%${name}%`) as TemplateRow[];
     return rows.map(row => this.mapRowToTemplate(row));
   }
 
@@ -247,19 +272,16 @@ export class TemplateModel {
   /**
    * Map database row to Template object
    */
-  private mapRowToTemplate(row: any): Template {
-    // Import DEFAULT_TEMPLATE_CONFIG for fallback
-    const { DEFAULT_TEMPLATE_CONFIG } = require('../../../shared/types/defaultTemplateConfig');
-
+  private mapRowToTemplate(row: TemplateRow): Template {
     return {
       id: row.id,
       name: row.name,
-      description: row.description,
+      description: row.description ?? undefined,
       css: row.css,
       config_schema: JSON.parse(row.config_schema),
       default_config: row.default_config ? JSON.parse(row.default_config) : DEFAULT_TEMPLATE_CONFIG,
       default_settings: JSON.parse(row.default_settings),
-      preview_image: row.preview_image,
+      preview_image: row.preview_image ?? undefined,
       is_active: Boolean(row.is_active),
       created_at: new Date(row.created_at).toISOString(),
       version: row.version

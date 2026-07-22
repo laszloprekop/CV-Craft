@@ -27,14 +27,10 @@ import type {
   Template,
   TemplateSettings,
   TemplateConfig,
-  Asset,
-  CVFrontmatter,
   CVSection,
-  ParsedCVContent,
 } from "../../../shared/types"
 import { cvApi } from "../services/api"
 import { loadFonts } from "../services/GoogleFontsService"
-import { resolveSemanticColor } from "../utils/colorResolver"
 import { generateCSSVariables } from "../../../shared/utils/cssVariableGenerator"
 import { renderSections } from "../../../shared/utils/sectionRenderer"
 import { sanitizeUrl } from "../../../shared/utils/sanitizeUrl"
@@ -105,13 +101,12 @@ interface CVPreviewProps {
 export const CVPreview: React.FC<CVPreviewProps> = ({
   cv,
   template,
-  settings,
+  settings: _settings,
   config,
   isPending,
   liveContent,
-  zoomLevel = "fit-width",
   zoomPercentage = 100,
-  onSettingsChange,
+  onSettingsChange: _onSettingsChange,
 }) => {
   // Profile photo URL loaded from asset
   const photoUrl = useProfilePhoto(cv)
@@ -133,7 +128,8 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
   const [pdfUrl, setPdfUrl] = useState<string | null>(null)
   const [pdfLoading, setPdfLoading] = useState(false)
   const [pdfError, setPdfError] = useState<string | null>(null)
-  const [pdfVersion, setPdfVersion] = useState(0) // Used to track when PDF needs refresh
+  // Bumped by the Retry button to re-run the PDF request
+  const [pdfVersion, setPdfVersion] = useState(0)
 
   // Handle mode change with persistence
   const handleModeChange = useCallback((mode: PreviewMode) => {
@@ -207,6 +203,10 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
     if (fontsToLoad.length > 0) {
       loadFonts(fontsToLoad)
     }
+    // Deliberately narrow: only the font-related fields should trigger a
+    // refetch. Depending on the whole config would re-request Google Fonts on
+    // every colour or spacing tweak.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     config?.typography.availableFonts,
     config?.typography.fontFamily,
@@ -357,7 +357,7 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
   }
 
   // Infer section type from title (simplified version)
-  const inferSectionType = (title: string): CVSection["type"] => {
+  const _inferSectionType = (title: string): CVSection["type"] => {
     const lower = title.toLowerCase()
     if (lower.includes("experience") || lower.includes("work"))
       return "experience"
@@ -415,39 +415,33 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
     setPdfLoading(true)
     setPdfError(null)
 
-    // Timeout to prevent infinite loading state
-    const timeout = setTimeout(() => {
-      if (!cancelled) {
-        setPdfError("PDF generation timed out")
-        setPdfLoading(false)
-      }
-    }, 30000)
-
+    // No separate timer here: the request carries its own timeout, and a second
+    // shorter one only reported failure on renders that were still going to
+    // succeed. Axios rejects on timeout, which the catch below handles.
     cvApi
       .getPreviewPdf(cv.id, configRef.current)
       .then((url) => {
-        if (!cancelled) {
-          clearTimeout(timeout)
-          // Revoke old URL to prevent memory leak
-          if (pdfUrl) {
-            URL.revokeObjectURL(pdfUrl)
-          }
-          setPdfUrl(url)
-          setPdfLoading(false)
+        if (cancelled) {
+          // Effect re-ran while this was in flight; nothing will render it.
+          URL.revokeObjectURL(url)
+          return
         }
+        setPdfUrl(url)
+        setPdfLoading(false)
       })
       .catch((err) => {
-        clearTimeout(timeout)
-        if (!cancelled) {
-          console.error("[CVPreview] Failed to load PDF preview:", err)
-          setPdfError("Failed to generate PDF preview")
-          setPdfLoading(false)
-        }
+        if (cancelled) return
+        console.error("[CVPreview] Failed to load PDF preview:", err)
+        setPdfError(
+          err?.code === "ECONNABORTED"
+            ? "PDF generation timed out"
+            : "Failed to generate PDF preview",
+        )
+        setPdfLoading(false)
       })
 
     return () => {
       cancelled = true
-      clearTimeout(timeout)
     }
   }, [previewMode, cv?.id, cv?.updated_at, pdfVersion])
 
@@ -487,7 +481,6 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
     const activeConfig = config || template?.default_config
     const tagStyle = activeConfig?.components?.tags?.style || "pill"
     const separator = activeConfig?.components?.tags?.separator || "·"
-    const styles = templateStyles
 
     return skillCategories.map(
       (category: SkillCategory, categoryIndex: number) => (
@@ -622,7 +615,7 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
   }
 
   // Page break indicator component for page-markers mode
-  const PageBreakIndicator: React.FC<{ pageNumber: number }> = ({
+  const _PageBreakIndicator: React.FC<{ pageNumber: number }> = ({
     pageNumber,
   }) => (
     <div className="page-break-indicator">
@@ -691,22 +684,25 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
     if (!parsedContent) return null
 
     const { frontmatter, sections } = parsedContent
-    const styles = templateStyles
 
     // Get layout type from config
     const activeConfig = config || template?.default_config
     const layoutType = activeConfig?.layout?.templateType || "two-column"
 
+    // Portrait can be turned off (Styles > Photo, or Page > Page Layout)
+    const showPhoto =
+      activeConfig?.components?.profilePhoto?.enabled !== false
+
     // Determine layout based on type
     const isSingleColumn = layoutType === "single-column"
     const isSidebarRight = layoutType === "sidebar-right"
-    const isTwoColumn =
+    const _isTwoColumn =
       layoutType === "two-column" ||
       layoutType === "sidebar-left" ||
       layoutType === "sidebar-right"
 
     // Legacy template name-based detection (fallback only)
-    const useModernLayout =
+    const _useModernLayout =
       template?.name.includes("Modern") ||
       template?.name.includes("Professional")
     const useMinimalLayout =
@@ -1034,6 +1030,7 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
                 }}
               >
                 {/* Profile Photo - uses CSS variables for consistent styling with PDF */}
+                {showPhoto && (
                 <div
                   className="mb-4 flex justify-center photo-container"
                   style={{
@@ -1104,6 +1101,7 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
                     </div>
                   )}
                 </div>
+                )}
 
                 {/* Contact Information */}
                 {frontmatter && (

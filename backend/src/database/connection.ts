@@ -15,6 +15,17 @@ export class DatabaseManager {
 
   private constructor() {}
 
+  /**
+   * The open connection, for internal use after initialize() has run.
+   * Fails loudly rather than asserting non-null at each call site.
+   */
+  private get connection(): Database.Database {
+    if (!this.db) {
+      throw new Error('Database not initialized - call initialize() first');
+    }
+    return this.db;
+  }
+
   static getInstance(): DatabaseManager {
     if (!DatabaseManager.instance) {
       DatabaseManager.instance = new DatabaseManager();
@@ -93,7 +104,7 @@ export class DatabaseManager {
       for (const statement of statements) {
         if (statement.trim()) {
           try {
-            this.db!.exec(statement);
+            this.connection.exec(statement);
           } catch (error) {
             console.error(`Error executing statement: ${statement.substring(0, 100)}...`);
             throw error;
@@ -106,18 +117,18 @@ export class DatabaseManager {
 
     // Migration: drop unique name constraint on cv_instances (allow duplicate names)
     try {
-      this.db!.exec('DROP INDEX IF EXISTS idx_cv_name_active');
+      this.connection.exec('DROP INDEX IF EXISTS idx_cv_name_active');
     } catch {
       // Index may not exist, ignore
     }
 
     // Migration: add photo_asset_id column if missing (for existing databases)
     try {
-      const columns = this.db!.pragma('table_info(cv_instances)') as { name: string }[];
+      const columns = this.connection.pragma('table_info(cv_instances)') as { name: string }[];
       const hasPhotoColumn = columns.some(c => c.name === 'photo_asset_id');
       if (!hasPhotoColumn) {
-        this.db!.exec('ALTER TABLE cv_instances ADD COLUMN photo_asset_id TEXT REFERENCES assets(id) ON DELETE SET NULL');
-        this.db!.exec('CREATE INDEX IF NOT EXISTS idx_cv_photo_asset ON cv_instances(photo_asset_id)');
+        this.connection.exec('ALTER TABLE cv_instances ADD COLUMN photo_asset_id TEXT REFERENCES assets(id) ON DELETE SET NULL');
+        this.connection.exec('CREATE INDEX IF NOT EXISTS idx_cv_photo_asset ON cv_instances(photo_asset_id)');
         console.log('Migration: added photo_asset_id column');
       }
     } catch {
@@ -252,7 +263,7 @@ export class DatabaseManager {
     }
 
     // Get default config from template
-    const template = this.db.prepare('SELECT default_config, default_settings FROM templates WHERE id = ?').get('default-modern') as any;
+    const template = this.db.prepare('SELECT default_config, default_settings FROM templates WHERE id = ?').get('default-modern') as { default_config: string | null; default_settings: string | null } | undefined;
     if (!template) return;
 
     const sampleCVContent = `---
@@ -414,11 +425,15 @@ Open source development, tech mentorship, competitive programming, hiking, photo
         return { healthy: false, error: 'Database query failed' };
       }
 
-      // Check schema integrity
-      const integrityResult = this.db.pragma('integrity_check') as unknown;
-      const integrityArray = Array.isArray(integrityResult) ? integrityResult : [integrityResult];
-      if (!integrityArray || integrityArray[0] !== 'ok') {
-        return { healthy: false, error: 'Database integrity check failed' };
+      // Check schema integrity. better-sqlite3 returns rows, not bare values:
+      // [{ integrity_check: 'ok' }]. Comparing the row object to 'ok' is never
+      // equal, which reported every healthy database as corrupt.
+      const integrityStatus = this.db.pragma('integrity_check', { simple: true }) as unknown;
+      if (integrityStatus !== 'ok') {
+        return {
+          healthy: false,
+          error: `Database integrity check failed: ${String(integrityStatus)}`
+        };
       }
 
       return { healthy: true };

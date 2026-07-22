@@ -6,6 +6,21 @@
 
 import Database from 'better-sqlite3';
 import type { Asset } from '../../../shared/types';
+import type { SqlParam } from './sqlTypes';
+
+/** Shape of a row in the `assets` table. */
+interface AssetRow {
+  id: string;
+  cv_id: string;
+  filename: string;
+  file_type: string;
+  mime_type: string;
+  file_size: number;
+  storage_path: string;
+  usage_context: string | null;
+  uploaded_at: number;
+  metadata: string | null;
+}
 
 export interface CreateAssetData {
   id: string;
@@ -20,7 +35,7 @@ export interface CreateAssetData {
     width?: number;
     height?: number;
     alt_text?: string;
-    [key: string]: any;
+    [key: string]: unknown;
   };
 }
 
@@ -31,7 +46,7 @@ export interface UpdateAssetData {
     width?: number;
     height?: number;
     alt_text?: string;
-    [key: string]: any;
+    [key: string]: unknown;
   };
 }
 
@@ -81,7 +96,11 @@ export class AssetModel {
       throw new Error('Failed to create asset');
     }
 
-    return this.findById(data.id)!;
+    const created = this.findById(data.id);
+    if (!created) {
+      throw new Error(`Failed to read back asset ${data.id} after insert`);
+    }
+    return created;
   }
 
   /**
@@ -89,7 +108,7 @@ export class AssetModel {
    */
   findById(id: string): Asset | null {
     const stmt = this.db.prepare('SELECT * FROM assets WHERE id = ?');
-    const row = stmt.get(id) as any;
+    const row = stmt.get(id) as AssetRow | undefined;
 
     if (!row) return null;
 
@@ -116,7 +135,7 @@ export class AssetModel {
 
     // Build query conditions
     const conditions: string[] = [];
-    const params: any[] = [];
+    const params: SqlParam[] = [];
 
     if (cv_id) {
       conditions.push('cv_id = ?');
@@ -148,7 +167,7 @@ export class AssetModel {
       LIMIT ? OFFSET ?
     `);
 
-    const rows = dataStmt.all(...params, limit, offset) as any[];
+    const rows = dataStmt.all(...params, limit, offset) as AssetRow[];
     const data = rows.map(row => this.mapRowToAsset(row));
 
     return { data, total };
@@ -159,7 +178,7 @@ export class AssetModel {
    */
   update(id: string, data: UpdateAssetData): Asset {
     const updateFields: string[] = [];
-    const updateValues: any[] = [];
+    const updateValues: SqlParam[] = [];
 
     if (data.filename !== undefined) {
       updateFields.push('filename = ?');
@@ -192,7 +211,11 @@ export class AssetModel {
       throw new Error('Asset not found or no changes made');
     }
 
-    return this.findById(id)!;
+    const updated = this.findById(id);
+    if (!updated) {
+      throw new Error(`Failed to read back asset ${id} after update`);
+    }
+    return updated;
   }
 
   /**
@@ -212,7 +235,7 @@ export class AssetModel {
    */
   findByCV(cvId: string): Asset[] {
     const stmt = this.db.prepare('SELECT * FROM assets WHERE cv_id = ? ORDER BY uploaded_at DESC');
-    const rows = stmt.all(cvId) as any[];
+    const rows = stmt.all(cvId) as AssetRow[];
     return rows.map(row => this.mapRowToAsset(row));
   }
 
@@ -221,7 +244,7 @@ export class AssetModel {
    */
   findByFileType(fileType: 'image' | 'document' | 'other'): Asset[] {
     const stmt = this.db.prepare('SELECT * FROM assets WHERE file_type = ? ORDER BY uploaded_at DESC');
-    const rows = stmt.all(fileType) as any[];
+    const rows = stmt.all(fileType) as AssetRow[];
     return rows.map(row => this.mapRowToAsset(row));
   }
 
@@ -230,7 +253,7 @@ export class AssetModel {
    */
   findByUsageContext(context: string): Asset[] {
     const stmt = this.db.prepare('SELECT * FROM assets WHERE usage_context = ? ORDER BY uploaded_at DESC');
-    const rows = stmt.all(context) as any[];
+    const rows = stmt.all(context) as AssetRow[];
     return rows.map(row => this.mapRowToAsset(row));
   }
 
@@ -312,7 +335,7 @@ export class AssetModel {
   /**
    * Map database row to Asset object
    */
-  private mapRowToAsset(row: any): Asset {
+  private mapRowToAsset(row: AssetRow): Asset {
     return {
       id: row.id,
       cv_id: row.cv_id,
@@ -321,7 +344,7 @@ export class AssetModel {
       mime_type: row.mime_type,
       file_size: row.file_size,
       storage_path: row.storage_path,
-      usage_context: row.usage_context,
+      usage_context: row.usage_context ?? undefined,
       uploaded_at: new Date(row.uploaded_at).toISOString(),
       metadata: row.metadata ? JSON.parse(row.metadata) : undefined
     };

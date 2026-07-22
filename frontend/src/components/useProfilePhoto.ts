@@ -18,11 +18,12 @@ export function useProfilePhoto(cv: CVInstance | null) {
     if (!cv?.photo_asset_id) {
       return
     }
+    const assetId = cv.photo_asset_id
 
     // Load asynchronously without blocking render
     const loadPhoto = async () => {
       try {
-        const response = await assetApi.get(cv.photo_asset_id!)
+        const response = await assetApi.get(assetId)
         const photoAsset = response.data
         const url = assetApi.getFileUrl(photoAsset)
         setPhotoUrl(url)

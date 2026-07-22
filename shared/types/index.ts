@@ -15,7 +15,21 @@ export interface CVInstance {
   status: 'active' | 'archived' | 'deleted';
   created_at: string;
   updated_at: string;
-  metadata?: Record<string, any>;
+  metadata?: CVMetadata;
+}
+
+/**
+ * Per-CV bookkeeping. The keys the app reads are declared; the parser and
+ * services write additional stats alongside them.
+ */
+export interface CVMetadata {
+  active_theme_id?: string | null;
+  parsed_at?: string;
+  last_content_update?: string;
+  sections_count?: number;
+  has_photo?: boolean;
+  word_count?: number;
+  [key: string]: unknown;
 }
 
 export interface ParsedCVContent {
@@ -284,6 +298,13 @@ export interface TemplateConfig {
     };
     // Profile photo
     profilePhoto: {
+      /**
+       * Whether the portrait is shown at all. Some employers ask for CVs
+       * without photos. Exposed in two places in the UI (Styles > Photo and
+       * Page > Page Layout) that both bind to this one field.
+       * Defaults to true when undefined.
+       */
+      enabled?: boolean;
       size?: string;
       borderRadius?: string;
       border?: string;

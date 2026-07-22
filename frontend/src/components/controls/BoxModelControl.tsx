@@ -20,7 +20,7 @@ export const BoxModelControl: React.FC<BoxModelControlProps> = ({
   value,
   onChange,
   description,
-  type = 'margin',
+  type: _type = 'margin',
 }) => {
   const handleChange = (side: keyof BoxModel, newValue: string) => {
     onChange({

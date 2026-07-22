@@ -71,9 +71,18 @@ Page markers show approximate A4 page break positions as red dashed lines. Toggl
 
 **CV Data Flow:**
 1. User edits Markdown in Monaco editor
-2. Frontend debounces (300ms) and calls PUT `/api/cvs/:id`
+2. Frontend debounces (800ms, `CONTENT_SAVE_DEBOUNCE_MS`) and calls PUT `/api/cvs/:id`
 3. Backend parses with Remark, extracts frontmatter, stores in SQLite
 4. Frontend receives parsed content and renders preview
+
+Saving is what refreshes the preview — `CVPreview` renders from `cv.parsed_content`,
+never from the editor buffer, so preview and PDF always come from one renderer.
+
+**The Monaco editor is deliberately uncontrolled.** Pass `defaultValue`, never
+`value`. Feeding debounced state back in as `value` makes Monaco replace the whole
+document and drop the caret at EOF mid-typing. External content (CV load, import)
+is pushed in via `editor.setValue()` in an effect that compares against
+`editorTextRef`.
 
 **Config Merge Priority:** `liveConfigChanges` > `savedConfig` > `template.default_config` > `DEFAULT_TEMPLATE_CONFIG`
 

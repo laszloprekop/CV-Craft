@@ -44,9 +44,14 @@ export function useGoogleFonts() {
  * Load specific fonts dynamically
  */
 export function useLoadFonts(fontFamilies: string[]) {
+  // Callers usually pass a fresh array each render, so depend on the joined
+  // names rather than the array identity, and read the list back off that key
+  // so the effect has no stale closure over the original array.
+  const fontKey = fontFamilies.join(',');
+
   useEffect(() => {
-    if (fontFamilies.length > 0) {
-      loadFonts(fontFamilies);
+    if (fontKey) {
+      loadFonts(fontKey.split(','));
     }
-  }, [fontFamilies.join(',')]);
+  }, [fontKey]);
 }

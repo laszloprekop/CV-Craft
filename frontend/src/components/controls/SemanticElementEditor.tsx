@@ -15,7 +15,14 @@ import {
   IconBuilding,
 } from '@tabler/icons-react';
 import type { TemplateConfig } from '../../../../shared/types';
-import { SpacingControl, NumberControl, SelectControl, SemanticColorControl, FontSelector, ColorControl, LinkedSpacingControl, MultiLevelBulletPicker } from './index';
+
+/**
+ * A single value written into the template config - a colour string, a size,
+ * a weight, a toggle, or a nested object. Deliberately opaque here: this editor
+ * routes values by key without interpreting them.
+ */
+type ConfigValue = unknown;
+import { SpacingControl, NumberControl, SelectControl, SemanticColorControl, FontSelector, ColorControl, LinkedSpacingControl, MultiLevelBulletPicker, ToggleControl } from './index';
 
 type SemanticColor = 'primary' | 'secondary' | 'tertiary' | 'muted' | 'text-primary' | 'text-secondary' | 'text-muted' | 'custom1' | 'custom2' | 'custom3' | 'custom4' | 'on-primary' | 'on-secondary' | 'on-tertiary' | 'on-muted' | 'on-custom1' | 'on-custom2' | 'on-custom3' | 'on-custom4';
 
@@ -108,6 +115,15 @@ const PAGE_NUMBER_POSITION_OPTIONS = [
   { value: 'bottom-right', label: 'Bottom Right' },
 ];
 
+// {page} and {total} are substituted when the PDF is generated
+const PAGE_NUMBER_FORMAT_OPTIONS = [
+  { value: 'Page {page} of {total}', label: 'Page 1 of 3' },
+  { value: '{page} / {total}', label: '1 / 3' },
+  { value: '{page} of {total}', label: '1 of 3' },
+  { value: '{page}', label: '1' },
+  { value: '- {page} -', label: '- 1 -' },
+];
+
 // Define semantic elements that can be styled
 type SemanticElement =
   | 'base'
@@ -144,7 +160,12 @@ const ELEMENTS: ElementDef[] = [
 ];
 
 // Separator options for entry meta items
-const SEPARATOR_OPTIONS = [
+/** Kept in sync with the config type, so an invalid option fails to compile. */
+type MetaSeparator = NonNullable<
+  NonNullable<TemplateConfig['components']['jobTitle']>['metaSeparator']
+>;
+
+const SEPARATOR_OPTIONS: { value: MetaSeparator; label: string; title: string }[] = [
   { value: 'pipe', label: '|', title: 'Pipe' },
   { value: 'dot', label: '·', title: 'Dot' },
   { value: 'bullet', label: '•', title: 'Bullet' },
@@ -170,8 +191,10 @@ const ELEMENT_ICONS: Record<SemanticElement, React.ReactNode> = {
 
 interface SemanticElementEditorProps {
   config: TemplateConfig;
-  onChange: (section: keyof TemplateConfig, value: any) => void;
-  onCommit: (section: keyof TemplateConfig, value: any) => void;
+  // Generic over the section so the value is checked against that section's
+  // shape, matching TemplateConfigPanel's updateConfig/commitConfig.
+  onChange: <K extends keyof TemplateConfig>(section: K, value: Partial<TemplateConfig[K]>) => void;
+  onCommit: <K extends keyof TemplateConfig>(section: K, value: Partial<TemplateConfig[K]>) => void;
 }
 
 // Collapsible section
@@ -213,7 +236,7 @@ const SpacingSection: React.FC<{
   paddingBottom?: string;
   paddingLeft?: string;
   // Callbacks
-  onUpdate: (key: string, value: any) => void;
+  onUpdate: (key: string, value: ConfigValue) => void;
   // Display options
   showMargin?: boolean;
   showPadding?: boolean;
@@ -282,11 +305,11 @@ const SpacingSection: React.FC<{
 );
 
 // Reusable Background Section
-const BackgroundSection: React.FC<{
+const _BackgroundSection: React.FC<{
   backgroundColorKey?: SemanticColor;
   backgroundColorOpacity?: number;
   borderRadius?: string;
-  onUpdate: (key: string, value: any) => void;
+  onUpdate: (key: string, value: ConfigValue) => void;
   defaultColorKey?: SemanticColor;
   defaultOpacity?: number;
   defaultBorderRadius?: string;
@@ -364,7 +387,7 @@ const ColorPairSection: React.FC<{
   colorOpacity?: number;
   backgroundColorKey?: SemanticColor;
   backgroundColorOpacity?: number;
-  onUpdate: (updates: Record<string, any>) => void;
+  onUpdate: (updates: Record<string, ConfigValue>) => void;
   resolvedColors?: Record<string, string>;
   defaultOpen?: boolean;
 }> = ({
@@ -525,7 +548,7 @@ const BorderSection: React.FC<{
   dividerColorKey?: SemanticColor;
   dividerColorOpacity?: number;
   dividerGap?: string;
-  onUpdate: (key: string, value: any) => void;
+  onUpdate: (key: string, value: ConfigValue) => void;
   showDivider?: boolean;
   showBorderRadius?: boolean;
   borderRadius?: string;
@@ -631,7 +654,7 @@ const BorderSection: React.FC<{
 // Reusable Shadow Section
 const ShadowSection: React.FC<{
   shadow?: string;
-  onUpdate: (key: string, value: any) => void;
+  onUpdate: (key: string, value: ConfigValue) => void;
   defaultOpen?: boolean;
   extended?: boolean;
 }> = ({
@@ -660,7 +683,7 @@ const TypographySection: React.FC<{
   lineHeight?: number;
   textTransform?: string;
   fontStyle?: string;
-  onUpdate: (key: string, value: any) => void;
+  onUpdate: (key: string, value: ConfigValue) => void;
   showLineHeight?: boolean;
   defaultFontSize?: string;
   defaultFontWeight?: number;
@@ -756,7 +779,7 @@ const EffectsSection: React.FC<{
   shadow?: string;
   opacity?: number;
   filter?: string;
-  onUpdate: (key: string, value: any) => void;
+  onUpdate: (key: string, value: ConfigValue) => void;
   showOpacity?: boolean;
   showFilter?: boolean;
   extendedShadow?: boolean;
@@ -804,7 +827,7 @@ const IconSection: React.FC<{
   iconSize?: string;
   iconColorKey?: SemanticColor;
   iconColorOpacity?: number;
-  onUpdate: (key: string, value: any) => void;
+  onUpdate: (key: string, value: ConfigValue) => void;
   defaultOpen?: boolean;
   resolvedColors?: Record<string, string>;
 }> = ({
@@ -839,7 +862,7 @@ const IconSection: React.FC<{
 const HoverStateSection: React.FC<{
   hoverColorKey?: SemanticColor;
   hoverColorOpacity?: number;
-  onUpdate: (key: string, value: any) => void;
+  onUpdate: (key: string, value: ConfigValue) => void;
   defaultOpen?: boolean;
   resolvedColors?: Record<string, string>;
 }> = ({
@@ -866,7 +889,7 @@ const HoverStateSection: React.FC<{
 // Reusable Decoration Section
 const DecorationSection: React.FC<{
   underlineStyle?: string;
-  onUpdate: (key: string, value: any) => void;
+  onUpdate: (key: string, value: ConfigValue) => void;
   defaultOpen?: boolean;
 }> = ({
   underlineStyle,
@@ -887,7 +910,7 @@ const DecorationSection: React.FC<{
 const LayoutSection: React.FC<{
   layout?: string;
   spacing?: string;
-  onUpdate: (key: string, value: any) => void;
+  onUpdate: (key: string, value: ConfigValue) => void;
   defaultOpen?: boolean;
 }> = ({
   layout,
@@ -916,7 +939,7 @@ const PhotoBorderSection: React.FC<{
   borderWidth?: string;
   borderStyle?: string;
   borderColor?: string;
-  onUpdate: (key: string, value: any) => void;
+  onUpdate: (key: string, value: ConfigValue) => void;
   defaultOpen?: boolean;
 }> = ({
   borderRadius,
@@ -957,7 +980,7 @@ const PhotoBorderSection: React.FC<{
 const SizePositionSection: React.FC<{
   size?: string;
   position?: string;
-  onUpdate: (key: string, value: any) => void;
+  onUpdate: (key: string, value: ConfigValue) => void;
   defaultOpen?: boolean;
 }> = ({
   size,
@@ -991,7 +1014,7 @@ const TypographyControls: React.FC<{
   lineHeight?: number;
   textTransform?: string;
   fontStyle?: string;
-  onUpdate: (key: string, value: any) => void;
+  onUpdate: (key: string, value: ConfigValue) => void;
   showFontSize?: boolean;
   showFontWeight?: boolean;
   showColor?: boolean;
@@ -1113,7 +1136,8 @@ export const SemanticElementEditor: React.FC<SemanticElementEditorProps> = ({
 }) => {
   const [activeElement, setActiveElement] = useState<SemanticElement>('base');
 
-  const activeElementDef = ELEMENTS.find(e => e.id === activeElement)!;
+  const activeElementDef =
+    ELEMENTS.find(e => e.id === activeElement) ?? ELEMENTS[0];
 
   // Resolved color map for swatch display in SemanticColorControl dropdowns
   const resolvedColors: Record<string, string> = {
@@ -1283,11 +1307,11 @@ export const SemanticElementEditor: React.FC<SemanticElementEditorProps> = ({
     }
   ) => {
     const comp = config.components[componentKey] || {};
-    const update = (key: string, value: any) => {
+    const update = (key: string, value: ConfigValue) => {
       onChange('components', { [componentKey]: { ...config.components[componentKey], [key]: value } });
     };
     // Batch update for color pair changes (sets multiple keys at once)
-    const batchUpdate = (updates: Record<string, any>) => {
+    const batchUpdate = (updates: Record<string, ConfigValue>) => {
       onChange('components', { [componentKey]: { ...config.components[componentKey], ...updates } });
     };
     return (
@@ -1402,13 +1426,13 @@ export const SemanticElementEditor: React.FC<SemanticElementEditorProps> = ({
     const dateComp = config.components?.dateLine || {};
     const currentSep = config.components?.jobTitle?.metaSeparator || 'pipe';
 
-    const updateOrg = (key: string, value: any) => {
+    const updateOrg = (key: string, value: ConfigValue) => {
       onChange('components', { organizationName: { ...(config.components?.organizationName || {}), [key]: value } });
     };
-    const updateDate = (key: string, value: any) => {
+    const updateDate = (key: string, value: ConfigValue) => {
       onChange('components', { dateLine: { ...(config.components?.dateLine || {}), [key]: value } });
     };
-    const updateSeparator = (value: string) => {
+    const updateSeparator = (value: MetaSeparator) => {
       onChange('components', { jobTitle: { ...(config.components?.jobTitle || {}), metaSeparator: value } });
     };
 
@@ -1557,11 +1581,11 @@ export const SemanticElementEditor: React.FC<SemanticElementEditorProps> = ({
   // Render editor for tags
   const renderTagEditor = () => {
     const tags = config.components?.tags || {};
-    const updateTag = (key: string, value: any) => {
+    const updateTag = (key: string, value: ConfigValue) => {
       onChange('components', { tags: { ...(config.components?.tags || {}), [key]: value } });
     };
     // Custom update handler for tags (maps colorKey to textColorKey)
-    const tagTypographyUpdate = (key: string, value: any) => {
+    const tagTypographyUpdate = (key: string, value: ConfigValue) => {
       if (key === 'colorKey') updateTag('textColorKey', value);
       else if (key === 'colorOpacity') updateTag('textOpacity', value);
       else updateTag(key, value);
@@ -1625,7 +1649,7 @@ export const SemanticElementEditor: React.FC<SemanticElementEditorProps> = ({
   // Render editor for links
   const renderLinkEditor = () => {
     const links = config.components?.links || {};
-    const updateLink = (key: string, value: any) => {
+    const updateLink = (key: string, value: ConfigValue) => {
       onChange('components', { links: { ...(config.components?.links || {}), [key]: value } });
     };
     return (
@@ -1663,7 +1687,7 @@ export const SemanticElementEditor: React.FC<SemanticElementEditorProps> = ({
   // Render editor for contact
   const renderContactEditor = () => {
     const contactInfo = config.components?.contactInfo || {};
-    const updateContact = (key: string, value: any) => {
+    const updateContact = (key: string, value: ConfigValue) => {
       onChange('components', { contactInfo: { ...(config.components?.contactInfo || {}), [key]: value } });
     };
     return (
@@ -1703,11 +1727,22 @@ export const SemanticElementEditor: React.FC<SemanticElementEditorProps> = ({
   // Render editor for photo
   const renderPhotoEditor = () => {
     const profilePhoto = config.components?.profilePhoto || {};
-    const updatePhoto = (key: string, value: any) => {
+    const updatePhoto = (key: string, value: ConfigValue) => {
       onChange('components', { profilePhoto: { ...(config.components?.profilePhoto || {}), [key]: value } });
     };
+    const photoEnabled = profilePhoto.enabled !== false;
     return (
       <>
+        <Section label="Visibility">
+          <ToggleControl
+            label="Show Photo"
+            value={photoEnabled}
+            onChange={(v) => updatePhoto('enabled', v)}
+            description="Some employers ask for CVs without a portrait"
+          />
+        </Section>
+        {!photoEnabled ? null : (
+        <>
         <SizePositionSection
           size={profilePhoto.size}
           position={profilePhoto.position}
@@ -1737,6 +1772,8 @@ export const SemanticElementEditor: React.FC<SemanticElementEditorProps> = ({
           filter={profilePhoto.filter}
           onUpdate={updatePhoto}
         />
+        </>
+        )}
       </>
     );
   };
@@ -1744,7 +1781,7 @@ export const SemanticElementEditor: React.FC<SemanticElementEditorProps> = ({
   // Render editor for page numbers
   const renderPageNumberEditor = () => {
     const pageNumbers = config.pdf?.pageNumbers || {};
-    const updatePageNumbers = (key: string, value: any) => {
+    const updatePageNumbers = (key: string, value: ConfigValue) => {
       onChange('pdf', { pageNumbers: { ...(config.pdf?.pageNumbers || {}), [key]: value } });
     };
     return (
@@ -1775,6 +1812,14 @@ export const SemanticElementEditor: React.FC<SemanticElementEditorProps> = ({
             mode="text"
           />
         </Section>
+        <Section label="Format" defaultOpen={false}>
+          <SelectControl
+            label="Style"
+            value={pageNumbers.format || 'Page {page} of {total}'}
+            onChange={(v) => updatePageNumbers('format', v)}
+            options={PAGE_NUMBER_FORMAT_OPTIONS}
+          />
+        </Section>
         <Section label="Position" defaultOpen={false}>
           <SelectControl
             label="Placement"
@@ -1799,7 +1844,7 @@ export const SemanticElementEditor: React.FC<SemanticElementEditorProps> = ({
   // Render editor for body text
   const renderBodyEditor = () => {
     const bodyText = config.components?.bodyText || {};
-    const updateBody = (key: string, value: any) => {
+    const updateBody = (key: string, value: ConfigValue) => {
       onChange('components', { bodyText: { ...(config.components?.bodyText || {}), [key]: value } });
     };
     return (

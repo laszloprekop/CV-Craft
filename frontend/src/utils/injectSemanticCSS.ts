@@ -6,7 +6,6 @@
  */
 
 import {
-  getBaseCSS,
   getSemanticCSS,
   getTwoColumnHeaderCSS,
   getPhotoCSS,

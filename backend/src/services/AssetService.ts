@@ -7,10 +7,23 @@
 import { v4 as uuidv4 } from 'uuid';
 import path from 'path';
 import fs from 'fs/promises';
-import { createHash } from 'crypto';
 import sharp from 'sharp';
 import type { Asset } from '../../../shared/types';
 import type { AssetModel, CreateAssetData, UpdateAssetData, ListAssetsOptions } from '../models/Asset';
+
+/**
+ * Image dimensions and colour info read off an upload via sharp.
+ * A type alias rather than an interface so it satisfies the index signature on
+ * CreateAssetData['metadata'].
+ */
+type ImageMetadata = {
+  width?: number;
+  height?: number;
+  format?: string;
+  colorSpace?: string;
+  hasAlpha?: boolean;
+  orientation?: number;
+};
 
 export interface UploadedFile {
   fieldname: string;
@@ -108,7 +121,7 @@ export class AssetService {
     await fs.writeFile(storagePath, file.buffer);
     
     // Process image metadata if applicable
-    let metadata: any = {};
+    let metadata: ImageMetadata = {};
     if (this.isImageFile(file.mimetype)) {
       metadata = await this.extractImageMetadata(file.buffer);
     }
@@ -163,8 +176,9 @@ export class AssetService {
    * Update asset metadata
    */
   async update(id: string, data: UpdateAssetData): Promise<Asset> {
-    const existingAsset = await this.getById(id);
-    
+    // Throws if the asset does not exist; the value itself is not needed
+    await this.getById(id);
+
     // Only allow updating certain fields
     const allowedUpdates: UpdateAssetData = {};
     
@@ -345,7 +359,7 @@ export class AssetService {
   /**
    * Extract image metadata using Sharp
    */
-  private async extractImageMetadata(buffer: Buffer): Promise<any> {
+  private async extractImageMetadata(buffer: Buffer): Promise<ImageMetadata> {
     try {
       const metadata = await sharp(buffer).metadata();
       return {

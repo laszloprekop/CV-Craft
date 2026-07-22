@@ -8,6 +8,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { cvApi, exportApi } from '../services/api'
 import type { CVInstance, TemplateSettings, TemplateConfig } from '../../../shared/types'
 import { migrateTemplateConfig } from '../utils/configMigration'
+import { isClientError, getErrorMessage } from '../utils/apiError'
 
 export const SAMPLE_CV_ID = '00000000-0000-4000-a000-000000000001'
 
@@ -19,7 +20,11 @@ export interface UseCVEditorReturn {
   settings: Partial<TemplateSettings>
   config: TemplateConfig | undefined
   loading: boolean
+  /** Fatal: the CV could not be loaded, so there is nothing to edit. */
   error: string | null
+  /** Recoverable: a save or export failed, but the CV is still open. */
+  actionError: string | null
+  dismissActionError: () => void
   saveStatus: SaveStatus
   updateContent: (content: string) => void
   updateSettings: (settings: Partial<TemplateSettings>) => void
@@ -29,112 +34,6 @@ export interface UseCVEditorReturn {
   exportCv: (type: 'pdf' | 'web_package') => Promise<void>
 }
 
-const DEFAULT_CV_CONTENT = `---
-name: Alex Morgan
-title: Senior Full-Stack Developer
-email: alex.morgan@example.com
-phone: +1 (555) 012-0199
-location: San Francisco, CA
-website: alexmorgan.dev
-linkedin: linkedin.com/in/alexmorgan
-github: github.com/alexmorgan
----
-
-## Professional Summary
-
-Versatile full-stack developer with 8+ years of experience building **scalable web applications** and leading cross-functional teams. Specialized in *modern JavaScript frameworks*, cloud architecture, and developer experience tooling. Proven track record of delivering high-impact solutions that improve performance, reliability, and user engagement.
-
-## Experience
-
-### Senior Full-Stack Developer | Acme Technologies
-*Jan 2021 - Present*
-San Francisco, CA
-
-Architected and delivered the company's next-generation SaaS platform serving 50,000+ active users.
-
-- Led migration from monolithic architecture to **microservices**, reducing deployment time by 70%
-- Designed real-time collaboration features using WebSockets and \`Redis Pub/Sub\`
-- Mentored a team of 6 junior developers through code reviews and pair programming
-- **Key Achievement:** Improved application load time from 4.2s to 1.1s through code splitting and caching strategies
-  - Implemented lazy loading for all route-level components
-  - Added service worker caching for static assets
-
-### Front-End Developer | Digital Solutions Inc.
-*Mar 2018 - Dec 2020*
-New York, NY
-
-Built customer-facing dashboards and internal tools for a fintech startup.
-
-- Developed responsive [React](https://react.dev) dashboard processing 100K+ daily transactions
-- Created a reusable component library adopted across 3 product teams
-- Integrated third-party APIs including Stripe, Plaid, and Twilio
-- Reduced frontend bundle size by 45% through tree-shaking and dynamic imports
-
-### Junior Web Developer | CreativeWeb Agency
-*Jun 2016 - Feb 2018*
-Austin, TX
-
-- Built 30+ client websites using modern HTML5, CSS3, and JavaScript
-- Developed custom *WordPress themes* and plugins for e-commerce clients
-- Collaborated with UX designers to translate Figma mockups into pixel-perfect implementations
-
-## Education
-
-### B.Sc. Computer Science | University of California, Berkeley
-*2012 - 2016*
-Berkeley, CA
-
-- GPA: 3.7/4.0, Dean's List (6 semesters)
-- Senior thesis: *"Optimizing Real-Time Data Pipelines for Web Applications"*
-
-### Professional Development
-*2020 - 2024*
-
-- **AWS Solutions Architect Associate** - Amazon Web Services
-- **Advanced React Patterns** - Frontend Masters
-- **System Design for Interviews** - Educative.io
-
-## Technical Skills
-
-**Languages:** TypeScript, JavaScript, Python, Go, SQL, HTML5, CSS3
-**Frontend:** React, Next.js, Vue.js, Tailwind CSS, Storybook
-**Backend:** Node.js, Express, Django, GraphQL, REST APIs
-**Cloud & DevOps:** AWS (EC2, S3, Lambda, RDS), Docker, Kubernetes, CI/CD
-**Databases:** PostgreSQL, MongoDB, Redis, Elasticsearch
-**Tools:** Git, VS Code, Figma, Jira, Datadog
-
-## Projects
-
-### Open Source CLI Tool
-A developer productivity tool built with **Node.js** and \`TypeScript\` that automates common project scaffolding tasks. Featured on [Hacker News](https://news.ycombinator.com) with 500+ GitHub stars.
-
-- Supports 12 project templates including React, Vue, and Express
-- Published as an \`npm\` package with 10K+ monthly downloads
-
-### Real-Time Analytics Dashboard
-End-to-end analytics platform for monitoring application performance metrics.
-
-- Built with React, D3.js, and WebSocket for live data streaming
-- Handles 1M+ events per hour with sub-second visualization latency
-- Deployed on AWS using *ECS Fargate* with auto-scaling
-
-## Certifications & Awards
-
-- **AWS Solutions Architect Associate** - Amazon Web Services, 2023
-- **Best Technical Innovation Award** - Acme Technologies Hackathon, 2022
-- **Google Developer Expert** - Web Technologies, 2021
-
-## Languages
-
-**English:** Native
-**Spanish:** Professional proficiency
-**Mandarin:** Conversational
-
-## Interests
-
-Open source development, tech mentorship, competitive programming, hiking, photography
-`
-
 export function useCVEditor(cvId?: string): UseCVEditorReturn {
   const [cv, setCv] = useState<CVInstance | null>(null)
   const [content, setContent] = useState('')
@@ -142,10 +41,23 @@ export function useCVEditor(cvId?: string): UseCVEditorReturn {
   const [config, setConfig] = useState<TemplateConfig | undefined>(undefined)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [actionError, setActionError] = useState<string | null>(null)
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle')
+
+  const dismissActionError = useCallback(() => setActionError(null), [])
 
   const hasUnsavedChangesRef = useRef(false)
   const duplicatingRef = useRef(false)
+
+  // saveCv is triggered from debounced callbacks that fire in the same tick as
+  // updateContent, so reading `content` state there would save the previous
+  // keystroke's text. This ref is always current.
+  const contentRef = useRef('')
+
+  // Guard against overlapping saves without silently dropping the newest edits:
+  // a save requested mid-flight is re-run once the current one settles.
+  const savingRef = useRef(false)
+  const saveAgainRef = useRef(false)
 
   // Load CV by ID, or redirect to the seeded sample CV
   useEffect(() => {
@@ -156,6 +68,9 @@ export function useCVEditor(cvId?: string): UseCVEditorReturn {
       window.history.replaceState(null, '', `/editor/${SAMPLE_CV_ID}`)
       loadCv(SAMPLE_CV_ID)
     }
+    // loadCv is redefined every render; listing it here would refetch the CV
+    // on every render. This should run only when the requested id changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cvId])
 
   const loadCv = async (id: string, retries = 5) => {
@@ -168,16 +83,22 @@ export function useCVEditor(cvId?: string): UseCVEditorReturn {
       if (id === SAMPLE_CV_ID) {
         if (duplicatingRef.current) return
         duplicatingRef.current = true
-        const duplicateName = `New CV - ${new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
-        const dupResponse = await cvApi.duplicate(id, duplicateName)
-        const dupData = dupResponse.data
-        window.history.replaceState(null, '', `/editor/${dupData.id}`)
-        setCv(dupData)
-        setContent(dupData.content)
-        setSettings(dupData.settings || {})
-        setConfig(migrateTemplateConfig(dupData.config))
-        setLoading(false)
-        duplicatingRef.current = false
+        try {
+          const duplicateName = `New CV - ${new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
+          const dupResponse = await cvApi.duplicate(id, duplicateName)
+          const dupData = dupResponse.data
+          window.history.replaceState(null, '', `/editor/${dupData.id}`)
+          setCv(dupData)
+          setContent(dupData.content)
+          contentRef.current = dupData.content
+          setSettings(dupData.settings || {})
+          setConfig(migrateTemplateConfig(dupData.config))
+          setLoading(false)
+        } finally {
+          // Must clear on failure too, or every later attempt returns early
+          // and the editor is stuck on the loading spinner for good.
+          duplicatingRef.current = false
+        }
         return
       }
 
@@ -193,6 +114,7 @@ export function useCVEditor(cvId?: string): UseCVEditorReturn {
 
       setCv(cvData)
       setContent(cvData.content)
+      contentRef.current = cvData.content
       setSettings(cvData.settings || {})
       setConfig(migratedConfig)
 
@@ -205,29 +127,29 @@ export function useCVEditor(cvId?: string): UseCVEditorReturn {
         }
       }
       setLoading(false)
-    } catch (err: any) {
+    } catch (err) {
       // Only retry on network errors or 5xx server errors (backend not ready yet)
       // Don't retry on 4xx client errors (not found, validation, etc.)
-      const status = err?.response?.status
-      const isClientError = status && status >= 400 && status < 500
-      if (retries > 0 && !isClientError) {
+      const clientError = isClientError(err)
+      if (retries > 0 && !clientError) {
         await new Promise(resolve => setTimeout(resolve, 1000))
         return loadCv(id, retries - 1)
       }
       // CV not found or invalid ID - fall back to the sample CV (which will auto-duplicate)
-      if (isClientError && id !== SAMPLE_CV_ID) {
+      if (clientError && id !== SAMPLE_CV_ID) {
         console.warn(`[useCVEditor] CV "${id}" not found, redirecting to sample CV`)
         window.history.replaceState(null, '', `/editor/${SAMPLE_CV_ID}`)
         return loadCv(SAMPLE_CV_ID)
       }
       console.error('[useCVEditor] Failed to load CV:', err)
-      setError(err instanceof Error ? err.message : 'Failed to load CV')
+      setError(getErrorMessage(err, 'Failed to load CV'))
       setLoading(false)
     }
   }
 
   const updateContent = useCallback((newContent: string) => {
     setContent(newContent)
+    contentRef.current = newContent
     hasUnsavedChangesRef.current = true
     setSaveStatus('idle')
   }, [])
@@ -257,9 +179,16 @@ export function useCVEditor(cvId?: string): UseCVEditorReturn {
   }, [])
 
   const saveCv = useCallback(async (configOverride?: TemplateConfig) => {
-    if (saveStatus === 'saving') return
+    if (savingRef.current) {
+      // Re-run once the in-flight save settles, so the newest text still lands.
+      saveAgainRef.current = true
+      return
+    }
 
     const configToSave = configOverride || config
+    const contentToSave = contentRef.current
+
+    savingRef.current = true
 
     try {
       setSaveStatus('saving')
@@ -273,25 +202,28 @@ export function useCVEditor(cvId?: string): UseCVEditorReturn {
           config: configToSave
         }
         if (!configOverride) {
-          updatePayload.content = content
+          updatePayload.content = contentToSave
         }
         const response = await cvApi.update(cv.id, updatePayload)
         setCv(response.data)
       } else {
         // Create new CV
-        const name = extractNameFromContent(content) || 'New CV'
+        const name = extractNameFromContent(contentToSave) || 'New CV'
         const response = await cvApi.create({
           name,
-          content,
+          content: contentToSave,
           template_id: 'default-modern' // Default template
         })
         setCv(response.data)
-        
+
         // Update URL to include the new CV ID
         window.history.replaceState(null, '', `/editor/${response.data.id}`)
       }
 
       setSaveStatus('saved')
+      // Cleared only on success, so the banner does not flicker off and back on
+      // across a failing save's round trip.
+      setActionError(null)
 
       // Reset to idle after 2 seconds
       setTimeout(() => {
@@ -299,11 +231,18 @@ export function useCVEditor(cvId?: string): UseCVEditorReturn {
       }, 2000)
 
     } catch (err) {
+      // Recoverable: keep the editor open so the work in it is not lost.
       setSaveStatus('error')
-      setError(err instanceof Error ? err.message : 'Failed to save CV')
+      setActionError(getErrorMessage(err, 'Failed to save CV'))
       hasUnsavedChangesRef.current = true
+    } finally {
+      savingRef.current = false
+      if (saveAgainRef.current) {
+        saveAgainRef.current = false
+        void saveCvRef.current()
+      }
     }
-  }, [cv, content, settings, config, saveStatus])
+  }, [cv, settings, config])
 
   // Auto-save mechanism (every 30 seconds if there are unsaved changes)
   // Use refs to avoid recreating the interval on every state change
@@ -354,7 +293,7 @@ export function useCVEditor(cvId?: string): UseCVEditorReturn {
       }
 
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to export CV')
+      setActionError(getErrorMessage(err, 'Failed to export CV'))
     }
   }, [cv, settings, saveCv])
 
@@ -362,6 +301,9 @@ export function useCVEditor(cvId?: string): UseCVEditorReturn {
     if (cv?.id) {
       await loadCv(cv.id)
     }
+    // loadCv is redefined every render; including it would give every consumer
+    // of reloadCv a new identity each render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cv?.id])
 
   return {
@@ -371,6 +313,8 @@ export function useCVEditor(cvId?: string): UseCVEditorReturn {
     config,
     loading,
     error,
+    actionError,
+    dismissActionError,
     saveStatus,
     updateContent,
     updateSettings,
