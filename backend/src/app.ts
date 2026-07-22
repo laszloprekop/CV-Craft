@@ -27,9 +27,9 @@ export class CVCraftApp {
   constructor(config: AppConfig = {}) {
     this.app = express();
     this.config = {
-      port: config.port || parseInt(process.env.PORT || '4201'),
+      port: config.port || parseInt(process.env.PORT || '4301'),
       dbPath: config.dbPath || process.env.DATABASE_PATH,
-      corsOrigin: config.corsOrigin || process.env.CORS_ORIGIN || 'http://localhost:4200',
+      corsOrigin: config.corsOrigin || process.env.CORS_ORIGIN || 'http://localhost:4300',
       logLevel: config.logLevel || (process.env.NODE_ENV === 'production' ? 'combined' : 'dev')
     };
   }

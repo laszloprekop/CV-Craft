@@ -2,6 +2,15 @@
 
 All notable changes to CV-Craft will be documented in this file.
 
+## [1.29.4] - 2026-07-22
+
+### Changed
+- **Dev server ports moved 4200/4201 → 4300/4301** to avoid clashes with other local dev apps. Updated `frontend/vite.config.ts`, `backend/src/app.ts` defaults, both `.env.example` files, `start-dev.sh`, `stop-dev.sh`, and all port references across README, CLAUDE.md, ARCHITECTURE.md, API.md, DEV-SCRIPTS-README.md, and UNIFIED_RENDERING_STATUS.md
+- **Frontend API base URL is now the relative path `/api`** — requests route through the Vite dev proxy instead of hardcoding the backend origin, so the backend port is declared in exactly one place (`vite.config.ts`)
+
+### Technical Insights
+- Hardcoding an absolute API origin in `api.ts` meant every port change had to be made in two places, and drifted silently when `.env` disagreed with the fallback. A relative base URL plus the dev proxy makes the frontend origin-agnostic, which also removes CORS from the dev path and works unchanged when frontend and API are served from one origin in production
+
 ## [1.29.3] - 2026-03-22
 
 ### Changed

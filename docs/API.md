@@ -1,6 +1,6 @@
 # CV-Craft API Reference
 
-**Base URL:** `http://localhost:4201/api`
+**Base URL:** `http://localhost:4301/api`
 
 ## Response Formats
 

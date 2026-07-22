@@ -11,10 +11,10 @@
 ```
 
 This script will:
-1. Check and kill any processes on ports 4200 and 4201
+1. Check and kill any processes on ports 4300 and 4301
 2. Verify dependencies are installed
-3. Start backend on port 4201
-4. Start frontend on port 4200
+3. Start backend on port 4301
+4. Start frontend on port 4300
 5. Monitor both servers and restart on crash
 6. Provide clear status messages
 
@@ -78,7 +78,7 @@ tail -n 50 frontend.log
 ```
 
 Common issues:
-- Port 4200 still in use
+- Port 4300 still in use
 - Missing dependencies: `cd frontend && pnpm install`
 - Build errors in TypeScript
 
@@ -87,10 +87,10 @@ Common issues:
 If the stop script doesn't work:
 ```bash
 # Kill backend
-lsof -ti:4201 | xargs kill -9
+lsof -ti:4301 | xargs kill -9
 
 # Kill frontend
-lsof -ti:4200 | xargs kill -9
+lsof -ti:4300 | xargs kill -9
 ```
 
 ## Manual Startup (Alternative)
@@ -112,8 +112,8 @@ pnpm dev
 ## Environment
 
 **Default Ports:**
-- Backend: 4201
-- Frontend: 4200
+- Backend: 4301
+- Frontend: 4300
 
 **Database:**
 - Location: `backend/cv-craft.db`

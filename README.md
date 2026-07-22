@@ -46,9 +46,9 @@ pnpm install
 pnpm dev
 ```
 
-- **Frontend:** http://localhost:4200
-- **Backend API:** http://localhost:4201/api
-- **Health check:** http://localhost:4201/health
+- **Frontend:** http://localhost:4300
+- **Backend API:** http://localhost:4301/api
+- **Health check:** http://localhost:4301/health
 
 ## Project Structure
 
@@ -86,8 +86,8 @@ pnpm test             # Run all tests
 pnpm lint             # Lint all packages
 
 # Package-specific
-cd frontend && pnpm dev        # Frontend only (port 4200)
-cd backend && pnpm dev         # Backend only (port 4201)
+cd frontend && pnpm dev        # Frontend only (port 4300)
+cd backend && pnpm dev         # Backend only (port 4301)
 cd backend && pnpm test        # Backend tests
 cd frontend && pnpm test       # Frontend tests
 ```

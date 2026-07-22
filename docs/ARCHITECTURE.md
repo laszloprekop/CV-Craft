@@ -430,25 +430,29 @@ pnpm test
 ```bash
 # Terminal 1: Backend
 cd backend
-pnpm dev  # Port 4201
+pnpm dev  # Port 4301
 
 # Terminal 2: Frontend
 cd frontend
-pnpm dev  # Port 4200
+pnpm dev  # Port 4300
 ```
 
 ### Environment Variables
 
 **Frontend (.env):**
 ```
-VITE_API_URL=http://localhost:4201/api
+VITE_API_URL=/api
 ```
+
+Defaults to the relative path `/api`, which the Vite dev server proxies to the
+backend (see `frontend/vite.config.ts`). Set an absolute URL only when the
+frontend is served from a different origin than the API.
 
 **Backend (.env):**
 ```
-PORT=4201
+PORT=4301
 DATABASE_PATH=cv-craft.db
-CORS_ORIGIN=http://localhost:4200
+CORS_ORIGIN=http://localhost:4300
 NODE_ENV=development
 ```
 
