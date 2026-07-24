@@ -389,6 +389,40 @@ Three render paths must honour it, and they are easy to miss individually:
 Two UI controls bind to this one field — Styles → Photo and Page → Page Layout —
 so toggling either updates the other with no syncing code.
 
+## The PDF Browser Must Be Health-Checked, Not Null-Checked (v1.30.2)
+
+`PDFGenerator` keeps one Puppeteer browser for the life of the server. The
+original guard was `if (!this.browser) launch()`, which is wrong: a browser that
+has **disconnected** — crashed, killed, or wedged behind a CDP protocol
+mismatch — is not `null`, so it was reused forever and every render hung.
+
+`initialize()` now treats liveness, not existence, as the condition:
+
+- Relaunch when `!this.browser || !this.browser.isConnected()`.
+- A `disconnected` listener nulls the handle the moment Chrome dies.
+- `discardBrowser()` tears the browser down on shutdown and after any failed
+  render, so the next request starts from a fresh one.
+
+Two compounding reasons the wedge was total rather than transient:
+
+- **No per-operation timeouts.** Only `setContent` had one. `newPage`,
+  `page.evaluate('document.fonts.ready')` and `page.pdf()` could hang forever.
+  A `withTimeout()` helper (`Promise.race`) now bounds each at 30s, and the
+  whole render at 90s. Note `document.fonts.ready` is a Promise that never
+  rejects, so a stalled font fetch would otherwise wait indefinitely there.
+- **The serialization queue poisoned itself.** `generateQueue` chains every
+  render sequentially (added in v1.29.2 to avoid saturating Chrome's connection
+  pool). One unbounded hang blocked every request behind it. Bounding the job
+  and discarding the browser on failure keeps a single wedge from becoming an
+  outage.
+
+The root cause is a version gap: Puppeteer 21.11 targets Chrome 121 but drives
+the system Chrome (v150). The recovery logic tolerates the wedges; matching
+Puppeteer to modern Chrome would remove them. `generateSimplePDF`
+(Minimal/Clean) also still used the `networkidle2` wait that caused the original
+v1.29.2 timeout — it now uses `domcontentloaded` plus a bounded font wait like
+the overlay path.
+
 ## 🚀 Future Improvements
 
 1. **Full JSX replacement** - Replace remaining CVPreview JSX with shared renderer output

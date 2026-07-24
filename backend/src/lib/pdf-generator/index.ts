@@ -120,6 +120,30 @@ const VIEWPORT_HEIGHT = 1123
 // Scale from CSS pixels to PDF points
 const CSS_TO_PDF = A4_WIDTH_PT / VIEWPORT_WIDTH
 
+// A single Puppeteer page operation (newPage, evaluate, pdf) should never take
+// this long. When the underlying browser wedges — e.g. a CDP version mismatch —
+// these calls otherwise hang forever with no timeout of their own.
+const PAGE_OP_TIMEOUT_MS = 30000
+// Upper bound on a whole PDF render. Past this the render is treated as failed
+// and the browser is discarded so the next request starts from a clean one.
+const RENDER_TIMEOUT_MS = 90000
+
+/**
+ * Reject if `promise` has not settled within `ms`. The timeout is a real race,
+ * so a Puppeteer call that never resolves against a dead browser surfaces as an
+ * error instead of blocking the request (and the serialization queue) forever.
+ */
+function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
+  let timer: ReturnType<typeof setTimeout>
+  const timeout = new Promise<never>((_, reject) => {
+    timer = setTimeout(
+      () => reject(new Error(`PDF operation timed out after ${ms}ms: ${label}`)),
+      ms,
+    )
+  })
+  return Promise.race([promise, timeout]).finally(() => clearTimeout(timer)) as Promise<T>
+}
+
 // Known Google Fonts (not system fonts)
 const GOOGLE_FONTS = new Set([
   "Inter",
@@ -168,41 +192,80 @@ export class PDFGenerator {
   private generateQueue: Promise<unknown> = Promise.resolve()
 
   /**
-   * Initialize browser instance
+   * Ensure a usable browser is available.
+   *
+   * A browser that has disconnected (crashed, was killed, or wedged behind a
+   * CDP protocol mismatch) is not null, so the old `if (!this.browser)` guard
+   * would reuse a dead handle forever — every subsequent render then hung. We
+   * health-check with isConnected() and relaunch when it fails, and register a
+   * `disconnected` listener so the handle is nulled the moment it dies.
    */
   async initialize(): Promise<void> {
-    if (!this.browser) {
-      // Try system Chrome first (more reliable on macOS), fallback to bundled
-      const possiblePaths = [
-        "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
-        "/Applications/Chromium.app/Contents/MacOS/Chromium",
-      ]
+    if (this.browser && this.browser.isConnected()) {
+      return
+    }
 
-      let executablePath: string | undefined
-      for (const p of possiblePaths) {
-        try {
-          const fsSync = await import("fs")
-          if (fsSync.existsSync(p)) {
-            executablePath = p
-            break
-          }
-        } catch {
-          // Continue to next path
+    // Drop a stale (disconnected) handle before relaunching.
+    if (this.browser) {
+      await this.discardBrowser()
+    }
+
+    // Try system Chrome first (more reliable on macOS), fallback to bundled
+    const possiblePaths = [
+      "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+      "/Applications/Chromium.app/Contents/MacOS/Chromium",
+    ]
+
+    let executablePath: string | undefined
+    for (const p of possiblePaths) {
+      try {
+        const fsSync = await import("fs")
+        if (fsSync.existsSync(p)) {
+          executablePath = p
+          break
         }
+      } catch {
+        // Continue to next path
       }
+    }
 
-      this.browser = await puppeteer.launch({
-        headless: "new",
-        executablePath,
-        args: [
-          "--no-sandbox",
-          "--disable-setuid-sandbox",
-          "--disable-dev-shm-usage",
-          "--disable-gpu",
-          "--disable-software-rasterizer",
-          "--disable-extensions",
-        ],
-      })
+    const browser = await puppeteer.launch({
+      headless: "new",
+      executablePath,
+      args: [
+        "--no-sandbox",
+        "--disable-setuid-sandbox",
+        "--disable-dev-shm-usage",
+        "--disable-gpu",
+        "--disable-software-rasterizer",
+        "--disable-extensions",
+      ],
+    })
+
+    // If Chrome dies underneath us, forget the handle so the next render
+    // relaunches instead of talking to a corpse.
+    browser.on("disconnected", () => {
+      if (this.browser === browser) {
+        this.browser = null
+      }
+    })
+
+    this.browser = browser
+  }
+
+  /**
+   * Tear down the current browser and forget it. Used both on shutdown and to
+   * recover from a wedged render, so the next request gets a fresh browser.
+   */
+  private async discardBrowser(): Promise<void> {
+    const browser = this.browser
+    this.browser = null
+    if (browser) {
+      try {
+        await browser.close()
+      } catch {
+        // Already dead / unresponsive — nothing to close.
+      }
     }
   }
 
@@ -210,10 +273,7 @@ export class PDFGenerator {
    * Close browser instance
    */
   async close(): Promise<void> {
-    if (this.browser) {
-      await this.browser.close()
-      this.browser = null
-    }
+    await this.discardBrowser()
   }
 
   /**
@@ -294,8 +354,22 @@ export class PDFGenerator {
     options: PDFGenerationOptions,
   ): Promise<PDFGenerationResult> {
     // Serialize all PDF generation to prevent concurrent Puppeteer pages
-    // from exhausting Chrome's connection pool when fetching Google Fonts
-    const result = this.generateQueue.then(() => this.doGeneratePDF(options))
+    // from exhausting Chrome's connection pool when fetching Google Fonts.
+    //
+    // Each job is bounded by RENDER_TIMEOUT_MS: without it, one wedged render
+    // never settled, so every request queued behind it hung forever too. On any
+    // failure we discard the browser — a wedge can't recover itself, so the next
+    // job must start from a fresh one rather than inherit the broken handle.
+    const result = this.generateQueue.then(() =>
+      withTimeout(
+        this.doGeneratePDF(options),
+        RENDER_TIMEOUT_MS,
+        "generatePDF",
+      ).catch(async (err) => {
+        await this.discardBrowser()
+        throw err
+      }),
+    )
     this.generateQueue = result.catch(() => {})
     return result
   }
@@ -474,7 +548,11 @@ export class PDFGenerator {
       throw new Error("Browser not initialized")
     }
 
-    const page = await this.browser.newPage()
+    const page = await withTimeout(
+      this.browser.newPage(),
+      PAGE_OP_TIMEOUT_MS,
+      `newPage(${column})`,
+    )
 
     try {
       await page.setViewport({
@@ -501,9 +579,14 @@ export class PDFGenerator {
         timeout: 30000,
       })
 
-      // Wait for fonts to load
+      // Wait for fonts to load. Bounded: document.fonts.ready is a Promise that
+      // never rejects, so without a timeout a stalled font fetch would hang here.
       try {
-        await page.evaluate(`document.fonts.ready`)
+        await withTimeout(
+          page.evaluate(`document.fonts.ready`),
+          PAGE_OP_TIMEOUT_MS,
+          `fonts.ready(${column})`,
+        )
       } catch (err) {
         console.warn("[PDF] Font loading timeout, continuing with fallback fonts")
       }
@@ -513,7 +596,7 @@ export class PDFGenerator {
 
       // Extract link positions before generating PDF
       // Uses string-based evaluate since backend TypeScript target lacks DOM types
-      const links: LinkInfo[] = await page.evaluate(`(function() {
+      const links: LinkInfo[] = await withTimeout(page.evaluate(`(function() {
         var pageHeight = 1123;
         var anchors = document.querySelectorAll('a[href]');
         return Array.from(anchors).map(function(a) {
@@ -528,14 +611,18 @@ export class PDFGenerator {
             pageIndex: pageIndex
           };
         }).filter(function(l) { return l.href && l.width > 0 && l.height > 0; });
-      })()`) as LinkInfo[]
+      })()`), PAGE_OP_TIMEOUT_MS, `links(${column})`) as LinkInfo[]
 
-      const pdfBuffer = await page.pdf({
-        format: "A4",
-        printBackground: true,
-        preferCSSPageSize: true,
-        margin: { top: "0mm", right: "0mm", bottom: "0mm", left: "0mm" },
-      })
+      const pdfBuffer = await withTimeout(
+        page.pdf({
+          format: "A4",
+          printBackground: true,
+          preferCSSPageSize: true,
+          margin: { top: "0mm", right: "0mm", bottom: "0mm", left: "0mm" },
+        }),
+        PAGE_OP_TIMEOUT_MS,
+        `pdf(${column})`,
+      )
 
       return { pdfBytes: pdfBuffer, links }
     } finally {
@@ -556,20 +643,28 @@ export class PDFGenerator {
       throw new Error("Browser not initialized")
     }
 
-    const page = await this.browser.newPage()
+    const page = await withTimeout(
+      this.browser.newPage(),
+      PAGE_OP_TIMEOUT_MS,
+      "newPage(background)",
+    )
 
     try {
       await page.setViewport({ width: 794, height: 1123, deviceScaleFactor: 2 })
 
       const html = generateBackgroundHTML(sidebarColor, mainColor, sidebarWidthMm)
 
-      await page.setContent(html, { waitUntil: "domcontentloaded" })
+      await page.setContent(html, { waitUntil: "domcontentloaded", timeout: PAGE_OP_TIMEOUT_MS })
 
-      const pdfBuffer = await page.pdf({
-        format: "A4",
-        printBackground: true,
-        margin: { top: "0mm", right: "0mm", bottom: "0mm", left: "0mm" },
-      })
+      const pdfBuffer = await withTimeout(
+        page.pdf({
+          format: "A4",
+          printBackground: true,
+          margin: { top: "0mm", right: "0mm", bottom: "0mm", left: "0mm" },
+        }),
+        PAGE_OP_TIMEOUT_MS,
+        "pdf(background)",
+      )
 
       return pdfBuffer
     } finally {
@@ -728,7 +823,11 @@ export class PDFGenerator {
     config: TemplateConfig,
     outputPath: string,
   ): Promise<PDFGenerationResult> {
-    const page = await this.browser!.newPage()
+    const page = await withTimeout(
+      this.browser!.newPage(),
+      PAGE_OP_TIMEOUT_MS,
+      "newPage(simple)",
+    )
 
     try {
       await page.setViewport({ width: 794, height: 1123, deviceScaleFactor: 2 })
@@ -751,28 +850,41 @@ export class PDFGenerator {
         fontsURL,
       })
 
+      // domcontentloaded (not networkidle2): waiting for network idle blocks on
+      // Google Fonts' 16-file CDN fetch and was the original v1.29.2 timeout.
+      // The overlay path already switched away from it; this path had not.
       await page.setContent(html, {
-        waitUntil: ["domcontentloaded", "networkidle2"],
+        waitUntil: "domcontentloaded",
+        timeout: PAGE_OP_TIMEOUT_MS,
       })
 
+      // Bounded font wait, consistent with renderColumnPDF.
       try {
-        await page.waitForSelector(".fonts-loaded", { timeout: 10000 })
+        await withTimeout(
+          page.evaluate(`document.fonts.ready`),
+          PAGE_OP_TIMEOUT_MS,
+          "fonts.ready(simple)",
+        )
       } catch {
-        // Continue
+        console.warn("[PDF] Font loading timeout, continuing with fallback fonts")
       }
 
       // Honour the configured page margins instead of a fixed 20/15mm box
       const cssVariables = generateCSSVariables(config)
-      const pdfBuffer = await page.pdf({
-        format: "A4",
-        printBackground: true,
-        margin: {
-          top: cssVariables["--page-margin-top"] || "20mm",
-          right: cssVariables["--page-margin-right"] || "15mm",
-          bottom: cssVariables["--page-margin-bottom"] || "20mm",
-          left: cssVariables["--page-margin-left"] || "15mm",
-        },
-      })
+      const pdfBuffer = await withTimeout(
+        page.pdf({
+          format: "A4",
+          printBackground: true,
+          margin: {
+            top: cssVariables["--page-margin-top"] || "20mm",
+            right: cssVariables["--page-margin-right"] || "15mm",
+            bottom: cssVariables["--page-margin-bottom"] || "20mm",
+            left: cssVariables["--page-margin-left"] || "15mm",
+          },
+        }),
+        PAGE_OP_TIMEOUT_MS,
+        "pdf(simple)",
+      )
 
       // Post-process with pdf-lib so this path gets page numbers too, and so
       // the page count is read from the document rather than guessed.

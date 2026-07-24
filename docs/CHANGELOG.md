@@ -2,6 +2,17 @@
 
 All notable changes to CV-Craft will be documented in this file.
 
+## [1.30.2] - 2026-07-24
+
+### Fixed
+- **PDF preview timed out indefinitely once the headless browser wedged** — the backend reused a single long-lived Puppeteer browser for the life of the server, guarded only by `if (!this.browser)`. A disconnected browser is not null, so it was never relaunched; with no per-operation timeouts every render then hung, and the global serialization queue chained every later request behind the first hang. Plain API routes stayed fast (~11ms) while `preview-pdf` never returned. `initialize()` now health-checks with `isConnected()` and relaunches, a `disconnected` listener nulls the handle when Chrome dies, every page operation is bounded (30s) and the whole render is bounded (90s), and any failure discards the browser so the next request starts from a fresh one. Verified live: 25s+ hang → ~2-4s success under sequential and concurrent load
+- **Minimal/Clean single-column export shared the original v1.29.2 timeout risk** — `generateSimplePDF` still waited on `networkidle2`, which blocks on Google Fonts' CDN fetch; switched to `domcontentloaded` plus a bounded `document.fonts.ready` wait, matching the two-column overlay path
+
+### Technical Insights
+- **A reused resource needs a liveness check, not a null check.** `isConnected()` distinguishes "no browser" from "dead browser"; the old guard conflated them and never recovered from the second
+- **A serialization queue turns one unbounded hang into a total outage.** Bounding each job and discarding the browser on failure stops a single wedged render from poisoning every request queued behind it
+- The deeper cause is a CDP version gap: Puppeteer 21.11 (built for Chrome 121) drives the system Chrome (v150). The recovery logic tolerates the resulting wedges; matching Puppeteer to modern Chrome would remove them at the source
+
 ## [1.30.1] - 2026-07-22
 
 ### Fixed
