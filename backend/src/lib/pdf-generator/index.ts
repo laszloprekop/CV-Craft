@@ -133,7 +133,7 @@ const RENDER_TIMEOUT_MS = 90000
  * so a Puppeteer call that never resolves against a dead browser surfaces as an
  * error instead of blocking the request (and the serialization queue) forever.
  */
-function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
+export function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
   let timer: ReturnType<typeof setTimeout>
   const timeout = new Promise<never>((_, reject) => {
     timer = setTimeout(
@@ -197,11 +197,12 @@ export class PDFGenerator {
    * A browser that has disconnected (crashed, was killed, or wedged behind a
    * CDP protocol mismatch) is not null, so the old `if (!this.browser)` guard
    * would reuse a dead handle forever — every subsequent render then hung. We
-   * health-check with isConnected() and relaunch when it fails, and register a
-   * `disconnected` listener so the handle is nulled the moment it dies.
+   * health-check with the `connected` getter and relaunch when it fails, and
+   * register a `disconnected` listener so the handle is nulled the moment it
+   * dies.
    */
   async initialize(): Promise<void> {
-    if (this.browser && this.browser.isConnected()) {
+    if (this.browser && this.browser.connected) {
       return
     }
 
@@ -210,37 +211,7 @@ export class PDFGenerator {
       await this.discardBrowser()
     }
 
-    // Try system Chrome first (more reliable on macOS), fallback to bundled
-    const possiblePaths = [
-      "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
-      "/Applications/Chromium.app/Contents/MacOS/Chromium",
-    ]
-
-    let executablePath: string | undefined
-    for (const p of possiblePaths) {
-      try {
-        const fsSync = await import("fs")
-        if (fsSync.existsSync(p)) {
-          executablePath = p
-          break
-        }
-      } catch {
-        // Continue to next path
-      }
-    }
-
-    const browser = await puppeteer.launch({
-      headless: "new",
-      executablePath,
-      args: [
-        "--no-sandbox",
-        "--disable-setuid-sandbox",
-        "--disable-dev-shm-usage",
-        "--disable-gpu",
-        "--disable-software-rasterizer",
-        "--disable-extensions",
-      ],
-    })
+    const browser = await this.launchBrowser()
 
     // If Chrome dies underneath us, forget the handle so the next render
     // relaunches instead of talking to a corpse.
@@ -251,6 +222,46 @@ export class PDFGenerator {
     })
 
     this.browser = browser
+  }
+
+  /**
+   * Launch a browser, preferring Puppeteer's own bundled Chrome.
+   *
+   * The bundled Chrome is version-locked to Puppeteer's CDP client, which is
+   * what prevents the protocol-mismatch wedging that made the old default
+   * (drive the system Chrome, whatever version it happened to be) unreliable.
+   * System Chrome is only a fallback for the rare case the bundled binary can't
+   * launch, so a machine without the download still works.
+   */
+  private async launchBrowser(): Promise<Browser> {
+    const args = [
+      "--no-sandbox",
+      "--disable-setuid-sandbox",
+      "--disable-dev-shm-usage",
+      "--disable-gpu",
+      "--disable-software-rasterizer",
+      "--disable-extensions",
+    ]
+
+    try {
+      // executablePath omitted → Puppeteer uses its matched bundled Chrome.
+      return await puppeteer.launch({ headless: true, args })
+    } catch (bundledErr) {
+      console.warn(
+        "[PDF] Bundled Chrome failed to launch, trying system Chrome:",
+        bundledErr instanceof Error ? bundledErr.message : bundledErr,
+      )
+
+      const fsSync = await import("fs")
+      const fallbackPaths = [
+        "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+        "/Applications/Chromium.app/Contents/MacOS/Chromium",
+      ]
+      const executablePath = fallbackPaths.find((p) => fsSync.existsSync(p))
+      if (!executablePath) throw bundledErr
+
+      return await puppeteer.launch({ headless: true, executablePath, args })
+    }
   }
 
   /**

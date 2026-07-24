@@ -2,6 +2,17 @@
 
 All notable changes to CV-Craft will be documented in this file.
 
+## [1.30.3] - 2026-07-24
+
+### Changed
+- **Upgraded Puppeteer 21.11 → 25.3.0 to close the CDP version gap at its source** — v1.30.2 added recovery for a browser that wedged because Puppeteer 21.11 (built for Chrome 121) was driving the system Chrome (v150). The bump installs a version-matched Chrome (150.0.7871.24) and the generator now prefers that bundled browser, falling back to system Chrome only if the bundled binary can't launch, so the CDP client and the browser are always the same version. Also migrated the two API breaks across the majors: `headless: 'new'` → `headless: true`, and the deprecated `isConnected()` → the `connected` getter
+
+### Added
+- **Regression tests for the PDF browser lifecycle** (`backend/tests/unit/pdfGenerator.test.ts`) — cover `withTimeout` (resolve, propagate rejection, reject on hang) and the reconnect guard (reuse while connected, relaunch + discard when the handle is disconnected, null the handle on the `disconnected` event, fall back to system Chrome when the bundled launch fails). Puppeteer and `fs` are mocked so no real Chrome launches
+
+### Technical Insights
+- The bundled Chrome is the reliable choice precisely because it is version-locked to Puppeteer's CDP client; driving whatever system Chrome happens to be installed is what invited the wedging
+
 ## [1.30.2] - 2026-07-24
 
 ### Fixed
